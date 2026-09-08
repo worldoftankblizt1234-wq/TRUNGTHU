@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đêm Hội Trăng Rằm - TV Screen & Live Host Sync</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            100: '#fffbeb',
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                        },
+                        midnight: '#0c102b',
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0d1329;
+            color: #ffffff;
+            overflow: hidden;
+            user-select: none;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* TV Background from Dropbox */
+        .tv-bg {
+            background-image: 
+                linear-gradient(to bottom, rgba(12, 16, 43, 0.35), rgba(8, 11, 30, 0.75)),
+                url('https://www.dropbox.com/scl/fi/pibk90ps3vugh5k4l0ljj/hinh-nen-trung-thu-11.jpg?rlkey=t6c1b1mlp7mbljgesksnw8wy3&st=0hw24g6h&raw=1');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Glassmorphism panel styling */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        .glass-card {
+            background: rgba(23, 32, 65, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Option selection visual styles */
+        .option-selected {
+            background: rgba(234, 179, 8, 0.35) !important;
+            border-color: #facc15 !important;
+            box-shadow: 0 0 30px rgba(250, 204, 21, 0.6) !important;
+        }
+
+        .option-correct {
+            background: rgba(34, 197, 94, 0.4) !important;
+            border-color: #4ade80 !important;
+            box-shadow: 0 0 35px rgba(74, 222, 128, 0.8) !important;
+            animation: pulse-green 1.5s infinite;
+        }
+
+        .option-wrong {
+            background: rgba(239, 68, 68, 0.35) !important;
+            border-color: #f87171 !important;
+            opacity: 0.5;
+        }
+
+        .text-none-state {
+            color: rgba(255, 255, 255, 0.4) !important;
+            font-style: italic;
+            text-transform: lowercase;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .glow-text {
+            text-shadow: 0 0 12px rgba(250, 204, 21, 0.8), 0 0 24px rgba(234, 179, 8, 0.5);
+        }
+
+        .title-glow {
+            text-shadow: 0 0 18px rgba(255, 215, 0, 0.9), 0 2px 6px rgba(0,0,0,0.9);
+        }
+
+        .floating-lantern {
+            position: absolute;
+            animation: float 6s ease-in-out infinite;
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(250, 204, 21, 0.4);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="tv-bg w-screen h-screen flex flex-col justify-between p-4 md:p-6 relative select-none">
+
+    <!-- Decorative floating lanterns -->
+    <div class="floating-lantern top-6 left-10 text-amber-400 text-3xl filter drop-shadow-lg" style="animation-delay: 0s;">🏮</div>
+    <div class="floating-lantern top-12 left-1/3 text-amber-300 text-4xl filter drop-shadow-lg" style="animation-delay: 2s;">🏮</div>
+    <div class="floating-lantern top-8 right-1/3 text-amber-400 text-2xl filter drop-shadow-lg" style="animation-delay: 4s;">🏮</div>
+
+    <!-- MAIN TV DISPLAY INTERFACE -->
+    <main id="tvDisplayView" class="w-full h-full flex flex-col justify-between gap-4 z-10">
+
+        <header class="w-full flex items-center justify-between px-2 py-1">
+            <div class="flex items-center gap-3">
+                <span class="bg-gradient-to-r from-amber-500 to-yellow-300 text-slate-950 font-black px-4 py-1.5 rounded-full text-sm uppercase tracking-wider shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-tv"></i> ĐÊM HỘI TRUNG THU
+                </span>
+                <span id="questionProgress" class="text-amber-200 font-bold text-lg bg-slate-900/70 px-4 py-1 rounded-full border border-amber-500/30">
+                    CÂU HỎI -- / --
+                </span>
+                <span id="syncBadge" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Realtime Sync Active
+                </span>
+            </div>
+
+            <!-- Timer Center Display -->
+            <div class="flex items-center gap-3 bg-slate-900/80 border border-amber-400/50 px-6 py-1.5 rounded-full shadow-2xl">
+                <i class="fa-solid fa-stopwatch text-amber-400 text-xl animate-pulse"></i>
+                <span id="timerDisplay" class="font-mono text-3xl font-black text-amber-300 tracking-wider">30s</span>
+            </div>
+
+            <!-- TV Controls -->
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAudio()" id="audioBtn" class="bg-slate-800/90 hover:bg-slate-700 text-amber-300 p-2.5 rounded-full border border-amber-500/30 transition" title="Âm thanh TV">
+                    <i class="fa-solid fa-volume-high text-lg"></i>
+                </button>
+                <button onclick="toggleFullscreen()" class="bg-slate-800/90 hover:bg-slate-700 text-amber-300 p-2.5 rounded-full border border-amber-500/30 transition" title="Toàn màn hình">
+                    <i class="fa-solid fa-expand text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="w-full flex-1 grid grid-cols-12 gap-5 my-1 min-h-0">
+
+            <!-- LEFT REGION (Cols 1-8/9): Question Box + 2x2 Grid Options -->
+            <section class="col-span-8 md:col-span-8 lg:col-span-9 flex flex-col justify-between gap-4">
+                
+                <!-- QUESTION BOX (Displays "none" until host sends question) -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 flex-1 flex flex-col justify-center relative overflow-hidden group">
+                    <div class="absolute -top-10 -left-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
+                    
+                    <div class="flex items-start gap-3 mb-2">
+                        <span id="questionCategoryTag" class="text-amber-400 font-bold uppercase tracking-widest text-xs md:text-sm bg-amber-400/10 px-3 py-1 rounded-md border border-amber-400/20">
+                            Thử Thách Đố Vui Trung Thu
+                        </span>
+                    </div>
+
+                    <!-- Question Text (36px font layout, defaults to "none") -->
+                    <h1 id="questionText" class="text-2xl md:text-3xl lg:text-[36px] font-extrabold text-white leading-relaxed tracking-wide title-glow drop-shadow-md text-none-state">
+                        none
+                    </h1>
+                </div>
+
+                <!-- ANSWERS GRID 2x2 (A, B, C, D) (Contents display "none" until host sends) -->
+                <div class="grid grid-cols-2 gap-4 h-48 md:h-56 lg:h-64">
+                    <!-- Option A -->
+                    <div id="btnOptA" class="glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-xl md:text-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                            A
+                        </div>
+                        <span id="textOptA" class="text-base md:text-xl font-bold text-slate-100 line-clamp-2 text-none-state">none</span>
+                        <div id="badgeOptA" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl"></div>
+                    </div>
+
+                    <!-- Option B -->
+                    <div id="btnOptB" class="glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-xl md:text-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                            B
+                        </div>
+                        <span id="textOptB" class="text-base md:text-xl font-bold text-slate-100 line-clamp-2 text-none-state">none</span>
+                        <div id="badgeOptB" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl"></div>
+                    </div>
+
+                    <!-- Option C -->
+                    <div id="btnOptC" class="glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-xl md:text-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                            C
+                        </div>
+                        <span id="textOptC" class="text-base md:text-xl font-bold text-slate-100 line-clamp-2 text-none-state">none</span>
+                        <div id="badgeOptC" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl"></div>
+                    </div>
+
+                    <!-- Option D -->
+                    <div id="btnOptD" class="glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-xl md:text-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                            D
+                        </div>
+                        <span id="textOptD" class="text-base md:text-xl font-bold text-slate-100 line-clamp-2 text-none-state">none</span>
+                        <div id="badgeOptD" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl"></div>
+                    </div>
+                </div>
+
+            </section>
+
+            <aside class="col-span-4 md:col-span-4 lg:col-span-3 glass-panel rounded-2xl p-4 md:p-5 flex flex-col justify-between relative overflow-hidden border-l-2 border-amber-400/40">
+                <div>
+                    <!-- Leaderboard Header -->
+                    <div class="flex items-center justify-between pb-3 border-b border-amber-500/30 mb-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-amber-400 text-xl glow-text"></i>
+                            <h2 class="font-extrabold text-lg md:text-xl text-amber-300 tracking-wider uppercase">BẢNG XẾP HẠNG</h2>
+                        </div>
+                    </div>
+
+                    <!-- Columns Header: TÊN | ĐIỂM -->
+                    <div class="grid grid-cols-12 text-xs md:text-sm font-bold text-amber-200/80 pb-2 px-2 uppercase tracking-widest border-b border-slate-700/60">
+                        <span class="col-span-8">TÊN</span>
+                        <span class="col-span-4 text-right">ĐIỂM</span>
+                    </div>
+
+                    <!-- Scrollable Players List (Displays "none" when showLeaderboard is false) -->
+                    <div id="leaderboardList" class="mt-2 space-y-2 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar pr-1">
+                        <!-- Realtime Populated -->
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-amber-500/20 text-xs text-amber-200/60 flex justify-between items-center">
+                    <span><i class="fa-solid fa-users text-amber-400"></i> Tổng đội: <strong id="totalPlayersCount" class="text-white">0</strong></span>
+                    <span class="text-[10px] text-amber-300/60">Realtime TV Sync</span>
+                </div>
+            </aside>
+
+        </div>
+    </main>
+
+    <!-- FIREBASE REALTIME LISTENER SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvKVqzcPXeZ5ryh69-ig1D7N6arVA28O4",
+            authDomain: "lucky-2dbaa.firebaseapp.com",
+            databaseURL: "https://lucky-2dbaa-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "lucky-2dbaa",
+            storageBucket: "lucky-2dbaa.firebasestorage.app",
+            messagingSenderId: "611841376239",
+            appId: "1:611841376239:web:86ec93a3c75b4da35bc01a",
+            measurementId: "G-6H1ZWHW8PP"
+        };
+
+        // Initialize Firebase App
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const gameStateRef = ref(db, 'trungthu_quiz_state');
+
+        // Local state cache
+        let localState = {
+            showQuestion: false,
+            showLeaderboard: false,
+            currentQuestionIdx: 0,
+            selectedOption: null,
+            isRevealed: false,
+            timerLeft: 30,
+            timerRunning: false,
+            sfxTrigger: null,
+            questions: [],
+            players: []
+        };
+
+        let lastProcessedSfx = null;
+        let audioEnabled = true;
+
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        window.playEffect = function(type) {
+            if (!audioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'tick') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(800, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.04);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } else if (type === 'correct') {
+                    const freqs = [523.25, 659.25, 783.99, 1046.50];
+                    freqs.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.5);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.08);
+                        osc.stop(now + idx * 0.08 + 0.5);
+                    });
+                } else if (type === 'wrong') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.3);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'applause') {
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => window.playEffect('correct'), i * 110);
+                    }
+                }
+            } catch (e) {
+                console.log("Audio API error:", e);
+            }
+        };
+
+        onValue(gameStateRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            localState = data;
+            renderTVDisplay();
+
+            // Remote SFX trigger evaluation
+            if (data.sfxTrigger && data.sfxTrigger.timestamp !== lastProcessedSfx) {
+                lastProcessedSfx = data.sfxTrigger.timestamp;
+                window.playEffect(data.sfxTrigger.type);
+            }
+        });
+
+        // Timer interval tick for TV countdown
+        setInterval(() => {
+            if (localState.timerRunning && localState.timerLeft > 0) {
+                localState.timerLeft--;
+                document.getElementById('timerDisplay').innerText = `${localState.timerLeft}s`;
+                if (localState.timerLeft <= 5) {
+                    window.playEffect('tick');
+                }
+            }
+        }, 1000);
+
+        function renderTVDisplay() {
+            const qList = localState.questions || [];
+            const qIdx = localState.currentQuestionIdx || 0;
+            const currentQ = qList[qIdx];
+
+            document.getElementById('questionProgress').innerText = qList.length > 0 ? `CÂU HỎI ${qIdx + 1} / ${qList.length}` : `CÂU HỎI -- / --`;
+            document.getElementById('timerDisplay').innerText = `${localState.timerLeft !== undefined ? localState.timerLeft : 30}s`;
+
+            const questionEl = document.getElementById('questionText');
+            const optAEl = document.getElementById('textOptA');
+            const optBEl = document.getElementById('textOptB');
+            const optCEl = document.getElementById('textOptC');
+            const optDEl = document.getElementById('textOptD');
+
+            // IF HOST HAS NOT SENT QUESTION -> DISPLAY "none"
+            if (!localState.showQuestion || !currentQ) {
+                questionEl.innerText = "none";
+                questionEl.classList.add('text-none-state');
+
+                optAEl.innerText = "none";
+                optAEl.classList.add('text-none-state');
+                optBEl.innerText = "none";
+                optBEl.classList.add('text-none-state');
+                optCEl.innerText = "none";
+                optCEl.classList.add('text-none-state');
+                optDEl.innerText = "none";
+                optDEl.classList.add('text-none-state');
+
+                ['A', 'B', 'C', 'D'].forEach(k => {
+                    const btn = document.getElementById(`btnOpt${k}`);
+                    const badge = document.getElementById(`badgeOpt${k}`);
+                    btn.className = "glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden";
+                    badge.className = "hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl";
+                    badge.innerHTML = "";
+                    btn.style.opacity = "1";
+                });
+            } else {
+                // HOST HAS SENT QUESTION -> DISPLAY QUESTION & OPTIONS
+                questionEl.innerText = currentQ.question;
+                questionEl.classList.remove('text-none-state');
+
+                optAEl.innerText = currentQ.options.A;
+                optAEl.classList.remove('text-none-state');
+                optBEl.innerText = currentQ.options.B;
+                optBEl.classList.remove('text-none-state');
+                optCEl.innerText = currentQ.options.C;
+                optCEl.classList.remove('text-none-state');
+                optDEl.innerText = currentQ.options.D;
+                optDEl.classList.remove('text-none-state');
+
+                // Highlight options based on state sent by Host
+                const opts = ['A', 'B', 'C', 'D'];
+                opts.forEach(k => {
+                    const btn = document.getElementById(`btnOpt${k}`);
+                    const badge = document.getElementById(`badgeOpt${k}`);
+                    btn.className = "glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden";
+                    badge.className = "hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl";
+                    badge.innerHTML = "";
+                    btn.style.opacity = "1";
+
+                    if (localState.selectedOption === k && !localState.isRevealed) {
+                        btn.classList.add('option-selected');
+                    }
+
+                    if (localState.isRevealed) {
+                        if (k === currentQ.correct) {
+                            btn.classList.add('option-correct');
+                            badge.innerHTML = '✨ <i class="fa-solid fa-circle-check text-green-400"></i>';
+                            badge.classList.remove('hidden');
+                        } else if (k === localState.selectedOption && localState.selectedOption !== currentQ.correct) {
+                            btn.classList.add('option-wrong');
+                            badge.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-400"></i>';
+                            badge.classList.remove('hidden');
+                        } else {
+                            btn.style.opacity = "0.4";
+                        }
+                    }
+                });
+
+                if (localState.isRevealed && localState.selectedOption === currentQ.correct) {
+                    confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+                }
+            }
+
+            renderLeaderboardUI();
+        }
+
+        function renderLeaderboardUI() {
+            const container = document.getElementById('leaderboardList');
+            container.innerHTML = '';
+
+            const totalEl = document.getElementById('totalPlayersCount');
+
+            // IF HOST HAS NOT SENT LEADERBOARD -> DISPLAY "none"
+            if (!localState.showLeaderboard || !localState.players || localState.players.length === 0) {
+                totalEl.innerText = "none";
+                totalEl.className = "text-none-state";
+
+                const noneItem = document.createElement('div');
+                noneItem.className = "bg-slate-900/50 border border-slate-800/80 rounded-xl p-6 text-center text-none-state font-bold text-xl tracking-wider";
+                noneItem.innerText = "none";
+                container.appendChild(noneItem);
+                return;
+            }
+
+            const players = localState.players;
+            totalEl.innerText = players.length;
+            totalEl.className = "text-white font-bold";
+
+            const sorted = [...players].sort((a, b) => b.score - a.score);
+
+            sorted.forEach((player, idx) => {
+                let rankIcon = `<span class="text-xs font-bold text-slate-400 w-5">#${idx + 1}</span>`;
+                if (idx === 0) rankIcon = `<span class="text-lg">👑</span>`;
+                else if (idx === 1) rankIcon = `<span class="text-lg">🥈</span>`;
+                else if (idx === 2) rankIcon = `<span class="text-lg">🥉</span>`;
+
+                const item = document.createElement('div');
+                item.className = "bg-slate-900/70 border border-amber-500/20 rounded-xl p-2.5 flex items-center justify-between hover:border-amber-400/50 transition";
+                item.innerHTML = `
+                    <div class="flex items-center gap-2.5 overflow-hidden pr-2">
+                        ${rankIcon}
+                        <span class="font-bold text-sm text-amber-100 truncate">${player.name}</span>
+                    </div>
+                    <span class="font-mono font-extrabold text-amber-300 text-base">${player.score}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+    </script>
+
+    <script>
+        function toggleAudio() {
+            const btn = document.getElementById('audioBtn');
+            const isMuted = btn.innerHTML.includes('fa-volume-xmark');
+            btn.innerHTML = isMuted ? '<i class="fa-solid fa-volume-high text-lg"></i>' : '<i class="fa-solid fa-volume-xmark text-lg text-red-400"></i>';
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
