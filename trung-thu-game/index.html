@@ -105,7 +105,7 @@
         }
 
         /* ==================================================== */
-        /*         LOADING SCREEN — GỌN, CHỈ CÒN % + BAR        */
+        /*         LOADING SCREEN                                */
         /* ==================================================== */
         #loadingScreen {
             position: fixed;
@@ -192,7 +192,6 @@
             font-weight: 600;
         }
 
-        /* Dải lụa đỏ */
         .silk-bar-container {
             width: 520px;
             max-width: 85%;
@@ -246,7 +245,6 @@
             letter-spacing: 2px;
         }
 
-        /* Network info */
         .network-info {
             display: flex;
             gap: 30px;
@@ -480,7 +478,7 @@
 <body class="tv-bg w-screen h-screen flex flex-col justify-between p-4 md:p-8 relative select-none">
 
     <!-- ==================================================== -->
-    <!--         LOADING SCREEN — GỌN                          -->
+    <!--         LOADING SCREEN                                -->
     <!-- ==================================================== -->
     <div id="loadingScreen">
         <div class="cloud" style="top: 15%; animation-duration: 40s;">☁️</div>
@@ -513,7 +511,7 @@
 
     <!-- AUDIO -->
     <audio id="bgMusic" loop preload="auto" style="display:none;">
-        <source src="https://files.catbox.moe/bctnn5.mp3" type="audio/mpeg">
+        <source src="https://www.dropbox.com/scl/fi/p0aetxf5w0qs3hzyc5f4f/H-a-S-Ng-i-o-H-t-Chi-c-n-ng-Sao-AI-Cover-DQQu-n.mp3?rlkey=iwu0w9gcn1g1f34d1su0i9o22&st=pjo2ula7&raw=1" type="audio/mpeg">
     </audio>
 
     <!-- LOBBY LAYER -->
@@ -700,7 +698,7 @@
         const db = getDatabase(app);
 
         const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
-        const AUDIO_URL = 'https://files.catbox.moe/bctnn5.mp3';
+        const AUDIO_URL = 'https://www.dropbox.com/scl/fi/p0aetxf5w0qs3hzyc5f4f/H-a-S-Ng-i-o-H-t-Chi-c-n-ng-Sao-AI-Cover-DQQu-n.mp3?rlkey=iwu0w9gcn1g1f34d1su0i9o22&st=pjo2ula7&raw=1';
 
         let QUESTIONS = [];
 
@@ -774,8 +772,8 @@
         // LOADING PROGRESS TRACKER
         // ============================================================
         const loadingProgress = {
-            image: { loaded: false, bytes: 0, total: 0, weight: 40 },
-            audio: { loaded: false, bytes: 0, total: 0, weight: 40 },
+            image: { loaded: false, bytes: 0, total: 0, weight: 50 },
+            audio: { loaded: false, bytes: 0, total: 0, weight: 30 },
             quiz:  { loaded: false, bytes: 0, total: 0, weight: 20 },
             speedSamples: [],
             lastBytes: 0,
@@ -786,8 +784,8 @@
                 if (this.image.total > 0) pct += (this.image.bytes / this.image.total) * this.image.weight;
                 else if (this.image.loaded) pct += this.image.weight;
                 
-                if (this.audio.total > 0) pct += (this.audio.bytes / this.audio.total) * this.audio.weight;
-                else if (this.audio.loaded) pct += this.audio.weight;
+                if (this.audio.loaded) pct += this.audio.weight;
+                else if (this.audio.total > 0) pct += (this.audio.bytes / this.audio.total) * this.audio.weight;
                 
                 if (this.quiz.total > 0) pct += (this.quiz.bytes / this.quiz.total) * this.quiz.weight;
                 else if (this.quiz.loaded) pct += this.quiz.weight;
@@ -908,48 +906,45 @@
             });
         }
 
+        // Audio: Dropbox không cho XHR → load trực tiếp qua thẻ audio
         function preloadAudioXHR(url) {
             return new Promise((resolve) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', url, true);
-                xhr.responseType = 'blob';
+                console.log('🎵 Load nhạc qua thẻ audio (Dropbox block XHR)');
+                
+                // Fake progress ban đầu
+                loadingProgress.audio.total = 3000000;
+                loadingProgress.audio.bytes = 0;
+                updateLoadingUI();
 
-                xhr.onprogress = (e) => {
-                    if (e.lengthComputable) {
-                        loadingProgress.audio.total = e.total;
-                        loadingProgress.audio.bytes = e.loaded;
-                    } else {
-                        loadingProgress.audio.bytes = e.loaded;
-                        loadingProgress.audio.total = e.loaded;
+                const fakeProgress = setInterval(() => {
+                    if (loadingProgress.audio.bytes < loadingProgress.audio.total * 0.9) {
+                        loadingProgress.audio.bytes += loadingProgress.audio.total * 0.1;
+                        updateLoadingUI();
                     }
-                    updateLoadingUI();
-                };
+                }, 300);
 
-                xhr.onload = () => {
-                    if (xhr.status === 200) {
-                        loadingProgress.audio.bytes = xhr.response.size || 0;
-                        loadingProgress.audio.total = xhr.response.size || 0;
-                        loadingProgress.audio.loaded = true;
-                        console.log('✅ Nhạc:', formatBytes(loadingProgress.audio.total));
+                const tempAudio = new Audio();
+                tempAudio.preload = 'auto';
+                tempAudio.src = url;
 
-                        const blobUrl = URL.createObjectURL(xhr.response);
-                        bgMusic.src = blobUrl;
-                        bgMusic.load();
-                    } else {
-                        loadingProgress.audio.loaded = true;
-                    }
-                    updateLoadingUI();
-                    resolve();
-                };
-
-                xhr.onerror = () => {
-                    console.warn('⚠️ Nhạc lỗi');
+                const finalize = (success) => {
+                    clearInterval(fakeProgress);
+                    loadingProgress.audio.bytes = loadingProgress.audio.total;
                     loadingProgress.audio.loaded = true;
+                    bgMusic.src = url;
+                    bgMusic.load();
+                    console.log(success ? '✅ Nhạc loaded' : '⚠️ Nhạc lỗi, bỏ qua');
                     updateLoadingUI();
                     resolve();
                 };
 
-                xhr.send();
+                tempAudio.addEventListener('canplaythrough', () => finalize(true), { once: true });
+                tempAudio.addEventListener('error', () => finalize(false), { once: true });
+
+                // Timeout 10s fallback
+                setTimeout(() => {
+                    if (!loadingProgress.audio.loaded) finalize(true);
+                }, 10000);
             });
         }
 
@@ -1012,6 +1007,8 @@
                     ];
                     isQuestionsLoaded = true;
                     loadingProgress.quiz.loaded = true;
+                    loadingProgress.quiz.bytes = 1;
+                    loadingProgress.quiz.total = 1;
                     updateLoadingUI();
                     renderTVUI();
                     resolve();
@@ -1097,7 +1094,7 @@
         }
 
         // ============================================================
-        // RENDER TV UI — KIỂU A
+        // RENDER TV UI
         // ============================================================
         function renderTVUI() {
             const idx = gameState.currentQuestionIndex;
