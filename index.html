@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Đêm Hội Trăng Rằm - TV Screen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,14 +32,25 @@
     </script>
 
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: #0d1329;
             color: #ffffff;
-            overflow: hidden;
             user-select: none;
-            width: 100vw;
-            height: 100vh;
+            -webkit-user-select: none;
         }
 
         .tv-bg {
@@ -118,6 +129,7 @@
             align-items: center;
             overflow: hidden;
             transition: opacity 1s ease;
+            padding: 20px;
         }
 
         #loadingScreen.fade-out {
@@ -171,6 +183,7 @@
             background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             text-align: center;
             letter-spacing: 3px;
             margin-bottom: 8px;
@@ -304,6 +317,7 @@
             justify-content: center;
             align-items: center;
             animation: fadeIn 0.5s ease;
+            padding: 20px;
         }
 
         .blindbox-overlay.active { display: flex; }
@@ -319,9 +333,11 @@
             border-radius: 32px;
             padding: 40px;
             max-width: 800px;
-            width: 90%;
+            width: 100%;
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 60px rgba(255, 215, 0, 0.2);
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 95vh;
+            overflow-y: auto;
         }
 
         @keyframes popIn {
@@ -336,6 +352,7 @@
             background: linear-gradient(135deg, #facc15, #f59e0b, #facc15);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 10px;
         }
 
@@ -386,6 +403,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+            word-break: break-word;
         }
 
         .blindbox-item.host-selected {
@@ -463,25 +481,44 @@
             margin-top: 8px;
         }
 
+        /* ==================================================== */
+        /*         MOBILE OPTIMIZATION                           */
+        /* ==================================================== */
         @media (max-width: 640px) {
-            .blindbox-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-            .blindbox-container { padding: 20px; }
-            .blindbox-title { font-size: 1.5rem; }
-            .blindbox-item .box-icon { font-size: 2.5rem; }
-            .blindbox-item .box-prize { font-size: 1rem; }
-            .loading-title { font-size: 2rem; }
-            .loading-moon { font-size: 4.5rem; }
-            .loading-percent { font-size: 2rem; }
-            .loading-subtitle { font-size: 0.75rem; letter-spacing: 4px; margin-bottom: 30px; }
-            .network-info { font-size: 0.75rem; gap: 15px; flex-wrap: wrap; justify-content: center; }
+            .loading-title { font-size: 1.8rem; letter-spacing: 2px; }
+            .loading-moon { font-size: 4rem; margin-bottom: 10px; }
+            .loading-percent { font-size: 2rem; margin-bottom: 10px; }
+            .loading-subtitle { font-size: 0.7rem; letter-spacing: 4px; margin-bottom: 25px; }
+            .silk-bar-container { height: 12px; margin-bottom: 15px; }
+            .network-info { font-size: 0.65rem; gap: 10px; flex-wrap: wrap; justify-content: center; }
+            .lantern-float { font-size: 2rem !important; }
+
+            .blindbox-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .blindbox-container { padding: 20px 15px; border-radius: 20px; }
+            .blindbox-title { font-size: 1.2rem; }
+            .blindbox-subtitle { font-size: 0.8rem; margin-bottom: 15px; }
+            .blindbox-item { padding: 15px 8px; border-radius: 14px; }
+            .blindbox-item .box-icon { font-size: 2rem; margin-bottom: 4px; }
+            .blindbox-item .box-label { font-size: 0.75rem; }
+            .blindbox-item .box-prize { font-size: 0.8rem; min-height: 30px; }
+            .blindbox-close-btn { padding: 10px 30px; font-size: 0.9rem; }
+            .blindbox-result-message { font-size: 1rem; min-height: 35px; }
+            .host-selection-badge { font-size: 0.6rem; padding: 2px 8px; }
+
+            .floating-lantern { font-size: 2.5rem !important; }
+        }
+
+        @media (max-width: 380px) {
+            .loading-title { font-size: 1.4rem; }
+            .loading-moon { font-size: 3rem; }
+            .blindbox-title { font-size: 1rem; }
+            .blindbox-item .box-icon { font-size: 1.5rem; }
         }
     </style>
 </head>
-<body class="tv-bg w-screen h-screen flex flex-col justify-between p-4 md:p-8 relative select-none">
+<body class="tv-bg w-screen h-screen flex flex-col justify-between p-3 md:p-8 relative select-none">
 
-    <!-- ==================================================== -->
-    <!--         LOADING SCREEN                                -->
-    <!-- ==================================================== -->
+    <!-- LOADING SCREEN -->
     <div id="loadingScreen">
         <div class="cloud" style="top: 15%; animation-duration: 40s;">☁️</div>
         <div class="cloud" style="top: 70%; animation-duration: 55s; animation-delay: -20s;">☁️</div>
@@ -511,7 +548,6 @@
         </div>
     </div>
 
-    <!-- AUDIO: vẫn giữ thẻ audio để fallback -->
     <audio id="bgMusic" loop preload="auto" style="display:none;">
         <source src="music.mp3" type="audio/mpeg">
     </audio>
@@ -527,107 +563,107 @@
         <div class="absolute floating-lantern" style="bottom: 15%; left: 15%; font-size: 3.5rem; animation-delay: 4s;">🥮</div>
         <div class="absolute floating-lantern" style="bottom: 20%; right: 18%; font-size: 3.8rem; animation-delay: 1s;">🥮</div>
         
-        <div class="relative w-full h-full flex flex-col items-center justify-center gap-6 z-10 px-4">
-            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black title-glow text-center"
+        <div class="relative w-full h-full flex flex-col items-center justify-center gap-4 md:gap-6 z-10 px-4">
+            <h1 class="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black title-glow text-center leading-tight"
                 style="font-family: 'Playfair Display', serif;">
                 🌕 ĐÊM HỘI TRĂNG RẰM 🏮
             </h1>
-            <p class="text-xl md:text-3xl text-amber-200 font-bold tracking-widest animate-pulse text-center">
+            <p class="text-base sm:text-xl md:text-3xl text-amber-200 font-bold tracking-widest animate-pulse text-center">
                 ⏳ Đang chờ Host bắt đầu...
             </p>
-            <div class="mt-8 flex gap-4 text-4xl md:text-5xl">
+            <div class="mt-4 md:mt-8 flex gap-3 md:gap-4 text-2xl sm:text-4xl md:text-5xl">
                 <span>🏮</span><span>🥮</span><span>🏮</span><span>🥮</span>
             </div>
-            <p class="mt-12 text-slate-400 text-sm tracking-widest uppercase">
+            <p class="mt-8 md:mt-12 text-slate-400 text-xs md:text-sm tracking-widest uppercase text-center">
                 <i class="fa-solid fa-music mr-2 text-amber-400"></i> Âm nhạc đang phát...
             </p>
         </div>
     </div>
 
     <!-- MAIN DISPLAY -->
-    <main id="tvDisplayView" class="w-full h-full flex flex-col justify-between gap-6 z-10 max-w-7xl mx-auto transition-opacity duration-700 opacity-0 pointer-events-none">
+    <main id="tvDisplayView" class="w-full h-full flex flex-col justify-between gap-3 md:gap-6 z-10 max-w-7xl mx-auto transition-opacity duration-700 opacity-0 pointer-events-none">
 
-        <header class="w-full flex items-center justify-between px-2 py-1">
-            <div class="flex items-center gap-4">
-                <span class="bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 text-slate-950 font-black px-5 py-2 rounded-full text-base md:text-lg uppercase tracking-wider shadow-xl flex items-center gap-2">
-                    <i class="fa-solid fa-tv"></i> ĐÊM HỘI TRUNG THU
+        <header class="w-full flex flex-wrap md:flex-nowrap items-center justify-between gap-2 px-1 md:px-2 py-1">
+            <div class="flex items-center gap-2 md:gap-4 flex-wrap">
+                <span class="bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 text-slate-950 font-black px-3 md:px-5 py-1.5 md:py-2 rounded-full text-xs md:text-lg uppercase tracking-wider shadow-xl flex items-center gap-1 md:gap-2">
+                    <i class="fa-solid fa-tv"></i> <span class="hidden sm:inline">ĐÊM HỘI TRUNG THU</span><span class="sm:hidden">TRUNG THU</span>
                 </span>
-                <span id="questionProgress" class="text-amber-200 font-bold text-lg md:text-xl bg-slate-900/90 px-5 py-1.5 rounded-full border border-amber-500/40 shadow-lg">
+                <span id="questionProgress" class="text-amber-200 font-bold text-xs md:text-xl bg-slate-900/90 px-3 md:px-5 py-1 md:py-1.5 rounded-full border border-amber-500/40 shadow-lg">
                     CÂU HỎI 0 / 0
                 </span>
-                <span id="syncBadge" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs md:text-sm font-semibold px-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
+                <span id="syncBadge" class="hidden md:flex bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs md:text-sm font-semibold px-4 py-1.5 rounded-full items-center gap-2 shadow-lg">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span> Realtime Sync Active
                 </span>
             </div>
 
-            <div class="flex items-center gap-3 bg-slate-900/95 border-2 border-amber-400/60 px-8 py-2 rounded-full shadow-2xl">
-                <i class="fa-solid fa-stopwatch text-amber-400 text-3xl animate-pulse"></i>
-                <span id="timerDisplay" class="font-mono text-3xl md:text-4xl font-black text-amber-300 tracking-wider">15s</span>
+            <div class="flex items-center gap-2 md:gap-3 bg-slate-900/95 border-2 border-amber-400/60 px-3 md:px-8 py-1.5 md:py-2 rounded-full shadow-2xl">
+                <i class="fa-solid fa-stopwatch text-amber-400 text-xl md:text-3xl animate-pulse"></i>
+                <span id="timerDisplay" class="font-mono text-xl md:text-4xl font-black text-amber-300 tracking-wider">15s</span>
             </div>
 
             <div class="flex items-center gap-2">
-                <button id="btnFullscreen" class="bg-slate-800/90 hover:bg-slate-700 text-amber-300 p-3 rounded-full border border-amber-500/40 transition-all duration-200 shadow-xl active:scale-95" title="Toàn màn hình">
-                    <i class="fa-solid fa-expand text-xl"></i>
+                <button id="btnFullscreen" class="bg-slate-800/90 hover:bg-slate-700 text-amber-300 p-2 md:p-3 rounded-full border border-amber-500/40 transition-all duration-200 shadow-xl active:scale-95" title="Toàn màn hình">
+                    <i class="fa-solid fa-expand text-base md:text-xl"></i>
                 </button>
             </div>
         </header>
 
-        <section class="w-full flex-1 flex flex-col justify-between gap-6 my-2">
+        <section class="w-full flex-1 flex flex-col justify-between gap-3 md:gap-6 my-1 md:my-2">
             
-            <div class="glass-panel rounded-3xl p-8 md:p-12 flex-1 flex flex-col justify-center relative overflow-hidden group">
+            <div class="glass-panel rounded-2xl md:rounded-3xl p-4 md:p-12 flex-1 flex flex-col justify-center relative overflow-hidden group">
                 <div class="absolute -top-12 -left-12 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl"></div>
                 <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-indigo-500/15 rounded-full blur-3xl"></div>
                 
-                <div class="flex items-center justify-between gap-4 mb-4">
-                    <span class="text-amber-300 font-extrabold uppercase tracking-widest text-xs md:text-sm bg-amber-400/15 px-4 py-1.5 rounded-xl border border-amber-400/40 shadow-inner">
-                        <i class="fa-solid fa-star text-amber-400 mr-1.5"></i> THỬ THÁCH ĐỐ VUI TRUNG THU
+                <div class="flex items-center justify-between gap-2 md:gap-4 mb-3 md:mb-4 flex-wrap">
+                    <span class="text-amber-300 font-extrabold uppercase tracking-widest text-[10px] md:text-sm bg-amber-400/15 px-2 md:px-4 py-1 md:py-1.5 rounded-lg md:rounded-xl border border-amber-400/40 shadow-inner">
+                        <i class="fa-solid fa-star text-amber-400 mr-1"></i> THỬ THÁCH ĐỐ VUI
                     </span>
-                    <span id="questionStatusTag" class="text-xs md:text-sm font-bold text-slate-300 bg-slate-800/80 px-3.5 py-1.5 rounded-lg border border-slate-700">
+                    <span id="questionStatusTag" class="text-[10px] md:text-sm font-bold text-slate-300 bg-slate-800/80 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-slate-700">
                         Chờ bắt đầu
                     </span>
                 </div>
 
-                <h1 id="questionText" class="text-2xl md:text-4xl lg:text-5xl font-black text-white leading-tight md:leading-snug tracking-wide title-glow drop-shadow-lg min-h-[120px] flex items-center">
+                <h1 id="questionText" class="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-black text-white leading-tight md:leading-snug tracking-wide title-glow drop-shadow-lg min-h-[80px] md:min-h-[120px] flex items-center">
                     Đang chờ Host bắt đầu câu hỏi...
                 </h1>
 
-                <div class="mt-6 w-full bg-slate-950/80 h-3.5 rounded-full overflow-hidden p-0.5 border border-amber-500/30">
+                <div class="mt-3 md:mt-6 w-full bg-slate-950/80 h-2.5 md:h-3.5 rounded-full overflow-hidden p-0.5 border border-amber-500/30">
                     <div id="timerBar" class="timer-progress h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-red-500 rounded-full w-full"></div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 h-auto min-h-[260px] md:min-h-[300px]">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-5 h-auto min-h-[200px] md:min-h-[300px]">
                 
-                <div id="btnOptA" class="glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80">
-                    <div class="flex items-center gap-5 flex-1 min-w-0">
-                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-2xl md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">A</div>
-                        <span id="textOptA" class="text-lg md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                <div id="btnOptA" class="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80">
+                    <div class="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
+                        <div class="w-10 h-10 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-lg md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">A</div>
+                        <span id="textOptA" class="text-sm md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
                     </div>
-                    <div id="badgeOptA" class="hidden text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
+                    <div id="badgeOptA" class="hidden text-xl md:text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
 
-                <div id="btnOptB" class="glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80">
-                    <div class="flex items-center gap-5 flex-1 min-w-0">
-                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-2xl md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">B</div>
-                        <span id="textOptB" class="text-lg md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                <div id="btnOptB" class="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80">
+                    <div class="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
+                        <div class="w-10 h-10 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-lg md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">B</div>
+                        <span id="textOptB" class="text-sm md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
                     </div>
-                    <div id="badgeOptB" class="hidden text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
+                    <div id="badgeOptB" class="hidden text-xl md:text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
 
-                <div id="btnOptC" class="glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80">
-                    <div class="flex items-center gap-5 flex-1 min-w-0">
-                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-2xl md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">C</div>
-                        <span id="textOptC" class="text-lg md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                <div id="btnOptC" class="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80">
+                    <div class="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
+                        <div class="w-10 h-10 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-lg md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">C</div>
+                        <span id="textOptC" class="text-sm md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
                     </div>
-                    <div id="badgeOptC" class="hidden text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
+                    <div id="badgeOptC" class="hidden text-xl md:text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
 
-                <div id="btnOptD" class="glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80">
-                    <div class="flex items-center gap-5 flex-1 min-w-0">
-                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-2xl md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">D</div>
-                        <span id="textOptD" class="text-lg md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                <div id="btnOptD" class="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80">
+                    <div class="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
+                        <div class="w-10 h-10 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-lg md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">D</div>
+                        <span id="textOptD" class="text-sm md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
                     </div>
-                    <div id="badgeOptD" class="hidden text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
+                    <div id="badgeOptD" class="hidden text-xl md:text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
 
             </div>
@@ -678,7 +714,6 @@
         </div>
     </div>
 
-    <!-- SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -700,7 +735,11 @@
         const db = getDatabase(app);
 
         const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
-        const AUDIO_URL = 'music.mp3';
+        
+        // ============================================================
+        // 🎵 CDN MUSIC URL - jsDelivr (nhanh hơn, có server gần VN)
+        // ============================================================
+        const AUDIO_URL = 'https://cdn.jsdelivr.net/gh/worldoftankblizt1234-wq/TRUNGTHU@main/music.mp3';
 
         let QUESTIONS = [];
 
@@ -919,7 +958,7 @@
 
         function preloadAudioXHR(url) {
             return new Promise((resolve) => {
-                console.log('🎵 Bắt đầu load nhạc từ:', url);
+                console.log('🎵 Bắt đầu load nhạc từ CDN:', url);
 
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
@@ -941,7 +980,7 @@
                         const size = xhr.response.byteLength || 0;
                         loadingProgress.audio.bytes = size;
                         loadingProgress.audio.total = size;
-                        console.log('✅ Tải xong file nhạc:', formatBytes(size), '— Bắt đầu decode...');
+                        console.log('✅ Tải xong file nhạc từ CDN:', formatBytes(size), '— Bắt đầu decode...');
 
                         try {
                             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -964,11 +1003,11 @@
                             loadingProgress.audio.loaded = true;
                         }
                     } else {
-                        console.warn('⚠️ Nhạc HTTP', xhr.status);
+                        console.warn('⚠️ Nhạc CDN HTTP', xhr.status, '- Fallback sang file gốc');
                         loadingProgress.audio.loaded = true;
                         loadingProgress.audio.bytes = 1;
                         loadingProgress.audio.total = 1;
-                        bgMusic.src = url;
+                        bgMusic.src = 'music.mp3';
                         bgMusic.load();
                     }
                     updateLoadingUI();
@@ -976,11 +1015,11 @@
                 };
 
                 xhr.onerror = () => {
-                    console.warn('⚠️ Nhạc lỗi XHR');
+                    console.warn('⚠️ Nhạc CDN lỗi XHR - Fallback sang file gốc');
                     loadingProgress.audio.loaded = true;
                     loadingProgress.audio.bytes = 1;
                     loadingProgress.audio.total = 1;
-                    bgMusic.src = url;
+                    bgMusic.src = 'music.mp3';
                     bgMusic.load();
                     updateLoadingUI();
                     resolve();
@@ -988,11 +1027,11 @@
 
                 xhr.timeout = 60000;
                 xhr.ontimeout = () => {
-                    console.warn('⏱️ Timeout load nhạc');
+                    console.warn('⏱️ Timeout load nhạc CDN - Fallback sang file gốc');
                     loadingProgress.audio.loaded = true;
                     loadingProgress.audio.bytes = 1;
                     loadingProgress.audio.total = 1;
-                    bgMusic.src = url;
+                    bgMusic.src = 'music.mp3';
                     bgMusic.load();
                     updateLoadingUI();
                     resolve();
@@ -1097,7 +1136,7 @@
         }
 
         // ============================================================
-        // 🎵 WEB AUDIO API — PHÁT / TẮT NHẠC (FIXED SYNC & AUTOPLAY)
+        // 🎵 WEB AUDIO API — PHÁT / TẮT NHẠC
         // ============================================================
 
         async function ensureAudioContextRunning() {
@@ -1168,7 +1207,7 @@
         }
 
         // ============================================================
-        // AUDIO UNLOCK - CƠ CHẾ MỚI: LUÔN LẮNG NGHE VÀ TỰ ĐỘNG PHÁT LẠI
+        // AUDIO UNLOCK - LUÔN LẮNG NGHE VÀ TỰ ĐỘNG PHÁT LẠI
         // ============================================================
         
         async function attemptAudioUnlock() {
@@ -1203,21 +1242,14 @@
         });
 
         // ============================================================
-        // DISPLAY STATE LISTENER
+        // DISPLAY STATE LISTENER - SỬA LỖI CHUYỂN MÀN HÌNH
         // ============================================================
         onValue(ref(db, 'quizGame/display'), (snap) => {
             if (!snap.exists()) {
                 set(ref(db, 'quizGame/display'), displayState);
                 return;
             }
-            const oldMusicPlaying = displayState.musicPlaying;
             displayState = snap.val();
-            
-            if (oldMusicPlaying === displayState.musicPlaying) {
-                setMusicVolumeWebAudio(displayState.musicVolume);
-                return;
-            }
-
             applyDisplayState();
         });
 
@@ -1235,9 +1267,13 @@
             setMusicVolumeWebAudio(displayState.musicVolume);
 
             if (displayState.musicPlaying) {
-                playMusicWebAudio();
+                if (!audioSource) {
+                    playMusicWebAudio();
+                }
             } else {
-                pauseMusicWebAudio();
+                if (audioSource) {
+                    pauseMusicWebAudio();
+                }
             }
         }
 
@@ -1257,14 +1293,14 @@
                 questionProgress.innerText = `CÂU HỎI 0 / ${QUESTIONS.length}`;
                 questionText.innerText = "Đang chờ Host bắt đầu câu hỏi...";
                 questionStatusTag.innerText = "Đang chờ";
-                questionStatusTag.className = "text-xs md:text-sm font-bold text-slate-400 bg-slate-800/80 px-3.5 py-1.5 rounded-lg border border-slate-700";
+                questionStatusTag.className = "text-[10px] md:text-sm font-bold text-slate-400 bg-slate-800/80 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-slate-700";
 
                 timerDisplay.innerText = `${gameState.timerDuration || 15}s`;
                 timerBar.style.width = '100%';
 
                 optionCards.forEach((opt) => {
                     opt.text.innerText = "---";
-                    opt.card.className = "glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80";
+                    opt.card.className = "glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80";
                     opt.badge.classList.add('hidden');
                     opt.badge.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
                 });
@@ -1288,7 +1324,7 @@
                 const isCorrect = oIdx === q.correctIndex;
                 const isHostSelected = oIdx === hostAnswer;
 
-                let baseClass = "glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden";
+                let baseClass = "glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden";
 
                 if (showResults) {
                     if (isHostSelected && isCorrect) {
@@ -1315,7 +1351,7 @@
 
             if (showResults) {
                 questionStatusTag.innerText = "Đã công bố đáp án";
-                questionStatusTag.className = "text-xs md:text-sm font-bold text-emerald-400 bg-emerald-500/20 px-3.5 py-1.5 rounded-lg border border-emerald-500/40";
+                questionStatusTag.className = "text-[10px] md:text-sm font-bold text-emerald-400 bg-emerald-500/20 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-emerald-500/40";
                 
                 if (!lastConfettiRevealed) {
                     triggerConfetti();
@@ -1323,7 +1359,7 @@
                 }
             } else {
                 questionStatusTag.innerText = "Thời gian làm bài";
-                questionStatusTag.className = "text-xs md:text-sm font-bold text-blue-400 bg-blue-500/20 px-3.5 py-1.5 rounded-lg border border-blue-500/40";
+                questionStatusTag.className = "text-[10px] md:text-sm font-bold text-blue-400 bg-blue-500/20 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-blue-500/40";
                 lastConfettiRevealed = false;
             }
         }
