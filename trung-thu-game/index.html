@@ -3,17 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đêm Hội Trăng Rằm - TV Screen & Live Host Sync</title>
-    
-    <!-- Tailwind CSS CDN -->
+    <title>Đêm Hội Trăng Rằm - TV Screen</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <script>
@@ -22,11 +17,8 @@
                 extend: {
                     colors: {
                         gold: {
-                            100: '#fffbeb',
-                            300: '#fde047',
-                            400: '#facc15',
-                            500: '#eab308',
-                            600: '#ca8a04',
+                            100: '#fffbeb', 300: '#fde047', 400: '#facc15',
+                            500: '#eab308', 600: '#ca8a04',
                         },
                         midnight: '#0c102b',
                     },
@@ -50,57 +42,48 @@
             height: 100vh;
         }
 
-        /* TV Background from Dropbox */
         .tv-bg {
             background-image: 
-                linear-gradient(to bottom, rgba(12, 16, 43, 0.35), rgba(8, 11, 30, 0.75)),
-                url('https://www.dropbox.com/scl/fi/pibk90ps3vugh5k4l0ljj/hinh-nen-trung-thu-11.jpg?rlkey=t6c1b1mlp7mbljgesksnw8wy3&st=0hw24g6h&raw=1');
+                linear-gradient(to bottom, rgba(12, 16, 43, 0.45), rgba(8, 11, 30, 0.85)),
+                url('https://files.catbox.moe/9tm8bl.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
         }
 
-        /* Glassmorphism panel styling */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1.5px solid rgba(255, 215, 0, 0.3);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1.5px solid rgba(255, 215, 0, 0.35);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.55);
         }
 
         .glass-card {
-            background: rgba(23, 32, 65, 0.65);
+            background: rgba(23, 32, 65, 0.8);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Option selection visual styles */
-        .option-selected {
-            background: rgba(234, 179, 8, 0.35) !important;
-            border-color: #facc15 !important;
-            box-shadow: 0 0 30px rgba(250, 204, 21, 0.6) !important;
-        }
-
         .option-correct {
-            background: rgba(34, 197, 94, 0.4) !important;
+            background: rgba(34, 197, 94, 0.35) !important;
             border-color: #4ade80 !important;
-            box-shadow: 0 0 35px rgba(74, 222, 128, 0.8) !important;
+            box-shadow: 0 0 40px rgba(74, 222, 128, 0.8) !important;
             animation: pulse-green 1.5s infinite;
         }
 
-        .option-wrong {
+        .option-wrong-host {
             background: rgba(239, 68, 68, 0.35) !important;
             border-color: #f87171 !important;
-            opacity: 0.5;
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.8) !important;
+            animation: pulse-red 1.5s infinite;
         }
 
-        .text-none-state {
-            color: rgba(255, 255, 255, 0.4) !important;
-            font-style: italic;
-            text-transform: lowercase;
+        .option-dim {
+            opacity: 0.35;
+            filter: grayscale(60%);
         }
 
         @keyframes pulse-green {
@@ -108,179 +91,600 @@
             50% { transform: scale(1.02); }
         }
 
-        .glow-text {
-            text-shadow: 0 0 12px rgba(250, 204, 21, 0.8), 0 0 24px rgba(234, 179, 8, 0.5);
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
 
         .title-glow {
-            text-shadow: 0 0 18px rgba(255, 215, 0, 0.9), 0 2px 6px rgba(0,0,0,0.9);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.9), 0 3px 8px rgba(0,0,0,0.9);
+        }
+
+        .timer-progress {
+            transition: width 0.15s linear;
+        }
+
+        /* ==================================================== */
+        /*         LOADING SCREEN — GỌN, CHỈ CÒN % + BAR        */
+        /* ==================================================== */
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: radial-gradient(circle at 50% 40%, #1c1f3a 0%, #0a0d1f 60%, #030510 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            transition: opacity 1s ease;
+        }
+
+        #loadingScreen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .cloud {
+            position: absolute;
+            font-size: 6rem;
+            opacity: 0.15;
+            pointer-events: none;
+            animation: cloudMove linear infinite;
+            filter: blur(2px);
+        }
+
+        @keyframes cloudMove {
+            from { transform: translateX(-20vw); }
+            to { transform: translateX(120vw); }
+        }
+
+        .lantern-float {
+            position: absolute;
+            font-size: 3rem;
+            animation: lanternFloat ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 150, 50, 0.8));
+        }
+
+        @keyframes lanternFloat {
+            0%, 100% { transform: translateY(0) rotate(-5deg); opacity: 0.7; }
+            50% { transform: translateY(-40px) rotate(5deg); opacity: 1; }
+        }
+
+        .loading-moon {
+            font-size: 7rem;
+            filter: drop-shadow(0 0 60px rgba(250, 204, 21, 0.8));
+            animation: moonPulse 3s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes moonPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .loading-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #facc15, #f59e0b, #fde047, #facc15);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .loading-subtitle {
+            color: #fbbf24;
+            font-size: 1rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 50px;
+            opacity: 0.85;
+            font-weight: 600;
+        }
+
+        /* Dải lụa đỏ */
+        .silk-bar-container {
+            width: 520px;
+            max-width: 85%;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid rgba(250, 204, 21, 0.4);
+            box-shadow: 0 0 30px rgba(250, 204, 21, 0.2), inset 0 0 15px rgba(0, 0, 0, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .silk-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #dc2626, #ef4444, #f87171, #facc15, #fde047);
+            background-size: 200% 100%;
+            border-radius: 999px;
+            transition: width 0.3s ease;
+            position: relative;
+            animation: silkShine 2s linear infinite;
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.8), 0 0 40px rgba(239, 68, 68, 0.5);
+        }
+
+        @keyframes silkShine {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .silk-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 1.5s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .loading-percent {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #facc15;
+            font-family: 'Playfair Display', serif;
+            text-shadow: 0 0 30px rgba(250, 204, 21, 0.9);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        /* Network info */
+        .network-info {
+            display: flex;
+            gap: 30px;
+            color: #94a3b8;
+            font-family: monospace;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .network-info span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .network-info i {
+            color: #facc15;
+        }
+
+        /* LOBBY */
+        #lobbyLayer {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            transition: opacity 0.8s ease;
+        }
+
+        #lobbyLayer.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .floating-lantern {
-            position: absolute;
             animation: float 6s ease-in-out infinite;
             pointer-events: none;
-            opacity: 0.85;
+            opacity: 0.9;
         }
 
         @keyframes float {
             0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(3deg); }
+            50% { transform: translateY(-18px) rotate(4deg); }
             100% { transform: translateY(0px) rotate(0deg); }
         }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
+        /* BLINDBOX */
+        .blindbox-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.5s ease;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
+
+        .blindbox-overlay.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(250, 204, 21, 0.4);
-            border-radius: 10px;
+
+        .blindbox-container {
+            background: linear-gradient(145deg, #1a1a3e, #0d1329);
+            border: 2px solid rgba(255, 215, 0, 0.6);
+            border-radius: 32px;
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 60px rgba(255, 215, 0, 0.2);
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.5) rotate(-5deg); }
+            to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        .blindbox-title {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #facc15, #f59e0b, #facc15);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .blindbox-subtitle {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .blindbox-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .blindbox-item {
+            background: linear-gradient(145deg, rgba(30, 41, 82, 0.9), rgba(15, 23, 42, 0.9));
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blindbox-item .box-icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .blindbox-item .box-label {
+            color: #e2e8f0;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .blindbox-item .box-prize {
+            color: #facc15;
+            font-weight: 800;
+            font-size: 1.3rem;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .blindbox-item.host-selected {
+            border-color: #facc15 !important;
+            box-shadow: 0 0 60px rgba(250, 204, 21, 0.7), inset 0 0 30px rgba(250, 204, 21, 0.2) !important;
+            animation: hostSelectPulse 1.2s ease-in-out infinite;
+            transform: scale(1.05);
+        }
+
+        @keyframes hostSelectPulse {
+            0%, 100% { box-shadow: 0 0 40px rgba(250, 204, 21, 0.5); transform: scale(1.05); }
+            50% { box-shadow: 0 0 80px rgba(250, 204, 21, 0.9); transform: scale(1.08); }
+        }
+
+        .blindbox-item.revealed {
+            border-color: #4ade80 !important;
+            box-shadow: 0 0 40px rgba(74, 222, 128, 0.5) !important;
+            animation: none !important;
+            transform: scale(1) !important;
+        }
+
+        .blindbox-item.revealed .box-prize { color: #4ade80 !important; }
+
+        .blindbox-item.waiting {
+            opacity: 0.6;
+            filter: grayscale(30%);
+        }
+
+        .blindbox-close-btn {
+            display: block;
+            margin: 0 auto;
+            padding: 12px 40px;
+            background: linear-gradient(135deg, #facc15, #f59e0b);
+            border: none;
+            border-radius: 50px;
+            color: #0d1329;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(250, 204, 21, 0.4);
+        }
+
+        .blindbox-close-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(250, 204, 21, 0.6);
+        }
+
+        .blindbox-close-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .blindbox-result-message {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4ade80;
+            margin-top: 15px;
+            min-height: 50px;
+        }
+
+        .blindbox-result-message.lucky { color: #facc15 !important; }
+
+        .host-selection-badge {
+            display: inline-block;
+            background: rgba(148, 163, 184, 0.15);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #94a3b8;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 640px) {
+            .blindbox-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .blindbox-container { padding: 20px; }
+            .blindbox-title { font-size: 1.5rem; }
+            .blindbox-item .box-icon { font-size: 2.5rem; }
+            .blindbox-item .box-prize { font-size: 1rem; }
+            .loading-title { font-size: 2rem; }
+            .loading-moon { font-size: 4.5rem; }
+            .loading-percent { font-size: 2rem; }
+            .loading-subtitle { font-size: 0.75rem; letter-spacing: 4px; margin-bottom: 30px; }
+            .network-info { font-size: 0.75rem; gap: 15px; flex-wrap: wrap; justify-content: center; }
         }
     </style>
 </head>
-<body class="tv-bg w-screen h-screen flex flex-col justify-between p-4 md:p-6 relative select-none">
+<body class="tv-bg w-screen h-screen flex flex-col justify-between p-4 md:p-8 relative select-none">
 
-    <!-- Decorative floating lanterns -->
-    <div class="floating-lantern top-6 left-10 text-amber-400 text-3xl filter drop-shadow-lg" style="animation-delay: 0s;">🏮</div>
-    <div class="floating-lantern top-12 left-1/3 text-amber-300 text-4xl filter drop-shadow-lg" style="animation-delay: 2s;">🏮</div>
-    <div class="floating-lantern top-8 right-1/3 text-amber-400 text-2xl filter drop-shadow-lg" style="animation-delay: 4s;">🏮</div>
+    <!-- ==================================================== -->
+    <!--         LOADING SCREEN — GỌN                          -->
+    <!-- ==================================================== -->
+    <div id="loadingScreen">
+        <div class="cloud" style="top: 15%; animation-duration: 40s;">☁️</div>
+        <div class="cloud" style="top: 70%; animation-duration: 55s; animation-delay: -20s;">☁️</div>
+        <div class="cloud" style="top: 45%; animation-duration: 48s; animation-delay: -10s;">☁️</div>
 
-    <!-- MAIN TV DISPLAY INTERFACE -->
-    <main id="tvDisplayView" class="w-full h-full flex flex-col justify-between gap-4 z-10">
+        <div class="lantern-float" style="top: 12%; left: 12%; animation-duration: 5s;">🏮</div>
+        <div class="lantern-float" style="top: 20%; left: 22%; animation-duration: 6s; animation-delay: 1s; font-size: 2.5rem;">🏮</div>
+        <div class="lantern-float" style="top: 15%; right: 12%; animation-duration: 5.5s; animation-delay: 2s;">🏮</div>
+        <div class="lantern-float" style="top: 25%; right: 22%; animation-duration: 6.5s; animation-delay: 0.5s; font-size: 2.8rem;">🏮</div>
+        <div class="lantern-float" style="bottom: 18%; left: 8%; animation-duration: 7s; animation-delay: 1.5s; font-size: 2.4rem;">🏮</div>
+        <div class="lantern-float" style="bottom: 20%; right: 8%; animation-duration: 6s; animation-delay: 3s; font-size: 2.6rem;">🏮</div>
+
+        <div class="loading-moon">🌕</div>
+        <div class="loading-title">ĐÊM HỘI TRĂNG RẰM</div>
+        <div class="loading-subtitle">✦ Đang khởi động ✦</div>
+
+        <div class="silk-bar-container">
+            <div id="silkBarFill" class="silk-bar-fill"></div>
+        </div>
+
+        <div id="loadingPercent" class="loading-percent">0%</div>
+
+        <div class="network-info">
+            <span><i class="fa-solid fa-gauge-high"></i> <span id="netSpeed">0 KB/s</span></span>
+            <span><i class="fa-solid fa-database"></i> <span id="netLoaded">0 KB / 0 KB</span></span>
+            <span><i class="fa-solid fa-clock"></i> <span id="netEta">--</span></span>
+        </div>
+    </div>
+
+    <!-- AUDIO -->
+    <audio id="bgMusic" loop preload="auto" style="display:none;">
+        <source src="https://files.catbox.moe/bctnn5.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- LOBBY LAYER -->
+    <div id="lobbyLayer" class="hidden">
+        <div class="absolute inset-0 bg-cover bg-center"
+             style="background-image: url('https://files.catbox.moe/9tm8bl.png');"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80"></div>
+        
+        <div class="absolute floating-lantern" style="top: 10%; left: 8%; font-size: 4rem;">🏮</div>
+        <div class="absolute floating-lantern" style="top: 20%; right: 12%; font-size: 4.5rem; animation-delay: 2s;">🏮</div>
+        <div class="absolute floating-lantern" style="bottom: 15%; left: 15%; font-size: 3.5rem; animation-delay: 4s;">🥮</div>
+        <div class="absolute floating-lantern" style="bottom: 20%; right: 18%; font-size: 3.8rem; animation-delay: 1s;">🥮</div>
+        
+        <div class="relative w-full h-full flex flex-col items-center justify-center gap-6 z-10 px-4">
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black title-glow text-center"
+                style="font-family: 'Playfair Display', serif;">
+                🌕 ĐÊM HỘI TRĂNG RẰM 🏮
+            </h1>
+            <p class="text-xl md:text-3xl text-amber-200 font-bold tracking-widest animate-pulse text-center">
+                ⏳ Đang chờ Host bắt đầu...
+            </p>
+            <div class="mt-8 flex gap-4 text-4xl md:text-5xl">
+                <span>🏮</span><span>🥮</span><span>🏮</span><span>🥮</span>
+            </div>
+            <p class="mt-12 text-slate-400 text-sm tracking-widest uppercase">
+                <i class="fa-solid fa-music mr-2 text-amber-400"></i> Âm nhạc đang phát...
+            </p>
+        </div>
+    </div>
+
+    <!-- MAIN DISPLAY -->
+    <main id="tvDisplayView" class="w-full h-full flex flex-col justify-between gap-6 z-10 max-w-7xl mx-auto transition-opacity duration-700 opacity-0 pointer-events-none">
 
         <header class="w-full flex items-center justify-between px-2 py-1">
-            <div class="flex items-center gap-3">
-                <span class="bg-gradient-to-r from-amber-500 to-yellow-300 text-slate-950 font-black px-4 py-1.5 rounded-full text-sm uppercase tracking-wider shadow-lg flex items-center gap-2">
+            <div class="flex items-center gap-4">
+                <span class="bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 text-slate-950 font-black px-5 py-2 rounded-full text-base md:text-lg uppercase tracking-wider shadow-xl flex items-center gap-2">
                     <i class="fa-solid fa-tv"></i> ĐÊM HỘI TRUNG THU
                 </span>
-                <span id="questionProgress" class="text-amber-200 font-bold text-lg bg-slate-900/70 px-4 py-1 rounded-full border border-amber-500/30">
-                    CÂU HỎI -- / --
+                <span id="questionProgress" class="text-amber-200 font-bold text-lg md:text-xl bg-slate-900/90 px-5 py-1.5 rounded-full border border-amber-500/40 shadow-lg">
+                    CÂU HỎI 0 / 0
                 </span>
-                <span id="syncBadge" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Realtime Sync Active
+                <span id="syncBadge" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs md:text-sm font-semibold px-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span> Realtime Sync Active
                 </span>
             </div>
 
-            <!-- Timer Center Display -->
-            <div class="flex items-center gap-3 bg-slate-900/80 border border-amber-400/50 px-6 py-1.5 rounded-full shadow-2xl">
-                <i class="fa-solid fa-stopwatch text-amber-400 text-xl animate-pulse"></i>
-                <span id="timerDisplay" class="font-mono text-3xl font-black text-amber-300 tracking-wider">30s</span>
+            <div class="flex items-center gap-3 bg-slate-900/95 border-2 border-amber-400/60 px-8 py-2 rounded-full shadow-2xl">
+                <i class="fa-solid fa-stopwatch text-amber-400 text-3xl animate-pulse"></i>
+                <span id="timerDisplay" class="font-mono text-3xl md:text-4xl font-black text-amber-300 tracking-wider">15s</span>
             </div>
 
-            <!-- TV Controls -->
             <div class="flex items-center gap-2">
-                <button onclick="toggleAudio()" id="audioBtn" class="bg-slate-800/90 hover:bg-slate-700 text-amber-300 p-2.5 rounded-full border border-amber-500/30 transition" title="Âm thanh TV">
-                    <i class="fa-solid fa-volume-high text-lg"></i>
-                </button>
-                <button onclick="toggleFullscreen()" class="bg-slate-800/90 hover:bg-slate-700 text-amber-300 p-2.5 rounded-full border border-amber-500/30 transition" title="Toàn màn hình">
-                    <i class="fa-solid fa-expand text-lg"></i>
+                <button id="btnFullscreen" class="bg-slate-800/90 hover:bg-slate-700 text-amber-300 p-3 rounded-full border border-amber-500/40 transition-all duration-200 shadow-xl active:scale-95" title="Toàn màn hình">
+                    <i class="fa-solid fa-expand text-xl"></i>
                 </button>
             </div>
         </header>
 
-        <div class="w-full flex-1 grid grid-cols-12 gap-5 my-1 min-h-0">
-
-            <!-- LEFT REGION (Cols 1-8/9): Question Box + 2x2 Grid Options -->
-            <section class="col-span-8 md:col-span-8 lg:col-span-9 flex flex-col justify-between gap-4">
+        <section class="w-full flex-1 flex flex-col justify-between gap-6 my-2">
+            
+            <div class="glass-panel rounded-3xl p-8 md:p-12 flex-1 flex flex-col justify-center relative overflow-hidden group">
+                <div class="absolute -top-12 -left-12 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-indigo-500/15 rounded-full blur-3xl"></div>
                 
-                <!-- QUESTION BOX (Displays "none" until host sends question) -->
-                <div class="glass-panel rounded-2xl p-6 md:p-8 flex-1 flex flex-col justify-center relative overflow-hidden group">
-                    <div class="absolute -top-10 -left-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
-                    
-                    <div class="flex items-start gap-3 mb-2">
-                        <span id="questionCategoryTag" class="text-amber-400 font-bold uppercase tracking-widest text-xs md:text-sm bg-amber-400/10 px-3 py-1 rounded-md border border-amber-400/20">
-                            Thử Thách Đố Vui Trung Thu
-                        </span>
-                    </div>
-
-                    <!-- Question Text (36px font layout, defaults to "none") -->
-                    <h1 id="questionText" class="text-2xl md:text-3xl lg:text-[36px] font-extrabold text-white leading-relaxed tracking-wide title-glow drop-shadow-md text-none-state">
-                        none
-                    </h1>
+                <div class="flex items-center justify-between gap-4 mb-4">
+                    <span class="text-amber-300 font-extrabold uppercase tracking-widest text-xs md:text-sm bg-amber-400/15 px-4 py-1.5 rounded-xl border border-amber-400/40 shadow-inner">
+                        <i class="fa-solid fa-star text-amber-400 mr-1.5"></i> THỬ THÁCH ĐỐ VUI TRUNG THU
+                    </span>
+                    <span id="questionStatusTag" class="text-xs md:text-sm font-bold text-slate-300 bg-slate-800/80 px-3.5 py-1.5 rounded-lg border border-slate-700">
+                        Chờ bắt đầu
+                    </span>
                 </div>
 
-                <!-- ANSWERS GRID 2x2 (A, B, C, D) (Contents display "none" until host sends) -->
-                <div class="grid grid-cols-2 gap-4 h-48 md:h-56 lg:h-64">
-                    <!-- Option A -->
-                    <div id="btnOptA" class="glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
-                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-xl md:text-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                            A
-                        </div>
-                        <span id="textOptA" class="text-base md:text-xl font-bold text-slate-100 line-clamp-2 text-none-state">none</span>
-                        <div id="badgeOptA" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl"></div>
-                    </div>
+                <h1 id="questionText" class="text-2xl md:text-4xl lg:text-5xl font-black text-white leading-tight md:leading-snug tracking-wide title-glow drop-shadow-lg min-h-[120px] flex items-center">
+                    Đang chờ Host bắt đầu câu hỏi...
+                </h1>
 
-                    <!-- Option B -->
-                    <div id="btnOptB" class="glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
-                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-xl md:text-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                            B
-                        </div>
-                        <span id="textOptB" class="text-base md:text-xl font-bold text-slate-100 line-clamp-2 text-none-state">none</span>
-                        <div id="badgeOptB" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl"></div>
-                    </div>
+                <div class="mt-6 w-full bg-slate-950/80 h-3.5 rounded-full overflow-hidden p-0.5 border border-amber-500/30">
+                    <div id="timerBar" class="timer-progress h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-red-500 rounded-full w-full"></div>
+                </div>
+            </div>
 
-                    <!-- Option C -->
-                    <div id="btnOptC" class="glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
-                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-xl md:text-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                            C
-                        </div>
-                        <span id="textOptC" class="text-base md:text-xl font-bold text-slate-100 line-clamp-2 text-none-state">none</span>
-                        <div id="badgeOptC" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 h-auto min-h-[260px] md:min-h-[300px]">
+                
+                <div id="btnOptA" class="glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80">
+                    <div class="flex items-center gap-5 flex-1 min-w-0">
+                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-2xl md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">A</div>
+                        <span id="textOptA" class="text-lg md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
                     </div>
-
-                    <!-- Option D -->
-                    <div id="btnOptD" class="glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
-                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-xl md:text-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                            D
-                        </div>
-                        <span id="textOptD" class="text-base md:text-xl font-bold text-slate-100 line-clamp-2 text-none-state">none</span>
-                        <div id="badgeOptD" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl"></div>
-                    </div>
+                    <div id="badgeOptA" class="hidden text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
 
-            </section>
-
-            <aside class="col-span-4 md:col-span-4 lg:col-span-3 glass-panel rounded-2xl p-4 md:p-5 flex flex-col justify-between relative overflow-hidden border-l-2 border-amber-400/40">
-                <div>
-                    <!-- Leaderboard Header -->
-                    <div class="flex items-center justify-between pb-3 border-b border-amber-500/30 mb-3">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-trophy text-amber-400 text-xl glow-text"></i>
-                            <h2 class="font-extrabold text-lg md:text-xl text-amber-300 tracking-wider uppercase">BẢNG XẾP HẠNG</h2>
-                        </div>
+                <div id="btnOptB" class="glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80">
+                    <div class="flex items-center gap-5 flex-1 min-w-0">
+                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-2xl md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">B</div>
+                        <span id="textOptB" class="text-lg md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
                     </div>
-
-                    <!-- Columns Header: TÊN | ĐIỂM -->
-                    <div class="grid grid-cols-12 text-xs md:text-sm font-bold text-amber-200/80 pb-2 px-2 uppercase tracking-widest border-b border-slate-700/60">
-                        <span class="col-span-8">TÊN</span>
-                        <span class="col-span-4 text-right">ĐIỂM</span>
-                    </div>
-
-                    <!-- Scrollable Players List (Displays "none" when showLeaderboard is false) -->
-                    <div id="leaderboardList" class="mt-2 space-y-2 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar pr-1">
-                        <!-- Realtime Populated -->
-                    </div>
+                    <div id="badgeOptB" class="hidden text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
 
-                <div class="pt-3 border-t border-amber-500/20 text-xs text-amber-200/60 flex justify-between items-center">
-                    <span><i class="fa-solid fa-users text-amber-400"></i> Tổng đội: <strong id="totalPlayersCount" class="text-white">0</strong></span>
-                    <span class="text-[10px] text-amber-300/60">Realtime TV Sync</span>
+                <div id="btnOptC" class="glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80">
+                    <div class="flex items-center gap-5 flex-1 min-w-0">
+                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-2xl md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">C</div>
+                        <span id="textOptC" class="text-lg md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                    </div>
+                    <div id="badgeOptC" class="hidden text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
-            </aside>
 
-        </div>
+                <div id="btnOptD" class="glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80">
+                    <div class="flex items-center gap-5 flex-1 min-w-0">
+                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-2xl md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">D</div>
+                        <span id="textOptD" class="text-lg md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                    </div>
+                    <div id="badgeOptD" class="hidden text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
+                </div>
+
+            </div>
+        </section>
+
     </main>
 
-    <!-- FIREBASE REALTIME LISTENER SCRIPT -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    <!-- BLINDBOX -->
+    <div id="blindboxOverlay" class="blindbox-overlay">
+        <div class="blindbox-container">
+            <div class="blindbox-title">
+                <i class="fa-solid fa-gift text-amber-400 mr-3"></i>
+                CHỌN HỘP QUÀ CỦA BẠN
+            </div>
+            <div class="blindbox-subtitle" id="blindboxSubtitle">
+                🎯 Host đang chọn hộp quà cho bạn...
+            </div>
+            
+            <div class="blindbox-grid" id="blindboxGrid">
+                <div class="blindbox-item waiting" data-box="0">
+                    <span class="box-icon">🎁</span>
+                    <div class="box-label">HỘP 1</div>
+                    <div class="box-prize" id="prize0">❓</div>
+                    <div class="host-selection-badge" id="badge0">⏳ Đang chờ...</div>
+                </div>
+                
+                <div class="blindbox-item waiting" data-box="1">
+                    <span class="box-icon">🎁</span>
+                    <div class="box-label">HỘP 2</div>
+                    <div class="box-prize" id="prize1">❓</div>
+                    <div class="host-selection-badge" id="badge1">⏳ Đang chờ...</div>
+                </div>
+                
+                <div class="blindbox-item waiting" data-box="2">
+                    <span class="box-icon">🎁</span>
+                    <div class="box-label">HỘP 3</div>
+                    <div class="box-prize" id="prize2">❓</div>
+                    <div class="host-selection-badge" id="badge2">⏳ Đang chờ...</div>
+                </div>
+            </div>
+            
+            <div id="blindboxResult" class="blindbox-result-message"></div>
+            
+            <button id="blindboxCloseBtn" class="blindbox-close-btn" disabled>
+                <i class="fa-solid fa-check mr-2"></i>
+                ĐÓNG
+            </button>
+        </div>
+    </div>
 
-        // Firebase Configuration
+    <!-- SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const WORKER_URL = "https://qsttrungthu.anhminhadof123.workers.dev";
+
         const firebaseConfig = {
             apiKey: "AIzaSyBvKVqzcPXeZ5ryh69-ig1D7N6arVA28O4",
             authDomain: "lucky-2dbaa.firebaseapp.com",
@@ -292,270 +696,679 @@
             measurementId: "G-6H1ZWHW8PP"
         };
 
-        // Initialize Firebase App
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const gameStateRef = ref(db, 'trungthu_quiz_state');
 
-        // Local state cache
-        let localState = {
-            showQuestion: false,
-            showLeaderboard: false,
-            currentQuestionIdx: 0,
-            selectedOption: null,
-            isRevealed: false,
-            timerLeft: 30,
-            timerRunning: false,
-            sfxTrigger: null,
-            questions: [],
-            players: []
+        const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
+        const AUDIO_URL = 'https://files.catbox.moe/bctnn5.mp3';
+
+        let QUESTIONS = [];
+
+        let gameState = {
+            currentQuestionIndex: -1,
+            status: 'LOBBY',
+            timerDuration: 15,
+            showResults: false,
+            timerEndTimestamp: 0,
+            hostAnswer: -1,
+            hostAnswerCorrect: false
         };
 
-        let lastProcessedSfx = null;
-        let audioEnabled = true;
+        let displayState = {
+            mode: 'LOBBY',
+            musicPlaying: false,
+            musicVolume: 0.5
+        };
 
-        let audioCtx = null;
-        function getAudioContext() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            return audioCtx;
+        let localTimerInterval = null;
+        let lastConfettiRevealed = false;
+        let isQuestionsLoaded = false;
+        let lastBlindboxSignature = '';
+        let lastRevealedState = false;
+        let musicUnlocked = false;
+        let isReady = false;
+
+        // DOM
+        const loadingScreen = document.getElementById('loadingScreen');
+        const silkBarFill = document.getElementById('silkBarFill');
+        const loadingPercent = document.getElementById('loadingPercent');
+        const netSpeed = document.getElementById('netSpeed');
+        const netLoaded = document.getElementById('netLoaded');
+        const netEta = document.getElementById('netEta');
+
+        const bgMusic = document.getElementById('bgMusic');
+        const lobbyLayer = document.getElementById('lobbyLayer');
+        const tvDisplayView = document.getElementById('tvDisplayView');
+
+        const questionProgress = document.getElementById('questionProgress');
+        const questionText = document.getElementById('questionText');
+        const questionStatusTag = document.getElementById('questionStatusTag');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerBar = document.getElementById('timerBar');
+        const btnFullscreen = document.getElementById('btnFullscreen');
+
+        const blindboxOverlay = document.getElementById('blindboxOverlay');
+        const blindboxGrid = document.getElementById('blindboxGrid');
+        const blindboxResult = document.getElementById('blindboxResult');
+        const blindboxSubtitle = document.getElementById('blindboxSubtitle');
+        const blindboxCloseBtn = document.getElementById('blindboxCloseBtn');
+        const prizeElements = [
+            document.getElementById('prize0'),
+            document.getElementById('prize1'),
+            document.getElementById('prize2')
+        ];
+        const badgeElements = [
+            document.getElementById('badge0'),
+            document.getElementById('badge1'),
+            document.getElementById('badge2')
+        ];
+
+        const optionCards = [
+            { card: document.getElementById('btnOptA'), text: document.getElementById('textOptA'), badge: document.getElementById('badgeOptA') },
+            { card: document.getElementById('btnOptB'), text: document.getElementById('textOptB'), badge: document.getElementById('badgeOptB') },
+            { card: document.getElementById('btnOptC'), text: document.getElementById('textOptC'), badge: document.getElementById('badgeOptC') },
+            { card: document.getElementById('btnOptD'), text: document.getElementById('textOptD'), badge: document.getElementById('badgeOptD') }
+        ];
+
+        // ============================================================
+        // LOADING PROGRESS TRACKER
+        // ============================================================
+        const loadingProgress = {
+            image: { loaded: false, bytes: 0, total: 0, weight: 40 },
+            audio: { loaded: false, bytes: 0, total: 0, weight: 40 },
+            quiz:  { loaded: false, bytes: 0, total: 0, weight: 20 },
+            speedSamples: [],
+            lastBytes: 0,
+            lastTime: Date.now(),
+
+            getPercent() {
+                let pct = 0;
+                if (this.image.total > 0) pct += (this.image.bytes / this.image.total) * this.image.weight;
+                else if (this.image.loaded) pct += this.image.weight;
+                
+                if (this.audio.total > 0) pct += (this.audio.bytes / this.audio.total) * this.audio.weight;
+                else if (this.audio.loaded) pct += this.audio.weight;
+                
+                if (this.quiz.total > 0) pct += (this.quiz.bytes / this.quiz.total) * this.quiz.weight;
+                else if (this.quiz.loaded) pct += this.quiz.weight;
+
+                return Math.min(100, Math.round(pct));
+            },
+
+            getTotalBytes() {
+                return this.image.bytes + this.audio.bytes + this.quiz.bytes;
+            },
+
+            getTotalSize() {
+                return (this.image.total || 0) + (this.audio.total || 0) + (this.quiz.total || 0);
+            }
+        };
+
+        function measureSpeed() {
+            const now = Date.now();
+            const dt = (now - loadingProgress.lastTime) / 1000;
+            const currentBytes = loadingProgress.getTotalBytes();
+            const dBytes = currentBytes - loadingProgress.lastBytes;
+
+            if (dt > 0.5 && dBytes > 0) {
+                const speedKbps = (dBytes / dt) / 1024;
+                loadingProgress.speedSamples.push(speedKbps);
+                if (loadingProgress.speedSamples.length > 5) loadingProgress.speedSamples.shift();
+                
+                const avgSpeed = loadingProgress.speedSamples.reduce((a,b) => a+b, 0) / loadingProgress.speedSamples.length;
+                netSpeed.textContent = formatSpeed(avgSpeed);
+            }
+            loadingProgress.lastBytes = currentBytes;
+            loadingProgress.lastTime = now;
         }
 
-        window.playEffect = function(type) {
-            if (!audioEnabled) return;
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
+        function formatSpeed(kbps) {
+            if (kbps >= 1024) return (kbps / 1024).toFixed(2) + ' MB/s';
+            if (kbps >= 1) return kbps.toFixed(1) + ' KB/s';
+            return (kbps * 1024).toFixed(0) + ' B/s';
+        }
 
-                if (type === 'click') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, now);
-                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.08);
-                } else if (type === 'tick') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(800, now);
-                    gain.gain.setValueAtTime(0.05, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.04);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.04);
-                } else if (type === 'correct') {
-                    const freqs = [523.25, 659.25, 783.99, 1046.50];
-                    freqs.forEach((freq, idx) => {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-                        gain.gain.setValueAtTime(0.2, now + idx * 0.08);
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.5);
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.start(now + idx * 0.08);
-                        osc.stop(now + idx * 0.08 + 0.5);
-                    });
-                } else if (type === 'wrong') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(180, now);
-                    osc.frequency.linearRampToValueAtTime(110, now + 0.3);
-                    gain.gain.setValueAtTime(0.25, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.3);
-                } else if (type === 'applause') {
-                    for (let i = 0; i < 5; i++) {
-                        setTimeout(() => window.playEffect('correct'), i * 110);
+        function formatBytes(bytes) {
+            if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+            if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return bytes + ' B';
+        }
+
+        function updateLoadingUI() {
+            const pct = loadingProgress.getPercent();
+            silkBarFill.style.width = pct + '%';
+            loadingPercent.textContent = pct + '%';
+            
+            netLoaded.textContent = formatBytes(loadingProgress.getTotalBytes()) + ' / ' + formatBytes(loadingProgress.getTotalSize());
+
+            const totalBytes = loadingProgress.getTotalSize();
+            const currentBytes = loadingProgress.getTotalBytes();
+            if (totalBytes > 0 && currentBytes > 0 && totalBytes > currentBytes) {
+                const samples = loadingProgress.speedSamples;
+                if (samples.length > 0) {
+                    const avgKbps = samples.reduce((a,b) => a+b, 0) / samples.length;
+                    if (avgKbps > 0) {
+                        const remainingKB = (totalBytes - currentBytes) / 1024;
+                        const etaSec = Math.round(remainingKB / avgKbps);
+                        netEta.textContent = etaSec > 60 ? `${Math.floor(etaSec/60)}m ${etaSec%60}s` : `${etaSec}s`;
                     }
                 }
-            } catch (e) {
-                console.log("Audio API error:", e);
+            } else if (pct >= 100) {
+                netEta.textContent = 'Xong!';
             }
-        };
 
-        onValue(gameStateRef, (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-
-            localState = data;
-            renderTVDisplay();
-
-            // Remote SFX trigger evaluation
-            if (data.sfxTrigger && data.sfxTrigger.timestamp !== lastProcessedSfx) {
-                lastProcessedSfx = data.sfxTrigger.timestamp;
-                window.playEffect(data.sfxTrigger.type);
+            if (loadingProgress.image.loaded && loadingProgress.audio.loaded && loadingProgress.quiz.loaded) {
+                finishLoading();
             }
+        }
+
+        let speedInterval = setInterval(measureSpeed, 500);
+
+        // ============================================================
+        // XHR LOADERS
+        // ============================================================
+        function preloadImageXHR(url) {
+            return new Promise((resolve) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = 'blob';
+
+                xhr.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        loadingProgress.image.total = e.total;
+                        loadingProgress.image.bytes = e.loaded;
+                    } else {
+                        loadingProgress.image.bytes = e.loaded;
+                        loadingProgress.image.total = e.loaded;
+                    }
+                    updateLoadingUI();
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        loadingProgress.image.bytes = xhr.response.size || 0;
+                        loadingProgress.image.total = xhr.response.size || 0;
+                        loadingProgress.image.loaded = true;
+                        console.log('✅ Ảnh:', formatBytes(loadingProgress.image.total));
+                    } else {
+                        loadingProgress.image.loaded = true;
+                    }
+                    updateLoadingUI();
+                    resolve();
+                };
+
+                xhr.onerror = () => {
+                    console.warn('⚠️ Ảnh lỗi');
+                    loadingProgress.image.loaded = true;
+                    updateLoadingUI();
+                    resolve();
+                };
+
+                xhr.send();
+            });
+        }
+
+        function preloadAudioXHR(url) {
+            return new Promise((resolve) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = 'blob';
+
+                xhr.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        loadingProgress.audio.total = e.total;
+                        loadingProgress.audio.bytes = e.loaded;
+                    } else {
+                        loadingProgress.audio.bytes = e.loaded;
+                        loadingProgress.audio.total = e.loaded;
+                    }
+                    updateLoadingUI();
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        loadingProgress.audio.bytes = xhr.response.size || 0;
+                        loadingProgress.audio.total = xhr.response.size || 0;
+                        loadingProgress.audio.loaded = true;
+                        console.log('✅ Nhạc:', formatBytes(loadingProgress.audio.total));
+
+                        const blobUrl = URL.createObjectURL(xhr.response);
+                        bgMusic.src = blobUrl;
+                        bgMusic.load();
+                    } else {
+                        loadingProgress.audio.loaded = true;
+                    }
+                    updateLoadingUI();
+                    resolve();
+                };
+
+                xhr.onerror = () => {
+                    console.warn('⚠️ Nhạc lỗi');
+                    loadingProgress.audio.loaded = true;
+                    updateLoadingUI();
+                    resolve();
+                };
+
+                xhr.send();
+            });
+        }
+
+        function loadQuestionsXHR(url) {
+            return new Promise((resolve) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+
+                xhr.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        loadingProgress.quiz.total = e.total;
+                        loadingProgress.quiz.bytes = e.loaded;
+                    } else {
+                        loadingProgress.quiz.bytes = e.loaded;
+                        loadingProgress.quiz.total = e.loaded;
+                    }
+                    updateLoadingUI();
+                };
+
+                xhr.onload = () => {
+                    try {
+                        if (xhr.status === 200) {
+                            const data = JSON.parse(xhr.responseText);
+                            if (Array.isArray(data) && data.length > 0) {
+                                QUESTIONS = data.map(q => ({
+                                    id: q.id,
+                                    question: q.question,
+                                    options: q.options,
+                                    correctIndex: q.answer
+                                }));
+                                isQuestionsLoaded = true;
+                                questionProgress.innerText = `CÂU HỎI 0 / ${QUESTIONS.length}`;
+                                console.log('✅ Quiz:', QUESTIONS.length, 'câu');
+                            } else {
+                                throw new Error('Data rỗng');
+                            }
+                        } else {
+                            throw new Error('HTTP ' + xhr.status);
+                        }
+                    } catch (err) {
+                        console.error('❌ Quiz error:', err);
+                        QUESTIONS = [
+                            { id: 1, question: "Thủ đô Việt Nam?", options: ["HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ"], correctIndex: 1 }
+                        ];
+                        isQuestionsLoaded = true;
+                    }
+
+                    loadingProgress.quiz.bytes = xhr.responseText.length;
+                    loadingProgress.quiz.total = xhr.responseText.length;
+                    loadingProgress.quiz.loaded = true;
+                    updateLoadingUI();
+                    renderTVUI();
+                    resolve();
+                };
+
+                xhr.onerror = () => {
+                    console.warn('⚠️ Quiz lỗi');
+                    QUESTIONS = [
+                        { id: 1, question: "Thủ đô Việt Nam?", options: ["HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ"], correctIndex: 1 }
+                    ];
+                    isQuestionsLoaded = true;
+                    loadingProgress.quiz.loaded = true;
+                    updateLoadingUI();
+                    renderTVUI();
+                    resolve();
+                };
+
+                xhr.send();
+            });
+        }
+
+        function finishLoading() {
+            if (isReady) return;
+            isReady = true;
+
+            clearInterval(speedInterval);
+            console.log('🎉 Loading xong!');
+
+            setTimeout(() => {
+                loadingScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 1000);
+            }, 600);
+        }
+
+        async function bootstrap() {
+            updateLoadingUI();
+            await Promise.all([
+                preloadImageXHR(IMAGE_URL),
+                preloadAudioXHR(AUDIO_URL),
+                loadQuestionsXHR(`${WORKER_URL}/quiz`)
+            ]);
+        }
+
+        // ============================================================
+        // AUDIO UNLOCK
+        // ============================================================
+        function unlockAudioOnce() {
+            if (musicUnlocked) return;
+            musicUnlocked = true;
+            console.log('🔊 Audio unlocked');
+            bgMusic.volume = displayState.musicVolume;
+            if (displayState.musicPlaying) {
+                bgMusic.play().catch(err => console.warn('Audio play blocked:', err));
+            }
+            document.removeEventListener('click', unlockAudioOnce);
+            document.removeEventListener('keydown', unlockAudioOnce);
+            document.removeEventListener('touchstart', unlockAudioOnce);
+        }
+
+        document.addEventListener('click', unlockAudioOnce);
+        document.addEventListener('keydown', unlockAudioOnce);
+        document.addEventListener('touchstart', unlockAudioOnce);
+
+        // ============================================================
+        // DISPLAY STATE
+        // ============================================================
+        onValue(ref(db, 'quizGame/display'), (snap) => {
+            if (!snap.exists()) {
+                set(ref(db, 'quizGame/display'), displayState);
+                return;
+            }
+            displayState = snap.val();
+            applyDisplayState();
         });
 
-        // Timer interval tick for TV countdown
-        setInterval(() => {
-            if (localState.timerRunning && localState.timerLeft > 0) {
-                localState.timerLeft--;
-                document.getElementById('timerDisplay').innerText = `${localState.timerLeft}s`;
-                if (localState.timerLeft <= 5) {
-                    window.playEffect('tick');
-                }
-            }
-        }, 1000);
+        function applyDisplayState() {
+            if (!isReady) return;
 
-        function renderTVDisplay() {
-            const qList = localState.questions || [];
-            const qIdx = localState.currentQuestionIdx || 0;
-            const currentQ = qList[qIdx];
-
-            document.getElementById('questionProgress').innerText = qList.length > 0 ? `CÂU HỎI ${qIdx + 1} / ${qList.length}` : `CÂU HỎI -- / --`;
-            document.getElementById('timerDisplay').innerText = `${localState.timerLeft !== undefined ? localState.timerLeft : 30}s`;
-
-            const questionEl = document.getElementById('questionText');
-            const optAEl = document.getElementById('textOptA');
-            const optBEl = document.getElementById('textOptB');
-            const optCEl = document.getElementById('textOptC');
-            const optDEl = document.getElementById('textOptD');
-
-            // IF HOST HAS NOT SENT QUESTION -> DISPLAY "none"
-            if (!localState.showQuestion || !currentQ) {
-                questionEl.innerText = "none";
-                questionEl.classList.add('text-none-state');
-
-                optAEl.innerText = "none";
-                optAEl.classList.add('text-none-state');
-                optBEl.innerText = "none";
-                optBEl.classList.add('text-none-state');
-                optCEl.innerText = "none";
-                optCEl.classList.add('text-none-state');
-                optDEl.innerText = "none";
-                optDEl.classList.add('text-none-state');
-
-                ['A', 'B', 'C', 'D'].forEach(k => {
-                    const btn = document.getElementById(`btnOpt${k}`);
-                    const badge = document.getElementById(`badgeOpt${k}`);
-                    btn.className = "glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden";
-                    badge.className = "hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl";
-                    badge.innerHTML = "";
-                    btn.style.opacity = "1";
-                });
+            if (displayState.mode === 'LOBBY') {
+                lobbyLayer.classList.remove('hidden');
+                tvDisplayView.classList.add('opacity-0', 'pointer-events-none');
             } else {
-                // HOST HAS SENT QUESTION -> DISPLAY QUESTION & OPTIONS
-                questionEl.innerText = currentQ.question;
-                questionEl.classList.remove('text-none-state');
-
-                optAEl.innerText = currentQ.options.A;
-                optAEl.classList.remove('text-none-state');
-                optBEl.innerText = currentQ.options.B;
-                optBEl.classList.remove('text-none-state');
-                optCEl.innerText = currentQ.options.C;
-                optCEl.classList.remove('text-none-state');
-                optDEl.innerText = currentQ.options.D;
-                optDEl.classList.remove('text-none-state');
-
-                // Highlight options based on state sent by Host
-                const opts = ['A', 'B', 'C', 'D'];
-                opts.forEach(k => {
-                    const btn = document.getElementById(`btnOpt${k}`);
-                    const badge = document.getElementById(`badgeOpt${k}`);
-                    btn.className = "glass-card rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden";
-                    badge.className = "hidden absolute right-4 top-1/2 -translate-y-1/2 text-2xl";
-                    badge.innerHTML = "";
-                    btn.style.opacity = "1";
-
-                    if (localState.selectedOption === k && !localState.isRevealed) {
-                        btn.classList.add('option-selected');
-                    }
-
-                    if (localState.isRevealed) {
-                        if (k === currentQ.correct) {
-                            btn.classList.add('option-correct');
-                            badge.innerHTML = '✨ <i class="fa-solid fa-circle-check text-green-400"></i>';
-                            badge.classList.remove('hidden');
-                        } else if (k === localState.selectedOption && localState.selectedOption !== currentQ.correct) {
-                            btn.classList.add('option-wrong');
-                            badge.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-400"></i>';
-                            badge.classList.remove('hidden');
-                        } else {
-                            btn.style.opacity = "0.4";
-                        }
-                    }
-                });
-
-                if (localState.isRevealed && localState.selectedOption === currentQ.correct) {
-                    confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
-                }
+                lobbyLayer.classList.add('hidden');
+                tvDisplayView.classList.remove('opacity-0', 'pointer-events-none');
             }
 
-            renderLeaderboardUI();
+            bgMusic.volume = displayState.musicVolume;
+            if (displayState.musicPlaying && musicUnlocked) {
+                bgMusic.play().catch(err => console.warn('Play error:', err));
+            } else {
+                bgMusic.pause();
+            }
         }
 
-        function renderLeaderboardUI() {
-            const container = document.getElementById('leaderboardList');
-            container.innerHTML = '';
+        // ============================================================
+        // RENDER TV UI — KIỂU A
+        // ============================================================
+        function renderTVUI() {
+            const idx = gameState.currentQuestionIndex;
 
-            const totalEl = document.getElementById('totalPlayersCount');
-
-            // IF HOST HAS NOT SENT LEADERBOARD -> DISPLAY "none"
-            if (!localState.showLeaderboard || !localState.players || localState.players.length === 0) {
-                totalEl.innerText = "none";
-                totalEl.className = "text-none-state";
-
-                const noneItem = document.createElement('div');
-                noneItem.className = "bg-slate-900/50 border border-slate-800/80 rounded-xl p-6 text-center text-none-state font-bold text-xl tracking-wider";
-                noneItem.innerText = "none";
-                container.appendChild(noneItem);
+            if (!isQuestionsLoaded || QUESTIONS.length === 0) {
+                questionProgress.innerText = `CÂU HỎI 0 / 0`;
+                questionText.innerText = "Đang tải câu hỏi...";
                 return;
             }
 
-            const players = localState.players;
-            totalEl.innerText = players.length;
-            totalEl.className = "text-white font-bold";
+            if (gameState.status === 'LOBBY' || idx < 0 || idx >= QUESTIONS.length) {
+                questionProgress.innerText = `CÂU HỎI 0 / ${QUESTIONS.length}`;
+                questionText.innerText = "Đang chờ Host bắt đầu câu hỏi...";
+                questionStatusTag.innerText = "Đang chờ";
+                questionStatusTag.className = "text-xs md:text-sm font-bold text-slate-400 bg-slate-800/80 px-3.5 py-1.5 rounded-lg border border-slate-700";
 
-            const sorted = [...players].sort((a, b) => b.score - a.score);
+                timerDisplay.innerText = `${gameState.timerDuration || 15}s`;
+                timerBar.style.width = '100%';
 
-            sorted.forEach((player, idx) => {
-                let rankIcon = `<span class="text-xs font-bold text-slate-400 w-5">#${idx + 1}</span>`;
-                if (idx === 0) rankIcon = `<span class="text-lg">👑</span>`;
-                else if (idx === 1) rankIcon = `<span class="text-lg">🥈</span>`;
-                else if (idx === 2) rankIcon = `<span class="text-lg">🥉</span>`;
+                optionCards.forEach((opt) => {
+                    opt.text.innerText = "---";
+                    opt.card.className = "glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden border border-slate-700/80";
+                    opt.badge.classList.add('hidden');
+                    opt.badge.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                });
+                lastConfettiRevealed = false;
+                return;
+            }
 
-                const item = document.createElement('div');
-                item.className = "bg-slate-900/70 border border-amber-500/20 rounded-xl p-2.5 flex items-center justify-between hover:border-amber-400/50 transition";
-                item.innerHTML = `
-                    <div class="flex items-center gap-2.5 overflow-hidden pr-2">
-                        ${rankIcon}
-                        <span class="font-bold text-sm text-amber-100 truncate">${player.name}</span>
-                    </div>
-                    <span class="font-mono font-extrabold text-amber-300 text-base">${player.score}</span>
-                `;
-                container.appendChild(item);
+            const q = QUESTIONS[idx];
+            if (!q) return;
+
+            questionProgress.innerText = `CÂU HỎI ${idx + 1} / ${QUESTIONS.length}`;
+            questionText.innerText = q.question;
+
+            const hostAnswer = gameState.hostAnswer;
+            const showResults = gameState.showResults;
+
+            optionCards.forEach((opt, oIdx) => {
+                const optionText = q.options[oIdx] || "---";
+                opt.text.innerText = optionText;
+
+                const isCorrect = oIdx === q.correctIndex;
+                const isHostSelected = oIdx === hostAnswer;
+
+                let baseClass = "glass-card rounded-2xl p-5 md:p-6 flex items-center justify-between gap-5 relative overflow-hidden";
+
+                if (showResults) {
+                    if (isHostSelected && isCorrect) {
+                        opt.card.className = baseClass + " option-correct";
+                        opt.badge.classList.remove('hidden');
+                        opt.badge.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                    } else if (isHostSelected && !isCorrect) {
+                        opt.card.className = baseClass + " option-wrong-host";
+                        opt.badge.classList.remove('hidden');
+                        opt.badge.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-400"></i>';
+                    } else if (isCorrect) {
+                        opt.card.className = baseClass + " option-correct";
+                        opt.badge.classList.remove('hidden');
+                        opt.badge.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                    } else {
+                        opt.card.className = baseClass + " option-dim border border-slate-800";
+                        opt.badge.classList.add('hidden');
+                    }
+                } else {
+                    opt.card.className = baseClass + " border border-slate-700/80 hover:border-amber-400/40";
+                    opt.badge.classList.add('hidden');
+                }
             });
-        }
-    </script>
 
-    <script>
-        function toggleAudio() {
-            const btn = document.getElementById('audioBtn');
-            const isMuted = btn.innerHTML.includes('fa-volume-xmark');
-            btn.innerHTML = isMuted ? '<i class="fa-solid fa-volume-high text-lg"></i>' : '<i class="fa-solid fa-volume-xmark text-lg text-red-400"></i>';
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            if (showResults) {
+                questionStatusTag.innerText = "Đã công bố đáp án";
+                questionStatusTag.className = "text-xs md:text-sm font-bold text-emerald-400 bg-emerald-500/20 px-3.5 py-1.5 rounded-lg border border-emerald-500/40";
+                
+                if (!lastConfettiRevealed) {
+                    triggerConfetti();
+                    lastConfettiRevealed = true;
+                }
             } else {
-                if (document.exitFullscreen) document.exitFullscreen();
+                questionStatusTag.innerText = "Thời gian làm bài";
+                questionStatusTag.className = "text-xs md:text-sm font-bold text-blue-400 bg-blue-500/20 px-3.5 py-1.5 rounded-lg border border-blue-500/40";
+                lastConfettiRevealed = false;
             }
         }
+
+        function startLocalTimer() {
+            clearInterval(localTimerInterval);
+            if (!gameState.timerEndTimestamp || gameState.status !== 'QUESTION') {
+                timerBar.style.width = '100%';
+                return;
+            }
+
+            localTimerInterval = setInterval(() => {
+                const now = Date.now();
+                const remainingMs = gameState.timerEndTimestamp - now;
+                const totalMs = (gameState.timerDuration || 15) * 1000;
+
+                if (remainingMs <= 0) {
+                    clearInterval(localTimerInterval);
+                    timerBar.style.width = '0%';
+                    timerDisplay.innerText = '0s';
+                } else {
+                    const pct = Math.max(0, (remainingMs / totalMs) * 100);
+                    timerBar.style.width = `${pct}%`;
+                    timerDisplay.innerText = `${Math.ceil(remainingMs / 1000)}s`;
+                }
+            }, 100);
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
+        }
+
+        btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.warn(err));
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // ============================================================
+        // BLINDBOX
+        // ============================================================
+        function renderBlindbox(data) {
+            const signature = JSON.stringify({
+                isOpen: data.isOpen,
+                selectedBox: data.selectedBox,
+                revealed: data.revealed,
+                boxesLen: data.boxes ? data.boxes.length : 0
+            });
+
+            if (signature === lastBlindboxSignature) return;
+            lastBlindboxSignature = signature;
+
+            if (!data.isOpen) {
+                blindboxOverlay.classList.remove('active');
+                blindboxResult.textContent = '';
+                blindboxCloseBtn.disabled = true;
+                lastRevealedState = false;
+                return;
+            }
+
+            blindboxOverlay.classList.add('active');
+
+            const items = blindboxGrid.querySelectorAll('.blindbox-item');
+            const boxes = data.boxes || [];
+            const selectedBox = data.selectedBox;
+            const revealed = data.revealed;
+
+            items.forEach((item, index) => {
+                item.className = 'blindbox-item';
+
+                const prize = boxes[index];
+                const prizeEl = prizeElements[index];
+                const badgeEl = badgeElements[index];
+
+                if (!prize) {
+                    prizeEl.textContent = '❓';
+                    item.classList.add('waiting');
+                    badgeEl.textContent = '⏳ Đang chờ...';
+                    badgeEl.style.color = '#94a3b8';
+                    return;
+                }
+
+                if (revealed) {
+                    item.classList.add('revealed');
+                    prizeEl.textContent = prize.icon + ' ' + prize.name;
+                    if (index === selectedBox) {
+                        badgeEl.textContent = '🎯 Hộp được chọn';
+                        badgeEl.style.color = '#4ade80';
+                    } else {
+                        badgeEl.textContent = '🎁 Hộp khác';
+                        badgeEl.style.color = '#94a3b8';
+                    }
+                } else if (index === selectedBox) {
+                    item.classList.add('host-selected');
+                    prizeEl.textContent = '❓';
+                    badgeEl.textContent = '🎯 Host đã chọn!';
+                    badgeEl.style.color = '#facc15';
+                } else {
+                    item.classList.add('waiting');
+                    prizeEl.textContent = '❓';
+                    badgeEl.textContent = '⏳ Đang chờ...';
+                    badgeEl.style.color = '#94a3b8';
+                }
+            });
+
+            if (revealed) {
+                blindboxSubtitle.textContent = '🎉 Host đã mở hộp quà cho bạn!';
+                blindboxCloseBtn.disabled = false;
+
+                const selectedPrize = boxes[selectedBox];
+                if (selectedPrize) {
+                    if (selectedPrize.name.includes('may mắn')) {
+                        blindboxResult.textContent = '😅 Chúc bạn may mắn lần sau!';
+                        blindboxResult.className = 'blindbox-result-message lucky';
+                    } else {
+                        blindboxResult.textContent = '🎉 Chúc mừng! Bạn nhận được: ' + selectedPrize.icon + ' ' + selectedPrize.name;
+                        blindboxResult.className = 'blindbox-result-message';
+                        
+                        if (!lastRevealedState) {
+                            triggerBlindboxConfetti();
+                        }
+                    }
+                }
+                lastRevealedState = true;
+            } else if (selectedBox >= 0) {
+                blindboxSubtitle.textContent = `🎯 Host đã chọn hộp ${selectedBox + 1}! Đang chờ công bố...`;
+                blindboxCloseBtn.disabled = true;
+                blindboxResult.textContent = '';
+                lastRevealedState = false;
+            } else {
+                blindboxSubtitle.textContent = '🎯 Host đang chọn hộp quà cho bạn...';
+                blindboxCloseBtn.disabled = true;
+                blindboxResult.textContent = '';
+                lastRevealedState = false;
+            }
+        }
+
+        function triggerBlindboxConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 80, spread: 70, origin: { y: 0.5 } });
+                setTimeout(() => {
+                    confetti({ particleCount: 60, spread: 50, origin: { y: 0.5 } });
+                }, 200);
+            }
+        }
+
+        function closeBlindbox() {
+            blindboxOverlay.classList.remove('active');
+            set(ref(db, 'quizGame/blindbox'), {
+                isOpen: false, selectedBox: -1, boxes: [], revealed: false
+            });
+        }
+
+        blindboxCloseBtn.addEventListener('click', closeBlindbox);
+
+        blindboxOverlay.addEventListener('click', (e) => {
+            if (e.target === blindboxOverlay && blindboxCloseBtn.disabled === false) {
+                closeBlindbox();
+            }
+        });
+
+        // ============================================================
+        // FIREBASE LISTENERS
+        // ============================================================
+        onValue(ref(db, 'quizGame/roomState'), (snapshot) => {
+            if (snapshot.exists()) {
+                gameState = { ...gameState, ...snapshot.val() };
+            }
+            renderTVUI();
+            startLocalTimer();
+        });
+
+        onValue(ref(db, 'quizGame/blindbox'), (snapshot) => {
+            if (snapshot.exists()) {
+                renderBlindbox(snapshot.val());
+            } else {
+                set(ref(db, 'quizGame/blindbox'), {
+                    isOpen: false, selectedBox: -1, boxes: [], revealed: false
+                });
+            }
+        });
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        bootstrap();
     </script>
 </body>
 </html>
