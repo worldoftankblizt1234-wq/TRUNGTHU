@@ -116,6 +116,34 @@
         }
 
         /* ==================================================== */
+        /*         LAYER CHUYỂN MÀN HÌNH                         */
+        /* ==================================================== */
+        #lobbyLayer {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            display: none; /* JS sẽ điều khiển */
+            transition: opacity 0.8s ease;
+        }
+
+        #lobbyLayer.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        #tvDisplayView {
+            position: relative;
+            z-index: 10;
+            display: none; /* JS sẽ điều khiển */
+            transition: opacity 0.7s ease;
+        }
+
+        #tvDisplayView.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* ==================================================== */
         /*         LOADING SCREEN                                */
         /* ==================================================== */
         #loadingScreen {
@@ -277,19 +305,6 @@
 
         .network-info i {
             color: #facc15;
-        }
-
-        /* LOBBY */
-        #lobbyLayer {
-            position: fixed;
-            inset: 0;
-            z-index: 5;
-            transition: opacity 0.8s ease;
-        }
-
-        #lobbyLayer.hidden {
-            opacity: 0;
-            pointer-events: none;
         }
 
         .floating-lantern {
@@ -481,9 +496,6 @@
             margin-top: 8px;
         }
 
-        /* ==================================================== */
-        /*         MOBILE OPTIMIZATION                           */
-        /* ==================================================== */
         @media (max-width: 640px) {
             .loading-title { font-size: 1.8rem; letter-spacing: 2px; }
             .loading-moon { font-size: 4rem; margin-bottom: 10px; }
@@ -553,7 +565,7 @@
     </audio>
 
     <!-- LOBBY LAYER -->
-    <div id="lobbyLayer" class="hidden">
+    <div id="lobbyLayer">
         <div class="absolute inset-0 bg-cover bg-center"
              style="background-image: url('https://files.catbox.moe/9tm8bl.png');"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80"></div>
@@ -581,7 +593,7 @@
     </div>
 
     <!-- MAIN DISPLAY -->
-    <main id="tvDisplayView" class="w-full h-full flex flex-col justify-between gap-3 md:gap-6 z-10 max-w-7xl mx-auto transition-opacity duration-700 opacity-0 pointer-events-none">
+    <main id="tvDisplayView" class="w-full h-full flex-col justify-between gap-3 md:gap-6 z-10 max-w-7xl mx-auto">
 
         <header class="w-full flex flex-wrap md:flex-nowrap items-center justify-between gap-2 px-1 md:px-2 py-1">
             <div class="flex items-center gap-2 md:gap-4 flex-wrap">
@@ -735,10 +747,6 @@
         const db = getDatabase(app);
 
         const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
-        
-        // ============================================================
-        // 🎵 CDN MUSIC URL - jsDelivr (nhanh hơn, có server gần VN)
-        // ============================================================
         const AUDIO_URL = 'https://cdn.jsdelivr.net/gh/worldoftankblizt1234-wq/TRUNGTHU@main/music.mp3';
 
         let QUESTIONS = [];
@@ -767,8 +775,9 @@
         let lastBlindboxSignature = '';
         let lastRevealedState = false;
         let isReady = false;
+        let isDisplayApplied = false;
 
-        // 🎵 Web Audio API state
+        // Audio state
         let audioContext = null;
         let audioBuffer = null;
         let audioSource = null;
@@ -819,7 +828,7 @@
         ];
 
         // ============================================================
-        // LOADING PROGRESS TRACKER
+        // LOADING PROGRESS
         // ============================================================
         const loadingProgress = {
             image: { loaded: false, bytes: 0, total: 0, weight: 50 },
@@ -833,13 +842,10 @@
                 let pct = 0;
                 if (this.image.total > 0) pct += (this.image.bytes / this.image.total) * this.image.weight;
                 else if (this.image.loaded) pct += this.image.weight;
-                
                 if (this.audio.total > 0) pct += (this.audio.bytes / this.audio.total) * this.audio.weight;
                 else if (this.audio.loaded) pct += this.audio.weight;
-                
                 if (this.quiz.total > 0) pct += (this.quiz.bytes / this.quiz.total) * this.quiz.weight;
                 else if (this.quiz.loaded) pct += this.quiz.weight;
-
                 return Math.min(100, Math.round(pct));
             },
 
@@ -862,7 +868,6 @@
                 const speedKbps = (dBytes / dt) / 1024;
                 loadingProgress.speedSamples.push(speedKbps);
                 if (loadingProgress.speedSamples.length > 5) loadingProgress.speedSamples.shift();
-                
                 const avgSpeed = loadingProgress.speedSamples.reduce((a,b) => a+b, 0) / loadingProgress.speedSamples.length;
                 netSpeed.textContent = formatSpeed(avgSpeed);
             }
@@ -886,7 +891,6 @@
             const pct = loadingProgress.getPercent();
             silkBarFill.style.width = pct + '%';
             loadingPercent.textContent = pct + '%';
-            
             netLoaded.textContent = formatBytes(loadingProgress.getTotalBytes()) + ' / ' + formatBytes(loadingProgress.getTotalSize());
 
             const totalBytes = loadingProgress.getTotalSize();
@@ -912,15 +916,11 @@
 
         let speedInterval = setInterval(measureSpeed, 500);
 
-        // ============================================================
-        // XHR LOADERS
-        // ============================================================
         function preloadImageXHR(url) {
             return new Promise((resolve) => {
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
                 xhr.responseType = 'blob';
-
                 xhr.onprogress = (e) => {
                     if (e.lengthComputable) {
                         loadingProgress.image.total = e.total;
@@ -931,39 +931,31 @@
                     }
                     updateLoadingUI();
                 };
-
                 xhr.onload = () => {
                     if (xhr.status === 200) {
                         loadingProgress.image.bytes = xhr.response.size || 0;
                         loadingProgress.image.total = xhr.response.size || 0;
                         loadingProgress.image.loaded = true;
-                        console.log('✅ Ảnh:', formatBytes(loadingProgress.image.total));
                     } else {
                         loadingProgress.image.loaded = true;
                     }
                     updateLoadingUI();
                     resolve();
                 };
-
                 xhr.onerror = () => {
-                    console.warn('⚠️ Ảnh lỗi');
                     loadingProgress.image.loaded = true;
                     updateLoadingUI();
                     resolve();
                 };
-
                 xhr.send();
             });
         }
 
         function preloadAudioXHR(url) {
             return new Promise((resolve) => {
-                console.log('🎵 Bắt đầu load nhạc từ CDN:', url);
-
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
                 xhr.responseType = 'arraybuffer';
-
                 xhr.onprogress = (e) => {
                     if (e.lengthComputable) {
                         loadingProgress.audio.total = e.total;
@@ -974,14 +966,11 @@
                     }
                     updateLoadingUI();
                 };
-
                 xhr.onload = async () => {
                     if (xhr.status === 200) {
                         const size = xhr.response.byteLength || 0;
                         loadingProgress.audio.bytes = size;
                         loadingProgress.audio.total = size;
-                        console.log('✅ Tải xong file nhạc từ CDN:', formatBytes(size), '— Bắt đầu decode...');
-
                         try {
                             audioContext = new (window.AudioContext || window.webkitAudioContext)();
                             audioBuffer = await audioContext.decodeAudioData(xhr.response);
@@ -989,9 +978,7 @@
                             audioGainNode.gain.value = displayState.musicVolume || 0.5;
                             audioGainNode.connect(audioContext.destination);
                             loadingProgress.audio.loaded = true;
-                            console.log('✅ Decode xong! Sẵn sàng phát không khựng.');
                         } catch (err) {
-                            console.error('❌ Lỗi decode nhạc:', err);
                             try {
                                 const blobUrl = URL.createObjectURL(new Blob([xhr.response], { type: 'audio/mpeg' }));
                                 bgMusic.src = blobUrl;
@@ -1003,7 +990,6 @@
                             loadingProgress.audio.loaded = true;
                         }
                     } else {
-                        console.warn('⚠️ Nhạc CDN HTTP', xhr.status, '- Fallback sang file gốc');
                         loadingProgress.audio.loaded = true;
                         loadingProgress.audio.bytes = 1;
                         loadingProgress.audio.total = 1;
@@ -1013,9 +999,7 @@
                     updateLoadingUI();
                     resolve();
                 };
-
                 xhr.onerror = () => {
-                    console.warn('⚠️ Nhạc CDN lỗi XHR - Fallback sang file gốc');
                     loadingProgress.audio.loaded = true;
                     loadingProgress.audio.bytes = 1;
                     loadingProgress.audio.total = 1;
@@ -1024,10 +1008,8 @@
                     updateLoadingUI();
                     resolve();
                 };
-
                 xhr.timeout = 60000;
                 xhr.ontimeout = () => {
-                    console.warn('⏱️ Timeout load nhạc CDN - Fallback sang file gốc');
                     loadingProgress.audio.loaded = true;
                     loadingProgress.audio.bytes = 1;
                     loadingProgress.audio.total = 1;
@@ -1036,7 +1018,6 @@
                     updateLoadingUI();
                     resolve();
                 };
-
                 xhr.send();
             });
         }
@@ -1045,7 +1026,6 @@
             return new Promise((resolve) => {
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
-
                 xhr.onprogress = (e) => {
                     if (e.lengthComputable) {
                         loadingProgress.quiz.total = e.total;
@@ -1056,7 +1036,6 @@
                     }
                     updateLoadingUI();
                 };
-
                 xhr.onload = () => {
                     try {
                         if (xhr.status === 200) {
@@ -1070,7 +1049,6 @@
                                 }));
                                 isQuestionsLoaded = true;
                                 questionProgress.innerText = `CÂU HỎI 0 / ${QUESTIONS.length}`;
-                                console.log('✅ Quiz:', QUESTIONS.length, 'câu');
                             } else {
                                 throw new Error('Data rỗng');
                             }
@@ -1078,13 +1056,11 @@
                             throw new Error('HTTP ' + xhr.status);
                         }
                     } catch (err) {
-                        console.error('❌ Quiz error:', err);
                         QUESTIONS = [
                             { id: 1, question: "Thủ đô Việt Nam?", options: ["HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ"], correctIndex: 1 }
                         ];
                         isQuestionsLoaded = true;
                     }
-
                     loadingProgress.quiz.bytes = xhr.responseText.length;
                     loadingProgress.quiz.total = xhr.responseText.length;
                     loadingProgress.quiz.loaded = true;
@@ -1092,9 +1068,7 @@
                     renderTVUI();
                     resolve();
                 };
-
                 xhr.onerror = () => {
-                    console.warn('⚠️ Quiz lỗi');
                     QUESTIONS = [
                         { id: 1, question: "Thủ đô Việt Nam?", options: ["HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ"], correctIndex: 1 }
                     ];
@@ -1106,7 +1080,6 @@
                     renderTVUI();
                     resolve();
                 };
-
                 xhr.send();
             });
         }
@@ -1114,10 +1087,7 @@
         function finishLoading() {
             if (isReady) return;
             isReady = true;
-
             clearInterval(speedInterval);
-            console.log('🎉 Loading xong!');
-
             setTimeout(() => {
                 loadingScreen.classList.add('fade-out');
                 setTimeout(() => {
@@ -1133,21 +1103,19 @@
                 preloadAudioXHR(AUDIO_URL),
                 loadQuestionsXHR(`${WORKER_URL}/quiz`)
             ]);
+            // Áp dụng display state ngay khi load xong
+            applyDisplayState();
         }
 
         // ============================================================
-        // 🎵 WEB AUDIO API — PHÁT / TẮT NHẠC
+        // AUDIO
         // ============================================================
-
         async function ensureAudioContextRunning() {
             if (!audioContext) return false;
-            
             if (audioContext.state === 'suspended') {
                 try {
                     await audioContext.resume();
-                    console.log('🔊 AudioContext resumed successfully');
                 } catch (e) {
-                    console.warn('⚠️ Không thể resume AudioContext:', e);
                     return false;
                 }
             }
@@ -1156,44 +1124,31 @@
 
         async function playMusicWebAudio() {
             if (!audioContext || !audioBuffer) {
-                console.warn('⚠️ Audio chưa sẵn sàng, fallback thẻ audio');
                 bgMusic.play().catch(e => console.warn(e));
                 return;
             }
-
             const isRunning = await ensureAudioContextRunning();
-            if (!isRunning) {
-                console.warn('⏳ AudioContext chưa được unlock, chờ người dùng tương tác...');
-                return; 
-            }
-
+            if (!isRunning) return;
             if (audioSource) {
                 try { audioSource.stop(); } catch(e) {}
                 audioSource = null;
             }
-
             audioSource = audioContext.createBufferSource();
             audioSource.buffer = audioBuffer;
             audioSource.loop = true;
             audioSource.connect(audioGainNode);
-            
             const offset = audioPausedAt % audioBuffer.duration;
             const safeOffset = Math.min(offset, audioBuffer.duration - 0.1);
-            
             audioSource.start(0, safeOffset);
             audioStartedAt = audioContext.currentTime - safeOffset;
-            
-            console.log('🎵 Đang phát nhạc (Web Audio API) - Offset:', safeOffset.toFixed(2) + 's');
         }
 
         function pauseMusicWebAudio() {
             if (audioSource && audioContext) {
                 const elapsed = audioContext.currentTime - audioStartedAt;
                 audioPausedAt = elapsed % (audioBuffer?.duration || 1);
-                
                 try { audioSource.stop(); } catch(e) {}
                 audioSource = null;
-                console.log('🔇 Đã pause nhạc - Lưu vị trí:', audioPausedAt.toFixed(2) + 's');
             } else {
                 bgMusic.pause();
             }
@@ -1206,25 +1161,17 @@
             bgMusic.volume = vol;
         }
 
-        // ============================================================
-        // AUDIO UNLOCK - LUÔN LẮNG NGHE VÀ TỰ ĐỘNG PHÁT LẠI
-        // ============================================================
-        
         async function attemptAudioUnlock() {
             if (!audioContext) return;
-            
             if (audioContext.state === 'suspended') {
                 try {
                     await audioContext.resume();
-                    console.log('🔓 Audio unlocked! State:', audioContext.state);
                 } catch (e) {
                     return;
                 }
             }
-            
             if (audioContext.state === 'running' && displayState.musicPlaying) {
                 if (!audioSource) {
-                    console.log('🎵 Phát nhạc do vừa unlock thành công và Host đang bật nhạc');
                     playMusicWebAudio();
                 }
             }
@@ -1234,7 +1181,6 @@
         document.addEventListener('keydown', attemptAudioUnlock);
         document.addEventListener('touchstart', attemptAudioUnlock);
         document.addEventListener('pointerdown', attemptAudioUnlock);
-        
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 attemptAudioUnlock();
@@ -1242,7 +1188,7 @@
         });
 
         // ============================================================
-        // DISPLAY STATE LISTENER - SỬA LỖI CHUYỂN MÀN HÌNH
+        // DISPLAY STATE - LOGIC CHUYỂN MÀN HÌNH MỚI
         // ============================================================
         onValue(ref(db, 'quizGame/display'), (snap) => {
             if (!snap.exists()) {
@@ -1254,14 +1200,17 @@
         });
 
         function applyDisplayState() {
-            if (!isReady) return;
+            // Không check isReady nữa — chỉ cần DOM element tồn tại
+            if (!lobbyLayer || !tvDisplayView) return;
 
-            if (displayState.mode === 'LOBBY') {
-                lobbyLayer.classList.remove('hidden');
-                tvDisplayView.classList.add('opacity-0', 'pointer-events-none');
+            const isGameMode = displayState.mode === 'GAME';
+
+            if (isGameMode) {
+                lobbyLayer.classList.remove('visible');
+                tvDisplayView.classList.add('visible');
             } else {
-                lobbyLayer.classList.add('hidden');
-                tvDisplayView.classList.remove('opacity-0', 'pointer-events-none');
+                lobbyLayer.classList.add('visible');
+                tvDisplayView.classList.remove('visible');
             }
 
             setMusicVolumeWebAudio(displayState.musicVolume);
@@ -1275,6 +1224,8 @@
                     pauseMusicWebAudio();
                 }
             }
+
+            isDisplayApplied = true;
         }
 
         // ============================================================
@@ -1294,10 +1245,8 @@
                 questionText.innerText = "Đang chờ Host bắt đầu câu hỏi...";
                 questionStatusTag.innerText = "Đang chờ";
                 questionStatusTag.className = "text-[10px] md:text-sm font-bold text-slate-400 bg-slate-800/80 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-slate-700";
-
                 timerDisplay.innerText = `${gameState.timerDuration || 15}s`;
                 timerBar.style.width = '100%';
-
                 optionCards.forEach((opt) => {
                     opt.text.innerText = "---";
                     opt.card.className = "glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80";
@@ -1320,10 +1269,8 @@
             optionCards.forEach((opt, oIdx) => {
                 const optionText = q.options[oIdx] || "---";
                 opt.text.innerText = optionText;
-
                 const isCorrect = oIdx === q.correctIndex;
                 const isHostSelected = oIdx === hostAnswer;
-
                 let baseClass = "glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden";
 
                 if (showResults) {
@@ -1352,7 +1299,6 @@
             if (showResults) {
                 questionStatusTag.innerText = "Đã công bố đáp án";
                 questionStatusTag.className = "text-[10px] md:text-sm font-bold text-emerald-400 bg-emerald-500/20 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-emerald-500/40";
-                
                 if (!lastConfettiRevealed) {
                     triggerConfetti();
                     lastConfettiRevealed = true;
@@ -1370,12 +1316,10 @@
                 timerBar.style.width = '100%';
                 return;
             }
-
             localTimerInterval = setInterval(() => {
                 const now = Date.now();
                 const remainingMs = gameState.timerEndTimestamp - now;
                 const totalMs = (gameState.timerDuration || 15) * 1000;
-
                 if (remainingMs <= 0) {
                     clearInterval(localTimerInterval);
                     timerBar.style.width = '0%';
@@ -1403,7 +1347,7 @@
         });
 
         // ============================================================
-        // 🎁 BLINDBOX
+        // BLINDBOX
         // ============================================================
         function getPrizeById(id) {
             if (!id || !prizePool || prizePool.length === 0) return null;
@@ -1418,7 +1362,6 @@
                 boxesLen: data.boxes ? data.boxes.length : 0,
                 boxes: data.boxes ? data.boxes.map(b => b && b.name) : []
             });
-
             if (signature === lastBlindboxSignature) return;
             lastBlindboxSignature = signature;
 
@@ -1439,7 +1382,6 @@
 
             items.forEach((item, index) => {
                 item.className = 'blindbox-item';
-
                 const prize = boxes[index];
                 const prizeEl = prizeElements[index];
                 const badgeEl = badgeElements[index];
@@ -1479,7 +1421,6 @@
             if (revealed) {
                 blindboxSubtitle.textContent = '🎉 Host đã mở hộp quà cho bạn!';
                 blindboxCloseBtn.disabled = false;
-
                 const selectedPrize = boxes[selectedBox];
                 if (selectedPrize) {
                     const displayName = selectedPrize.name || (getPrizeById(selectedPrize.prizeId)?.name) || 'Quà';
@@ -1489,7 +1430,6 @@
                     } else {
                         blindboxResult.textContent = '🎉 Chúc mừng! Bạn nhận được: 🎁 ' + displayName;
                         blindboxResult.className = 'blindbox-result-message';
-                        
                         if (!lastRevealedState) {
                             triggerBlindboxConfetti();
                         }
@@ -1526,7 +1466,6 @@
         }
 
         blindboxCloseBtn.addEventListener('click', closeBlindbox);
-
         blindboxOverlay.addEventListener('click', (e) => {
             if (e.target === blindboxOverlay && blindboxCloseBtn.disabled === false) {
                 closeBlindbox();
@@ -1561,12 +1500,14 @@
             } else {
                 prizePool = [];
             }
-            console.log('🎁 Prize pool updated:', prizePool.length, 'items');
         });
 
         // ============================================================
         // INIT
         // ============================================================
+        // Áp dụng display state ngay lập tức (mặc định LOBBY)
+        applyDisplayState();
+        
         bootstrap();
     </script>
 </body>
