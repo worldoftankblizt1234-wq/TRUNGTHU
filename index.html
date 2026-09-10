@@ -511,7 +511,7 @@
         </div>
     </div>
 
-    <!-- AUDIO: vẫn giữ thẻ audio để fallback, nhưng sẽ dùng Web Audio API -->
+    <!-- AUDIO: vẫn giữ thẻ audio để fallback -->
     <audio id="bgMusic" loop preload="auto" style="display:none;">
         <source src="music.mp3" type="audio/mpeg">
     </audio>
@@ -700,7 +700,6 @@
         const db = getDatabase(app);
 
         const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
-        // 🎵 Dùng file MP3 cùng thư mục với file HTML (đường dẫn tương đối)
         const AUDIO_URL = 'music.mp3';
 
         let QUESTIONS = [];
@@ -721,7 +720,6 @@
             musicVolume: 0.5
         };
 
-        // 🎁 Danh sách quà đọc từ Firebase (Host quản lý)
         let prizePool = [];
 
         let localTimerInterval = null;
@@ -729,7 +727,6 @@
         let isQuestionsLoaded = false;
         let lastBlindboxSignature = '';
         let lastRevealedState = false;
-        let musicUnlocked = false;
         let isReady = false;
 
         // 🎵 Web Audio API state
@@ -920,14 +917,13 @@
             });
         }
 
-        // 🎵 AUDIO: dùng XHR + Web Audio API để decode sẵn, phát không khựng
         function preloadAudioXHR(url) {
             return new Promise((resolve) => {
                 console.log('🎵 Bắt đầu load nhạc từ:', url);
 
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
-                xhr.responseType = 'arraybuffer'; // 👈 Dùng arraybuffer thay vì blob
+                xhr.responseType = 'arraybuffer';
 
                 xhr.onprogress = (e) => {
                     if (e.lengthComputable) {
@@ -948,22 +944,15 @@
                         console.log('✅ Tải xong file nhạc:', formatBytes(size), '— Bắt đầu decode...');
 
                         try {
-                            // Khởi tạo AudioContext
                             audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                            
-                            // Decode MP3 → AudioBuffer (mất vài giây, nhưng xong sẵn)
                             audioBuffer = await audioContext.decodeAudioData(xhr.response);
-                            
-                            // Tạo GainNode để điều chỉnh âm lượng
                             audioGainNode = audioContext.createGain();
                             audioGainNode.gain.value = displayState.musicVolume || 0.5;
                             audioGainNode.connect(audioContext.destination);
-
                             loadingProgress.audio.loaded = true;
                             console.log('✅ Decode xong! Sẵn sàng phát không khựng.');
                         } catch (err) {
                             console.error('❌ Lỗi decode nhạc:', err);
-                            // Fallback: dùng blob URL
                             try {
                                 const blobUrl = URL.createObjectURL(new Blob([xhr.response], { type: 'audio/mpeg' }));
                                 bgMusic.src = blobUrl;
@@ -1108,46 +1097,64 @@
         }
 
         // ============================================================
-        // 🎵 WEB AUDIO API — PHÁT / TẮT NHẠC
+        // 🎵 WEB AUDIO API — PHÁT / TẮT NHẠC (FIXED SYNC & AUTOPLAY)
         // ============================================================
-        function playMusicWebAudio() {
+
+        async function ensureAudioContextRunning() {
+            if (!audioContext) return false;
+            
+            if (audioContext.state === 'suspended') {
+                try {
+                    await audioContext.resume();
+                    console.log('🔊 AudioContext resumed successfully');
+                } catch (e) {
+                    console.warn('⚠️ Không thể resume AudioContext:', e);
+                    return false;
+                }
+            }
+            return audioContext.state === 'running';
+        }
+
+        async function playMusicWebAudio() {
             if (!audioContext || !audioBuffer) {
                 console.warn('⚠️ Audio chưa sẵn sàng, fallback thẻ audio');
                 bgMusic.play().catch(e => console.warn(e));
                 return;
             }
 
-            // Resume context nếu đang bị suspend (autoplay policy)
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
+            const isRunning = await ensureAudioContextRunning();
+            if (!isRunning) {
+                console.warn('⏳ AudioContext chưa được unlock, chờ người dùng tương tác...');
+                return; 
             }
 
-            // Nếu đang có source cũ thì stop
             if (audioSource) {
                 try { audioSource.stop(); } catch(e) {}
                 audioSource = null;
             }
 
-            // Tạo source mới
             audioSource = audioContext.createBufferSource();
             audioSource.buffer = audioBuffer;
             audioSource.loop = true;
             audioSource.connect(audioGainNode);
             
-            // Phát từ vị trí đã pause (nếu có)
             const offset = audioPausedAt % audioBuffer.duration;
-            audioSource.start(0, offset);
-            audioStartedAt = audioContext.currentTime - offset;
+            const safeOffset = Math.min(offset, audioBuffer.duration - 0.1);
             
-            console.log('🎵 Đang phát nhạc (Web Audio API)');
+            audioSource.start(0, safeOffset);
+            audioStartedAt = audioContext.currentTime - safeOffset;
+            
+            console.log('🎵 Đang phát nhạc (Web Audio API) - Offset:', safeOffset.toFixed(2) + 's');
         }
 
         function pauseMusicWebAudio() {
             if (audioSource && audioContext) {
-                audioPausedAt = (audioContext.currentTime - audioStartedAt) % (audioBuffer?.duration || 1);
+                const elapsed = audioContext.currentTime - audioStartedAt;
+                audioPausedAt = elapsed % (audioBuffer?.duration || 1);
+                
                 try { audioSource.stop(); } catch(e) {}
                 audioSource = null;
-                console.log('🔇 Đã pause nhạc');
+                console.log('🔇 Đã pause nhạc - Lưu vị trí:', audioPausedAt.toFixed(2) + 's');
             } else {
                 bgMusic.pause();
             }
@@ -1161,42 +1168,56 @@
         }
 
         // ============================================================
-        // AUDIO UNLOCK
+        // AUDIO UNLOCK - CƠ CHẾ MỚI: LUÔN LẮNG NGHE VÀ TỰ ĐỘNG PHÁT LẠI
         // ============================================================
-        function unlockAudioOnce() {
-            if (musicUnlocked) return;
-            musicUnlocked = true;
-            console.log('🔊 Audio unlocked');
-
-            if (audioContext && audioContext.state === 'suspended') {
-                audioContext.resume().then(() => {
-                    console.log('✅ AudioContext resumed');
-                    if (displayState.musicPlaying) {
-                        playMusicWebAudio();
-                    }
-                });
-            } else if (displayState.musicPlaying) {
-                playMusicWebAudio();
+        
+        async function attemptAudioUnlock() {
+            if (!audioContext) return;
+            
+            if (audioContext.state === 'suspended') {
+                try {
+                    await audioContext.resume();
+                    console.log('🔓 Audio unlocked! State:', audioContext.state);
+                } catch (e) {
+                    return;
+                }
             }
-
-            document.removeEventListener('click', unlockAudioOnce);
-            document.removeEventListener('keydown', unlockAudioOnce);
-            document.removeEventListener('touchstart', unlockAudioOnce);
+            
+            if (audioContext.state === 'running' && displayState.musicPlaying) {
+                if (!audioSource) {
+                    console.log('🎵 Phát nhạc do vừa unlock thành công và Host đang bật nhạc');
+                    playMusicWebAudio();
+                }
+            }
         }
 
-        document.addEventListener('click', unlockAudioOnce);
-        document.addEventListener('keydown', unlockAudioOnce);
-        document.addEventListener('touchstart', unlockAudioOnce);
+        document.addEventListener('click', attemptAudioUnlock);
+        document.addEventListener('keydown', attemptAudioUnlock);
+        document.addEventListener('touchstart', attemptAudioUnlock);
+        document.addEventListener('pointerdown', attemptAudioUnlock);
+        
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                attemptAudioUnlock();
+            }
+        });
 
         // ============================================================
-        // DISPLAY STATE
+        // DISPLAY STATE LISTENER
         // ============================================================
         onValue(ref(db, 'quizGame/display'), (snap) => {
             if (!snap.exists()) {
                 set(ref(db, 'quizGame/display'), displayState);
                 return;
             }
+            const oldMusicPlaying = displayState.musicPlaying;
             displayState = snap.val();
+            
+            if (oldMusicPlaying === displayState.musicPlaying) {
+                setMusicVolumeWebAudio(displayState.musicVolume);
+                return;
+            }
+
             applyDisplayState();
         });
 
@@ -1211,11 +1232,9 @@
                 tvDisplayView.classList.remove('opacity-0', 'pointer-events-none');
             }
 
-            // Điều chỉnh âm lượng
             setMusicVolumeWebAudio(displayState.musicVolume);
 
-            // Bật/tắt nhạc
-            if (displayState.musicPlaying && musicUnlocked) {
+            if (displayState.musicPlaying) {
                 playMusicWebAudio();
             } else {
                 pauseMusicWebAudio();
