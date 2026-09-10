@@ -340,11 +340,11 @@
         const db = getDatabase(app);
 
         const PRIZES = [
-            { name: "🍪 Snack", icon: "🍪", probability: 25 },
-            { name: "🥛 Hộp sữa", icon: "🥛", probability: 20 },
-            { name: "🍬 Kẹo bò", icon: "🍬", probability: 20 },
-            { name: "🍪 Oreo", icon: "🍪", probability: 15 },
-            { name: "🍀 Chúc may mắn lần sau", icon: "🍀", probability: 20 }
+            { name: " Snack", icon: "", probability: 25 },
+            { name: " Hộp sữa", icon: "", probability: 20 },
+            { name: " Kẹo bò", icon: "", probability: 20 },
+            { name: " Oreo", icon: "", probability: 15 },
+            { name: " Chúc may mắn lần sau", icon: "", probability: 20 }
         ];
 
         // ============================================================
@@ -523,7 +523,7 @@
             items.forEach((item, i) => {
                 const prize = currentBoxes[i];
                 const prizeEl = item.querySelector('.box-prize');
-                prizeEl.textContent = prize.icon + ' ' + prize.name;
+                prizeEl.textContent = prize.name;
                 item.classList.add('revealed');
             });
             
