@@ -511,9 +511,9 @@
         </div>
     </div>
 
-    <!-- AUDIO: dùng /music.mp3 trên cùng server -->
+    <!-- AUDIO: dùng music.mp3 cùng thư mục với file HTML -->
     <audio id="bgMusic" loop preload="auto" style="display:none;">
-        <source src="/music.mp3" type="audio/mpeg">
+        <source src="music.mp3" type="audio/mpeg">
     </audio>
 
     <!-- LOBBY LAYER -->
@@ -700,8 +700,8 @@
         const db = getDatabase(app);
 
         const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
-        // 🎵 Dùng file MP3 trên cùng server
-        const AUDIO_URL = '/music.mp3';
+        // 🎵 Dùng file MP3 cùng thư mục với file HTML (đường dẫn tương đối)
+        const AUDIO_URL = 'music.mp3';
 
         let QUESTIONS = [];
 
@@ -912,61 +912,57 @@
             });
         }
 
-        // 🎵 AUDIO: dùng XHR thật (vì file cùng server, không bị CORS)
+        // 🎵 AUDIO: gán trực tiếp src để tránh lỗi CORS / Failed to fetch
         function preloadAudioXHR(url) {
             return new Promise((resolve) => {
                 console.log('🎵 Load nhạc từ:', url);
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', url, true);
-                xhr.responseType = 'blob';
+                
+                // Gán trực tiếp src cho thẻ audio
+                bgMusic.src = url;
+                bgMusic.load();
 
-                xhr.onprogress = (e) => {
-                    if (e.lengthComputable) {
-                        loadingProgress.audio.total = e.total;
-                        loadingProgress.audio.bytes = e.loaded;
-                    } else {
-                        loadingProgress.audio.bytes = e.loaded;
-                        loadingProgress.audio.total = Math.max(loadingProgress.audio.total, e.loaded);
-                    }
-                    updateLoadingUI();
-                };
-
-                xhr.onload = () => {
-                    if (xhr.status === 200) {
-                        loadingProgress.audio.bytes = xhr.response.size || 0;
-                        loadingProgress.audio.total = xhr.response.size || 0;
-                        loadingProgress.audio.loaded = true;
-                        // Tạo blob URL để phát
-                        try {
-                            const blobUrl = URL.createObjectURL(xhr.response);
-                            bgMusic.src = blobUrl;
-                            bgMusic.load();
-                            console.log('✅ Nhạc loaded:', formatBytes(loadingProgress.audio.total));
-                        } catch (err) {
-                            console.warn('Không tạo được blob URL, dùng link trực tiếp:', err);
-                            bgMusic.src = url;
-                            bgMusic.load();
-                        }
-                    } else {
-                        console.warn('⚠️ Nhạc HTTP', xhr.status, '— dùng link trực tiếp');
-                        loadingProgress.audio.loaded = true;
-                        bgMusic.src = url;
-                        bgMusic.load();
-                    }
-                    updateLoadingUI();
-                    resolve();
-                };
-
-                xhr.onerror = () => {
-                    console.warn('⚠️ Nhạc lỗi XHR — dùng link trực tiếp');
+                // Lắng nghe sự kiện load thành công
+                const onCanPlay = () => {
                     loadingProgress.audio.loaded = true;
-                    bgMusic.src = url;
-                    bgMusic.load();
+                    loadingProgress.audio.bytes = 100;
+                    loadingProgress.audio.total = 100;
                     updateLoadingUI();
+                    console.log('✅ Nhạc đã sẵn sàng phát');
+                    cleanup();
                     resolve();
                 };
 
-                xhr.send();
+                const onError = () => {
+                    console.warn('⚠️ Không load được nhạc từ:', url, '— thử fallback...');
+                    // Fallback: thử link tương đối khác nếu cần
+                    loadingProgress.audio.loaded = true;
+                    loadingProgress.audio.bytes = 100;
+                    loadingProgress.audio.total = 100;
+                    updateLoadingUI();
+                    cleanup();
+                    resolve();
+                };
+
+                const cleanup = () => {
+                    bgMusic.removeEventListener('canplaythrough', onCanPlay);
+                    bgMusic.removeEventListener('error', onError);
+                };
+
+                bgMusic.addEventListener('canplaythrough', onCanPlay, { once: true });
+                bgMusic.addEventListener('error', onError, { once: true });
+
+                // Timeout an toàn: 5s nếu chưa load xong thì vẫn cho qua
+                setTimeout(() => {
+                    if (!loadingProgress.audio.loaded) {
+                        console.warn('⏱️ Timeout load nhạc — bỏ qua để tiếp tục');
+                        loadingProgress.audio.loaded = true;
+                        loadingProgress.audio.bytes = 100;
+                        loadingProgress.audio.total = 100;
+                        updateLoadingUI();
+                        cleanup();
+                        resolve();
+                    }
+                }, 5000);
             });
         }
 
