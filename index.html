@@ -385,6 +385,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            text-align: center;
         }
 
         .blindbox-item.host-selected {
@@ -448,6 +449,7 @@
         }
 
         .blindbox-result-message.lucky { color: #facc15 !important; }
+        .blindbox-result-message.empty { color: #f87171 !important; }
 
         .host-selection-badge {
             display: inline-block;
@@ -509,9 +511,9 @@
         </div>
     </div>
 
-    <!-- AUDIO -->
+    <!-- AUDIO: dùng /music.mp3 trên cùng server -->
     <audio id="bgMusic" loop preload="auto" style="display:none;">
-        <source src="https://www.dropbox.com/scl/fi/p0aetxf5w0qs3hzyc5f4f/H-a-S-Ng-i-o-H-t-Chi-c-n-ng-Sao-AI-Cover-DQQu-n.mp3?rlkey=iwu0w9gcn1g1f34d1su0i9o22&st=pjo2ula7&raw=1" type="audio/mpeg">
+        <source src="/music.mp3" type="audio/mpeg">
     </audio>
 
     <!-- LOBBY LAYER -->
@@ -698,7 +700,8 @@
         const db = getDatabase(app);
 
         const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
-        const AUDIO_URL = 'https://www.dropbox.com/scl/fi/p0aetxf5w0qs3hzyc5f4f/H-a-S-Ng-i-o-H-t-Chi-c-n-ng-Sao-AI-Cover-DQQu-n.mp3?rlkey=iwu0w9gcn1g1f34d1su0i9o22&st=pjo2ula7&raw=1';
+        // 🎵 Dùng file MP3 trên cùng server
+        const AUDIO_URL = '/music.mp3';
 
         let QUESTIONS = [];
 
@@ -717,6 +720,9 @@
             musicPlaying: false,
             musicVolume: 0.5
         };
+
+        // 🎁 Danh sách quà đọc từ Firebase (Host quản lý)
+        let prizePool = [];
 
         let localTimerInterval = null;
         let lastConfettiRevealed = false;
@@ -906,45 +912,61 @@
             });
         }
 
-        // Audio: Dropbox không cho XHR → load trực tiếp qua thẻ audio
+        // 🎵 AUDIO: dùng XHR thật (vì file cùng server, không bị CORS)
         function preloadAudioXHR(url) {
             return new Promise((resolve) => {
-                console.log('🎵 Load nhạc qua thẻ audio (Dropbox block XHR)');
-                
-                // Fake progress ban đầu
-                loadingProgress.audio.total = 3000000;
-                loadingProgress.audio.bytes = 0;
-                updateLoadingUI();
+                console.log('🎵 Load nhạc từ:', url);
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = 'blob';
 
-                const fakeProgress = setInterval(() => {
-                    if (loadingProgress.audio.bytes < loadingProgress.audio.total * 0.9) {
-                        loadingProgress.audio.bytes += loadingProgress.audio.total * 0.1;
-                        updateLoadingUI();
+                xhr.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        loadingProgress.audio.total = e.total;
+                        loadingProgress.audio.bytes = e.loaded;
+                    } else {
+                        loadingProgress.audio.bytes = e.loaded;
+                        loadingProgress.audio.total = Math.max(loadingProgress.audio.total, e.loaded);
                     }
-                }, 300);
+                    updateLoadingUI();
+                };
 
-                const tempAudio = new Audio();
-                tempAudio.preload = 'auto';
-                tempAudio.src = url;
-
-                const finalize = (success) => {
-                    clearInterval(fakeProgress);
-                    loadingProgress.audio.bytes = loadingProgress.audio.total;
-                    loadingProgress.audio.loaded = true;
-                    bgMusic.src = url;
-                    bgMusic.load();
-                    console.log(success ? '✅ Nhạc loaded' : '⚠️ Nhạc lỗi, bỏ qua');
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        loadingProgress.audio.bytes = xhr.response.size || 0;
+                        loadingProgress.audio.total = xhr.response.size || 0;
+                        loadingProgress.audio.loaded = true;
+                        // Tạo blob URL để phát
+                        try {
+                            const blobUrl = URL.createObjectURL(xhr.response);
+                            bgMusic.src = blobUrl;
+                            bgMusic.load();
+                            console.log('✅ Nhạc loaded:', formatBytes(loadingProgress.audio.total));
+                        } catch (err) {
+                            console.warn('Không tạo được blob URL, dùng link trực tiếp:', err);
+                            bgMusic.src = url;
+                            bgMusic.load();
+                        }
+                    } else {
+                        console.warn('⚠️ Nhạc HTTP', xhr.status, '— dùng link trực tiếp');
+                        loadingProgress.audio.loaded = true;
+                        bgMusic.src = url;
+                        bgMusic.load();
+                    }
                     updateLoadingUI();
                     resolve();
                 };
 
-                tempAudio.addEventListener('canplaythrough', () => finalize(true), { once: true });
-                tempAudio.addEventListener('error', () => finalize(false), { once: true });
+                xhr.onerror = () => {
+                    console.warn('⚠️ Nhạc lỗi XHR — dùng link trực tiếp');
+                    loadingProgress.audio.loaded = true;
+                    bgMusic.src = url;
+                    bgMusic.load();
+                    updateLoadingUI();
+                    resolve();
+                };
 
-                // Timeout 10s fallback
-                setTimeout(() => {
-                    if (!loadingProgress.audio.loaded) finalize(true);
-                }, 10000);
+                xhr.send();
             });
         }
 
@@ -1219,14 +1241,20 @@
         });
 
         // ============================================================
-        // BLINDBOX
+        // 🎁 BLINDBOX — đọc prize pool & render linh hoạt
         // ============================================================
+        function getPrizeById(id) {
+            if (!id || !prizePool || prizePool.length === 0) return null;
+            return prizePool.find(p => p.id === id) || null;
+        }
+
         function renderBlindbox(data) {
             const signature = JSON.stringify({
                 isOpen: data.isOpen,
                 selectedBox: data.selectedBox,
                 revealed: data.revealed,
-                boxesLen: data.boxes ? data.boxes.length : 0
+                boxesLen: data.boxes ? data.boxes.length : 0,
+                boxes: data.boxes ? data.boxes.map(b => b && b.name) : []
             });
 
             if (signature === lastBlindboxSignature) return;
@@ -1264,7 +1292,9 @@
 
                 if (revealed) {
                     item.classList.add('revealed');
-                    prizeEl.textContent = prize.icon + ' ' + prize.name;
+                    // Hiển thị tên quà (ưu tiên name từ box, fallback tra prizePool)
+                    const displayName = prize.name || (getPrizeById(prize.prizeId)?.name) || 'Quà';
+                    prizeEl.textContent = displayName;
                     if (index === selectedBox) {
                         badgeEl.textContent = '🎯 Hộp được chọn';
                         badgeEl.style.color = '#4ade80';
@@ -1291,11 +1321,12 @@
 
                 const selectedPrize = boxes[selectedBox];
                 if (selectedPrize) {
-                    if (selectedPrize.name.includes('may mắn')) {
-                        blindboxResult.textContent = '😅 Chúc bạn may mắn lần sau!';
-                        blindboxResult.className = 'blindbox-result-message lucky';
+                    const displayName = selectedPrize.name || (getPrizeById(selectedPrize.prizeId)?.name) || 'Quà';
+                    if (selectedPrize.empty) {
+                        blindboxResult.textContent = '😅 Hộp này chưa có quà!';
+                        blindboxResult.className = 'blindbox-result-message empty';
                     } else {
-                        blindboxResult.textContent = '🎉 Chúc mừng! Bạn nhận được: ' + selectedPrize.icon + ' ' + selectedPrize.name;
+                        blindboxResult.textContent = '🎉 Chúc mừng! Bạn nhận được: 🎁 ' + displayName;
                         blindboxResult.className = 'blindbox-result-message';
                         
                         if (!lastRevealedState) {
@@ -1360,6 +1391,17 @@
                     isOpen: false, selectedBox: -1, boxes: [], revealed: false
                 });
             }
+        });
+
+        // 🎁 Listen prize pool để hiển thị tên quà đúng
+        onValue(ref(db, 'quizGame/prizePool'), (snap) => {
+            if (snap.exists()) {
+                const val = snap.val();
+                prizePool = Array.isArray(val) ? val : Object.values(val);
+            } else {
+                prizePool = [];
+            }
+            console.log('🎁 Prize pool updated:', prizePool.length, 'items');
         });
 
         // ============================================================
