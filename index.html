@@ -115,14 +115,11 @@
             transition: width 0.15s linear;
         }
 
-        /* ==================================================== */
-        /*         LAYER CHUYỂN MÀN HÌNH                         */
-        /* ==================================================== */
         #lobbyLayer {
             position: fixed;
             inset: 0;
             z-index: 5;
-            display: none; /* JS sẽ điều khiển */
+            display: none;
             transition: opacity 0.8s ease;
         }
 
@@ -134,7 +131,7 @@
         #tvDisplayView {
             position: relative;
             z-index: 10;
-            display: none; /* JS sẽ điều khiển */
+            display: none;
             transition: opacity 0.7s ease;
         }
 
@@ -143,9 +140,6 @@
             opacity: 1;
         }
 
-        /* ==================================================== */
-        /*         LOADING SCREEN                                */
-        /* ==================================================== */
         #loadingScreen {
             position: fixed;
             inset: 0;
@@ -319,7 +313,6 @@
             100% { transform: translateY(0px) rotate(0deg); }
         }
 
-        /* BLINDBOX */
         .blindbox-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -530,7 +523,6 @@
 </head>
 <body class="tv-bg w-screen h-screen flex flex-col justify-between p-3 md:p-8 relative select-none">
 
-    <!-- LOADING SCREEN -->
     <div id="loadingScreen">
         <div class="cloud" style="top: 15%; animation-duration: 40s;">☁️</div>
         <div class="cloud" style="top: 70%; animation-duration: 55s; animation-delay: -20s;">☁️</div>
@@ -564,7 +556,6 @@
         <source src="music.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- LOBBY LAYER -->
     <div id="lobbyLayer">
         <div class="absolute inset-0 bg-cover bg-center"
              style="background-image: url('https://files.catbox.moe/9tm8bl.png');"></div>
@@ -592,7 +583,6 @@
         </div>
     </div>
 
-    <!-- MAIN DISPLAY -->
     <main id="tvDisplayView" class="w-full h-full flex-col justify-between gap-3 md:gap-6 z-10 max-w-7xl mx-auto">
 
         <header class="w-full flex flex-wrap md:flex-nowrap items-center justify-between gap-2 px-1 md:px-2 py-1">
@@ -683,7 +673,6 @@
 
     </main>
 
-    <!-- BLINDBOX -->
     <div id="blindboxOverlay" class="blindbox-overlay">
         <div class="blindbox-container">
             <div class="blindbox-title">
@@ -747,7 +736,7 @@
         const db = getDatabase(app);
 
         const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
-        const AUDIO_URL = 'https://cdn.jsdelivr.net/gh/worldoftankblizt1234-wq/TRUNGTHU@main/music.mp3';
+        const AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music.mp3';
 
         let QUESTIONS = [];
 
@@ -777,15 +766,15 @@
         let isReady = false;
         let isDisplayApplied = false;
 
-        // Audio state
         let audioContext = null;
         let audioBuffer = null;
         let audioSource = null;
         let audioGainNode = null;
         let audioStartedAt = 0;
         let audioPausedAt = 0;
+        let musicShouldPlay = false;
+        let isPlayingMusic = false;
 
-        // DOM
         const loadingScreen = document.getElementById('loadingScreen');
         const silkBarFill = document.getElementById('silkBarFill');
         const loadingPercent = document.getElementById('loadingPercent');
@@ -827,9 +816,6 @@
             { card: document.getElementById('btnOptD'), text: document.getElementById('textOptD'), badge: document.getElementById('badgeOptD') }
         ];
 
-        // ============================================================
-        // LOADING PROGRESS
-        // ============================================================
         const loadingProgress = {
             image: { loaded: false, bytes: 0, total: 0, weight: 50 },
             audio: { loaded: false, bytes: 0, total: 0, weight: 30 },
@@ -1103,13 +1089,9 @@
                 preloadAudioXHR(AUDIO_URL),
                 loadQuestionsXHR(`${WORKER_URL}/quiz`)
             ]);
-            // Áp dụng display state ngay khi load xong
             applyDisplayState();
         }
 
-        // ============================================================
-        // AUDIO
-        // ============================================================
         async function ensureAudioContextRunning() {
             if (!audioContext) return false;
             if (audioContext.state === 'suspended') {
@@ -1123,16 +1105,24 @@
         }
 
         async function playMusicWebAudio() {
+            if (!musicShouldPlay) return;
+
             if (!audioContext || !audioBuffer) {
                 bgMusic.play().catch(e => console.warn(e));
+                isPlayingMusic = true;
                 return;
             }
+
             const isRunning = await ensureAudioContextRunning();
+
+            if (!musicShouldPlay) return;
             if (!isRunning) return;
+
             if (audioSource) {
                 try { audioSource.stop(); } catch(e) {}
                 audioSource = null;
             }
+
             audioSource = audioContext.createBufferSource();
             audioSource.buffer = audioBuffer;
             audioSource.loop = true;
@@ -1141,9 +1131,13 @@
             const safeOffset = Math.min(offset, audioBuffer.duration - 0.1);
             audioSource.start(0, safeOffset);
             audioStartedAt = audioContext.currentTime - safeOffset;
+            isPlayingMusic = true;
         }
 
         function pauseMusicWebAudio() {
+            musicShouldPlay = false;
+            isPlayingMusic = false;
+
             if (audioSource && audioContext) {
                 const elapsed = audioContext.currentTime - audioStartedAt;
                 audioPausedAt = elapsed % (audioBuffer?.duration || 1);
@@ -1170,10 +1164,8 @@
                     return;
                 }
             }
-            if (audioContext.state === 'running' && displayState.musicPlaying) {
-                if (!audioSource) {
-                    playMusicWebAudio();
-                }
+            if (audioContext.state === 'running' && musicShouldPlay && !isPlayingMusic) {
+                playMusicWebAudio();
             }
         }
 
@@ -1187,9 +1179,6 @@
             }
         });
 
-        // ============================================================
-        // DISPLAY STATE - LOGIC CHUYỂN MÀN HÌNH MỚI
-        // ============================================================
         onValue(ref(db, 'quizGame/display'), (snap) => {
             if (!snap.exists()) {
                 set(ref(db, 'quizGame/display'), displayState);
@@ -1200,7 +1189,6 @@
         });
 
         function applyDisplayState() {
-            // Không check isReady nữa — chỉ cần DOM element tồn tại
             if (!lobbyLayer || !tvDisplayView) return;
 
             const isGameMode = displayState.mode === 'GAME';
@@ -1216,21 +1204,21 @@
             setMusicVolumeWebAudio(displayState.musicVolume);
 
             if (displayState.musicPlaying) {
-                if (!audioSource) {
+                musicShouldPlay = true;
+                if (!isPlayingMusic) {
                     playMusicWebAudio();
                 }
             } else {
-                if (audioSource) {
+                if (isPlayingMusic || audioSource) {
                     pauseMusicWebAudio();
+                } else {
+                    musicShouldPlay = false;
                 }
             }
 
             isDisplayApplied = true;
         }
 
-        // ============================================================
-        // RENDER TV UI
-        // ============================================================
         function renderTVUI() {
             const idx = gameState.currentQuestionIndex;
 
@@ -1346,9 +1334,6 @@
             }
         });
 
-        // ============================================================
-        // BLINDBOX
-        // ============================================================
         function getPrizeById(id) {
             if (!id || !prizePool || prizePool.length === 0) return null;
             return prizePool.find(p => p.id === id) || null;
@@ -1472,9 +1457,6 @@
             }
         });
 
-        // ============================================================
-        // FIREBASE LISTENERS
-        // ============================================================
         onValue(ref(db, 'quizGame/roomState'), (snapshot) => {
             if (snapshot.exists()) {
                 gameState = { ...gameState, ...snapshot.val() };
@@ -1502,12 +1484,7 @@
             }
         });
 
-        // ============================================================
-        // INIT
-        // ============================================================
-        // Áp dụng display state ngay lập tức (mặc định LOBBY)
         applyDisplayState();
-        
         bootstrap();
     </script>
 </body>
