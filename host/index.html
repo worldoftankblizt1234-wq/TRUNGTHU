@@ -62,8 +62,6 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.03); }
         }
-
-        /* ===== TICK ICON CHO ĐÁP ÁN ĐÃ CHỌN ===== */
         .option-btn .tick-icon {
             display: inline-flex;
             align-items: center;
@@ -75,23 +73,85 @@
             flex-shrink: 0;
             animation: tickPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
         .option-btn.selected-correct .tick-icon {
             background: #4ade80;
             color: #052e16;
             box-shadow: 0 0 25px rgba(74, 222, 128, 0.9), 0 0 40px rgba(74, 222, 128, 0.5);
         }
-
         .option-btn.selected-wrong .tick-icon {
             background: #f87171;
             color: #450a0a;
             box-shadow: 0 0 25px rgba(248, 113, 113, 0.9), 0 0 40px rgba(248, 113, 113, 0.5);
         }
-
         @keyframes tickPop {
             0% { transform: scale(0) rotate(-180deg); opacity: 0; }
             60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* ===== PRIZE MANAGER MODAL ===== */
+        .prize-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 44px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+        .prize-row:hover {
+            border-color: rgba(250, 204, 21, 0.4);
+            background: rgba(15, 23, 42, 0.9);
+        }
+        .prize-row input {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .prize-row input:focus {
+            border-color: #facc15;
+            box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.15);
+        }
+        .prize-row input[type="number"] {
+            text-align: center;
+        }
+        .prize-delete-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .prize-delete-btn:hover {
+            background: rgba(239, 68, 68, 0.9);
+            color: #fff;
+            transform: scale(1.05);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-style: italic;
+            font-size: 14px;
+            border: 2px dashed rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -120,6 +180,11 @@
                 <span class="text-xs text-slate-400 uppercase tracking-wider font-bold">Câu hỏi:</span>
                 <span id="questionCounter" class="text-xl font-black text-amber-400">0/0</span>
             </div>
+
+            <button id="btnOpenPrizeManager" class="px-4 py-2.5 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/40 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-gift"></i> Quản Lý Quà
+                <span id="prizeCountBadge" class="text-xs bg-amber-500 text-slate-950 rounded-full px-2 py-0.5 font-black">0</span>
+            </button>
 
             <button id="btnResetAll" class="px-4 py-2.5 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/40 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 shadow-lg">
                 <i class="fa-solid fa-rotate-left"></i> Reset Phòng
@@ -216,9 +281,98 @@
                        class="flex-1 accent-amber-400 cursor-pointer">
                 <span id="volumeLabel" class="text-xs font-mono text-amber-400 w-10 text-right">50%</span>
             </div>
+
+            <p class="mt-3 text-xs text-slate-500 italic">
+                <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i>
+                Nhạc sẽ phát từ TV qua file <code class="text-amber-400">/music.mp3</code> trên server. Host chỉ điều khiển bật/tắt và âm lượng.
+            </p>
         </div>
 
     </main>
+
+    <!-- ==================================================== -->
+    <!--             PRIZE MANAGER MODAL                       -->
+    <!-- ==================================================== -->
+    <div id="prizeManagerModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[9998] flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 max-w-3xl w-full shadow-2xl shadow-amber-500/20 max-h-[90vh] flex flex-col">
+            
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-4 mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                        <i class="fa-solid fa-gift text-slate-950"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-transparent">
+                            QUẢN LÝ PHẦN QUÀ
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Thêm quà, tỷ lệ xuất hiện và số lượng. Hệ thống sẽ bốc ngẫu nhiên khi người chơi chọn blindbox.
+                        </p>
+                    </div>
+                </div>
+                <button id="btnClosePrizeManager" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white transition-all flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto pr-1" style="max-height: 55vh;">
+
+                <!-- Header labels -->
+                <div class="grid grid-cols-[2fr_1fr_1fr_44px] gap-2 px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <span>Tên quà</span>
+                    <span class="text-center">Tỷ lệ %</span>
+                    <span class="text-center">Số lượng</span>
+                    <span></span>
+                </div>
+
+                <!-- Prize List -->
+                <div id="prizeListContainer">
+                    <!-- JS renders here -->
+                </div>
+
+                <!-- Add Button -->
+                <button id="btnAddPrize" class="w-full mt-3 py-3 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border-2 border-dashed border-emerald-500/50 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Thêm Quà Mới
+                </button>
+
+                <!-- Summary -->
+                <div class="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-700/60">
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Tổng loại quà</div>
+                            <div id="summaryTotalTypes" class="text-2xl font-black text-amber-400">0</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Tổng số lượng</div>
+                            <div id="summaryTotalQty" class="text-2xl font-black text-indigo-400">0</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Tổng tỷ lệ %</div>
+                            <div id="summaryTotalRate" class="text-2xl font-black text-emerald-400">0%</div>
+                        </div>
+                    </div>
+                    <p id="summaryWarning" class="text-xs text-amber-400 mt-3 text-center hidden">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                        Tổng tỷ lệ không bằng 100%. Hệ thống vẫn hoạt động nhưng nên điều chỉnh cho chính xác.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/60">
+                <button id="btnCancelPrizeManager" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-sm transition-all">
+                    <i class="fa-solid fa-xmark mr-1"></i> Hủy
+                </button>
+                <button id="btnSavePrizeManager" class="flex-1 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/30">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> Lưu Danh Sách Quà
+                </button>
+            </div>
+
+        </div>
+    </div>
 
     <!-- BLINDBOX POPUP OVERLAY -->
     <div id="blindboxOverlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[9999] flex items-center justify-center p-4 hidden">
@@ -294,7 +448,7 @@
     </div>
 
     <!-- CUSTOM CONFIRMATION MODAL -->
-    <div id="confirmModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="confirmModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[10000] flex items-center justify-center p-4 hidden">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center flex flex-col items-center gap-4">
             <div id="modalIconContainer" class="w-14 h-14 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-2xl">
                 <i class="fa-solid fa-circle-exclamation"></i>
@@ -311,7 +465,7 @@
     </div>
 
     <!-- TOAST NOTIFICATION BANNER -->
-    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300">
+    <div id="toastNotification" class="fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300">
         <i id="toastIcon" class="fa-solid fa-circle-info text-indigo-400 text-lg"></i>
         <span id="toastMessage" class="text-sm font-semibold">Thông báo từ hệ thống</span>
     </div>
@@ -339,14 +493,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const PRIZES = [
-            { name: " Snack", icon: "", probability: 25 },
-            { name: " Hộp sữa", icon: "", probability: 20 },
-            { name: " Kẹo bò", icon: "", probability: 20 },
-            { name: " Oreo", icon: "", probability: 15 },
-            { name: " Chúc may mắn lần sau", icon: "", probability: 20 }
-        ];
-
         // ============================================================
         // STATE
         // ============================================================
@@ -366,6 +512,11 @@
             musicPlaying: false,
             musicVolume: 0.5
         };
+
+        // Prize pool — danh sách quà do Host quản lý
+        // Mỗi prize: { id, name, rate, quantity }
+        let prizePool = [];
+
         let localTimerInterval = null;
         let confirmAction = null;
         let isQuestionsLoaded = false;
@@ -375,6 +526,9 @@
         let currentBoxes = [];
         let selectedBoxIndex = -1;
         let isBoxRevealed = false;
+
+        // Prize manager temp state (chỉnh sửa trước khi lưu)
+        let tempPrizePool = [];
 
         // ============================================================
         // DOM ELEMENTS
@@ -411,6 +565,20 @@
         const volumeSlider = document.getElementById('volumeSlider');
         const volumeLabel = document.getElementById('volumeLabel');
 
+        // Prize Manager DOM
+        const prizeManagerModal = document.getElementById('prizeManagerModal');
+        const prizeListContainer = document.getElementById('prizeListContainer');
+        const btnOpenPrizeManager = document.getElementById('btnOpenPrizeManager');
+        const btnClosePrizeManager = document.getElementById('btnClosePrizeManager');
+        const btnCancelPrizeManager = document.getElementById('btnCancelPrizeManager');
+        const btnSavePrizeManager = document.getElementById('btnSavePrizeManager');
+        const btnAddPrize = document.getElementById('btnAddPrize');
+        const prizeCountBadge = document.getElementById('prizeCountBadge');
+        const summaryTotalTypes = document.getElementById('summaryTotalTypes');
+        const summaryTotalQty = document.getElementById('summaryTotalQty');
+        const summaryTotalRate = document.getElementById('summaryTotalRate');
+        const summaryWarning = document.getElementById('summaryWarning');
+
         // ============================================================
         // UTILITY
         // ============================================================
@@ -418,17 +586,17 @@
             toastMessage.innerText = msg;
             if (type === 'error') {
                 toastIcon.className = "fa-solid fa-circle-xmark text-red-400 text-lg";
-                toastNotification.className = "fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900 border border-red-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-red-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
             } else if (type === 'success') {
                 toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
-                toastNotification.className = "fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900 border border-emerald-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-emerald-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
             } else {
                 toastIcon.className = "fa-solid fa-circle-info text-indigo-400 text-lg";
-                toastNotification.className = "fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
             }
 
             setTimeout(() => {
-                toastNotification.className = "fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300";
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300";
             }, 3000);
         }
 
@@ -453,29 +621,225 @@
         });
 
         // ============================================================
-        // BLINDBOX LOGIC
+        // 🎁 PRIZE POOL — LOGIC BỐC QUÀ
         // ============================================================
-        function getRandomPrize() {
-            const totalProbability = PRIZES.reduce((sum, p) => sum + p.probability, 0);
-            let random = Math.random() * totalProbability;
-            
-            for (const prize of PRIZES) {
-                random -= prize.probability;
-                if (random <= 0) {
-                    return prize;
-                }
-            }
-            return PRIZES[PRIZES.length - 1];
-        }
-
         function generateBoxes() {
+            // Nếu chưa có quà → trả về 3 hộp rỗng
+            if (!prizePool || prizePool.length === 0) {
+                return [
+                    { name: "Chưa có quà", icon: "❓", empty: true },
+                    { name: "Chưa có quà", icon: "❓", empty: true },
+                    { name: "Chưa có quà", icon: "❓", empty: true }
+                ];
+            }
+
+            // Tạo bản sao pool để theo dõi số lượng còn lại
+            const available = prizePool
+                .filter(p => p.quantity > 0)
+                .map(p => ({ ...p }));
+
             const boxes = [];
             for (let i = 0; i < 3; i++) {
-                boxes.push(getRandomPrize());
+                if (available.length === 0) {
+                    boxes.push({ name: "Hết quà", icon: "❓", empty: true });
+                    continue;
+                }
+
+                // Chọn theo tỷ lệ %
+                const totalRate = available.reduce((s, p) => s + (p.rate || 0), 0);
+                let picked = null;
+
+                if (totalRate > 0) {
+                    let random = Math.random() * totalRate;
+                    for (const prize of available) {
+                        random -= (prize.rate || 0);
+                        if (random <= 0) { picked = prize; break; }
+                    }
+                }
+
+                // Fallback nếu tỷ lệ = 0 hết
+                if (!picked) picked = available[Math.floor(Math.random() * available.length)];
+
+                boxes.push({
+                    name: picked.name,
+                    icon: "🎁",
+                    prizeId: picked.id,
+                    empty: false
+                });
+
+                // Giảm số lượng
+                picked.quantity -= 1;
+                if (picked.quantity <= 0) {
+                    const idx = available.indexOf(picked);
+                    if (idx > -1) available.splice(idx, 1);
+                }
             }
+
             return boxes;
         }
 
+        // ============================================================
+        // PRIZE MANAGER — UI
+        // ============================================================
+        function openPrizeManager() {
+            // Clone prizePool sang tempPrizePool để chỉnh sửa
+            tempPrizePool = JSON.parse(JSON.stringify(prizePool || []));
+            renderPrizeList();
+            prizeManagerModal.classList.remove('hidden');
+        }
+
+        function closePrizeManager() {
+            prizeManagerModal.classList.add('hidden');
+        }
+
+        function renderPrizeList() {
+            if (!tempPrizePool || tempPrizePool.length === 0) {
+                prizeListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-inbox text-4xl mb-3 block opacity-40"></i>
+                        None — Chưa có phần quà nào.<br>
+                        <span class="text-xs">Nhấn "Thêm Quà Mới" để bắt đầu.</span>
+                    </div>
+                `;
+            } else {
+                prizeListContainer.innerHTML = '';
+                tempPrizePool.forEach((prize, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'prize-row';
+                    row.innerHTML = `
+                        <input type="text" data-idx="${idx}" data-field="name" value="${escapeHtml(prize.name)}" placeholder="Tên quà...">
+                        <input type="number" data-idx="${idx}" data-field="rate" value="${prize.rate}" min="0" max="100" placeholder="%">
+                        <input type="number" data-idx="${idx}" data-field="quantity" value="${prize.quantity}" min="0" placeholder="SL">
+                        <button class="prize-delete-btn" data-idx="${idx}" title="Xóa quà">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    `;
+                    prizeListContainer.appendChild(row);
+                });
+            }
+
+            // Gắn event listeners
+            prizeListContainer.querySelectorAll('input').forEach(inp => {
+                inp.addEventListener('input', (e) => {
+                    const idx = parseInt(e.target.dataset.idx);
+                    const field = e.target.dataset.field;
+                    if (isNaN(idx) || !tempPrizePool[idx]) return;
+
+                    if (field === 'name') {
+                        tempPrizePool[idx].name = e.target.value;
+                    } else if (field === 'rate') {
+                        let v = parseFloat(e.target.value);
+                        if (isNaN(v) || v < 0) v = 0;
+                        if (v > 100) v = 100;
+                        tempPrizePool[idx].rate = v;
+                    } else if (field === 'quantity') {
+                        let v = parseInt(e.target.value);
+                        if (isNaN(v) || v < 0) v = 0;
+                        tempPrizePool[idx].quantity = v;
+                    }
+                    updatePrizeSummary();
+                });
+            });
+
+            prizeListContainer.querySelectorAll('.prize-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.currentTarget.dataset.idx);
+                    if (isNaN(idx)) return;
+                    tempPrizePool.splice(idx, 1);
+                    renderPrizeList();
+                    showToast("🗑️ Đã xóa quà", "info");
+                });
+            });
+
+            updatePrizeSummary();
+        }
+
+        function updatePrizeSummary() {
+            const totalTypes = tempPrizePool.length;
+            const totalQty = tempPrizePool.reduce((s, p) => s + (parseInt(p.quantity) || 0), 0);
+            const totalRate = tempPrizePool.reduce((s, p) => s + (parseFloat(p.rate) || 0), 0);
+
+            summaryTotalTypes.textContent = totalTypes;
+            summaryTotalQty.textContent = totalQty;
+            summaryTotalRate.textContent = totalRate.toFixed(1).replace(/\.0$/, '') + '%';
+
+            if (totalTypes > 0 && Math.abs(totalRate - 100) > 0.01) {
+                summaryWarning.classList.remove('hidden');
+            } else {
+                summaryWarning.classList.add('hidden');
+            }
+        }
+
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        btnOpenPrizeManager.addEventListener('click', openPrizeManager);
+        btnClosePrizeManager.addEventListener('click', closePrizeManager);
+        btnCancelPrizeManager.addEventListener('click', closePrizeManager);
+
+        btnAddPrize.addEventListener('click', () => {
+            tempPrizePool.push({
+                id: 'p_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                name: '',
+                rate: 0,
+                quantity: 1
+            });
+            renderPrizeList();
+            // Focus vào input cuối
+            const inputs = prizeListContainer.querySelectorAll('input[data-field="name"]');
+            if (inputs.length > 0) inputs[inputs.length - 1].focus();
+        });
+
+        btnSavePrizeManager.addEventListener('click', async () => {
+            // Validate
+            const cleaned = tempPrizePool
+                .map(p => ({
+                    id: p.id || ('p_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
+                    name: (p.name || '').trim(),
+                    rate: Math.max(0, parseFloat(p.rate) || 0),
+                    quantity: Math.max(0, parseInt(p.quantity) || 0)
+                }))
+                .filter(p => p.name !== '');
+
+            if (cleaned.length === 0) {
+                showToast("⚠️ Chưa có quà nào hợp lệ để lưu!", "error");
+                return;
+            }
+
+            prizePool = cleaned;
+
+            try {
+                await set(ref(db, 'quizGame/prizePool'), prizePool);
+                prizeCountBadge.textContent = prizePool.length;
+                showToast(`✅ Đã lưu ${prizePool.length} phần quà lên Firebase!`, "success");
+                closePrizeManager();
+            } catch (e) {
+                console.error("Save prize pool error:", e);
+                showToast("❌ Lỗi lưu quà: " + e.message, "error");
+            }
+        });
+
+        // Listen Firebase prizePool (sync đa tab)
+        onValue(ref(db, 'quizGame/prizePool'), (snap) => {
+            if (snap.exists()) {
+                const val = snap.val();
+                prizePool = Array.isArray(val) ? val : Object.values(val);
+            } else {
+                prizePool = [];
+            }
+            prizeCountBadge.textContent = prizePool.length;
+        });
+
+        // ============================================================
+        // BLINDBOX LOGIC
+        // ============================================================
         async function openBlindbox() {
             selectedBoxIndex = -1;
             isBoxRevealed = false;
@@ -528,8 +892,8 @@
             });
             
             const selectedPrize = currentBoxes[index];
-            if (selectedPrize.name.includes('may mắn')) {
-                blindboxResult.textContent = '😅 Chúc bạn may mắn lần sau!';
+            if (selectedPrize.empty) {
+                blindboxResult.textContent = '😅 Hộp này chưa có quà!';
                 blindboxResult.className = 'text-center text-xl font-bold min-h-[50px] text-amber-400';
             } else {
                 blindboxResult.textContent = '🎉 Chúc mừng! Bạn nhận được: ' + selectedPrize.icon + ' ' + selectedPrize.name;
@@ -799,7 +1163,6 @@
                 showToast("❌ Sai rồi! Đáp án đúng đã được highlight.", "error");
             }
 
-            // ✅ GỬI hostAnswer LÊN FIREBASE ĐỂ TV BIẾT
             updateRoomStateInRTDB({
                 showResults: true,
                 hostAnswer: optionIndex,
@@ -1051,36 +1414,34 @@
         document.getElementById('btnResetAll').addEventListener('click', () => {
             showConfirmModal(
                 "Reset Toàn Bộ Phòng",
-                "Bạn có chắc chắn muốn đưa phòng về trạng thái ban đầu không?",
+                "Bạn có chắc chắn muốn đưa phòng về trạng thái ban đầu không? (KHÔNG xóa danh sách quà)",
                 async () => {
                     try {
                         clearInterval(localTimerInterval);
                         isAnswerLocked = false;
                         selectedAnswer = null;
-                        await set(ref(db), {
-                            quizGame: {
-                                roomState: {
-                                    currentQuestionIndex: -1,
-                                    status: 'LOBBY',
-                                    timerDuration: 15,
-                                    showResults: false,
-                                    showTop5: false,
-                                    timerEndTimestamp: 0,
-                                    hostAnswer: -1,
-                                    hostAnswerCorrect: false
-                                },
-                                players: {},
-                                blindbox: {
-                                    isOpen: false,
-                                    selectedBox: -1,
-                                    boxes: [],
-                                    revealed: false
-                                },
-                                display: {
-                                    mode: 'LOBBY',
-                                    musicPlaying: false,
-                                    musicVolume: 0.5
-                                }
+                        await update(ref(db, 'quizGame'), {
+                            roomState: {
+                                currentQuestionIndex: -1,
+                                status: 'LOBBY',
+                                timerDuration: 15,
+                                showResults: false,
+                                showTop5: false,
+                                timerEndTimestamp: 0,
+                                hostAnswer: -1,
+                                hostAnswerCorrect: false
+                            },
+                            players: {},
+                            blindbox: {
+                                isOpen: false,
+                                selectedBox: -1,
+                                boxes: [],
+                                revealed: false
+                            },
+                            display: {
+                                mode: 'LOBBY',
+                                musicPlaying: false,
+                                musicVolume: 0.5
                             }
                         });
                         showToast("🔄 Đã reset phòng game!", "success");
