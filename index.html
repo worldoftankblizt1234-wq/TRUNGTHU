@@ -23,8 +23,9 @@
                         midnight: '#0c102b',
                     },
                     fontFamily: {
-                        sans: ['Montserrat', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
+                        // ĐÃ SỬA: Thêm fallback Arial, Times New Roman
+                        sans: ['Montserrat', 'Arial', 'Segoe UI', 'sans-serif'],
+                        serif: ['Playfair Display', 'Times New Roman', 'serif'],
                     }
                 }
             }
@@ -46,7 +47,8 @@
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
+            /* ĐÃ SỬA: Thêm fallback Arial, Segoe UI */
+            font-family: 'Montserrat', 'Arial', 'Segoe UI', sans-serif;
             background-color: #0d1329;
             color: #ffffff;
             user-select: none;
@@ -204,7 +206,7 @@
         }
 
         .loading-title {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Playfair Display', 'Times New Roman', serif;
             font-size: 3rem;
             font-weight: 900;
             background: linear-gradient(135deg, #facc15, #f59e0b, #fde047, #facc15);
@@ -280,7 +282,7 @@
             font-size: 3rem;
             font-weight: 900;
             color: #facc15;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Playfair Display', 'Times New Roman', serif;
             text-shadow: 0 0 30px rgba(250, 204, 21, 0.9);
             margin-bottom: 20px;
             letter-spacing: 2px;
@@ -577,7 +579,7 @@
         
         <div class="relative w-full h-full flex flex-col items-center justify-center gap-4 md:gap-6 z-10 px-4">
             <h1 class="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black title-glow text-center leading-tight"
-                style="font-family: 'Playfair Display', serif;">
+                style="font-family: 'Playfair Display', 'Times New Roman', serif;">
                 🌕 ĐÊM HỘI TRĂNG RẰM 🏮
             </h1>
             <p class="text-base sm:text-xl md:text-3xl text-amber-200 font-bold tracking-widest animate-pulse text-center">
