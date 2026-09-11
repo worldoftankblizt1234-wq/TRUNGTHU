@@ -279,6 +279,33 @@
                 </button>
             </div>
 
+            <!-- 🎵 NÚT NHẠC OUTRO - CHỈ HIỆN KHI Ở MODE OUTRO -->
+            <div id="outroMusicControl" class="mt-4 hidden">
+                <div class="bg-pink-500/10 border border-pink-500/40 rounded-xl p-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-music text-pink-400 text-xl"></i>
+                            <span class="text-sm font-bold text-pink-300">Nhạc Outro</span>
+                            <span id="outroMusicStatus" class="text-xs text-slate-400 italic">(đang tắt)</span>
+                        </div>
+                        <button id="btnOutroMusicToggle" class="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-lg text-sm transition-all flex items-center gap-2">
+                            <i id="outroMusicIcon" class="fa-solid fa-play"></i>
+                            <span id="outroMusicLabel">Phát nhạc Outro</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-volume-low text-slate-400"></i>
+                        <input type="range" id="outroVolumeSlider" min="0" max="100" value="65"
+                               class="flex-1 accent-pink-400 cursor-pointer">
+                        <span id="outroVolumeLabel" class="text-xs font-mono text-pink-400 w-10 text-right">65%</span>
+                    </div>
+                    <p class="text-xs text-slate-500 italic">
+                        <i class="fa-solid fa-circle-info mr-1 text-pink-400"></i>
+                        Nhạc Outro chỉ phát khi TV đang ở mode OUTRO. Khi rời mode, nhạc tự tắt.
+                    </p>
+                </div>
+            </div>
+
             <div class="mt-4 flex items-center gap-3">
                 <i class="fa-solid fa-volume-low text-slate-400"></i>
                 <input type="range" id="volumeSlider" min="0" max="100" value="50"
@@ -288,7 +315,7 @@
 
             <p class="mt-3 text-xs text-slate-500 italic">
                 <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i>
-                Nhạc sẽ phát từ TV qua file <code class="text-amber-400">/music.mp3</code> trên server. Host chỉ điều khiển bật/tắt và âm lượng.
+                Nhạc Lobby phát qua file <code class="text-amber-400">/music.mp3</code>, nhạc Outro qua <code class="text-pink-400">/music2.mp3</code>. Host điều khiển bật/tắt và âm lượng.
             </p>
         </div>
 
@@ -514,7 +541,9 @@
         let displayState = {
             mode: 'LOBBY',
             musicPlaying: false,
-            musicVolume: 0.5
+            musicVolume: 0.5,
+            outroMusicPlaying: false,
+            outroMusicVolume: 0.65
         };
 
         // Prize pool — danh sách quà do Host quản lý
@@ -569,6 +598,15 @@
         const musicLabel = document.getElementById('musicLabel');
         const volumeSlider = document.getElementById('volumeSlider');
         const volumeLabel = document.getElementById('volumeLabel');
+
+        // Outro Music Control DOM
+        const outroMusicControl = document.getElementById('outroMusicControl');
+        const outroMusicStatus = document.getElementById('outroMusicStatus');
+        const btnOutroMusicToggle = document.getElementById('btnOutroMusicToggle');
+        const outroMusicIcon = document.getElementById('outroMusicIcon');
+        const outroMusicLabel = document.getElementById('outroMusicLabel');
+        const outroVolumeSlider = document.getElementById('outroVolumeSlider');
+        const outroVolumeLabel = document.getElementById('outroVolumeLabel');
 
         // Prize Manager DOM
         const prizeManagerModal = document.getElementById('prizeManagerModal');
@@ -1020,6 +1058,31 @@
 
             volumeSlider.value = Math.round(displayState.musicVolume * 100);
             volumeLabel.textContent = Math.round(displayState.musicVolume * 100) + '%';
+
+            // Hiển thị panel nhạc Outro khi ở mode OUTRO
+            if (displayState.mode === 'OUTRO') {
+                outroMusicControl.classList.remove('hidden');
+            } else {
+                outroMusicControl.classList.add('hidden');
+            }
+
+            // Cập nhật UI nhạc Outro
+            if (displayState.outroMusicPlaying) {
+                outroMusicIcon.className = 'fa-solid fa-pause';
+                outroMusicLabel.textContent = 'Tắt nhạc Outro';
+                outroMusicStatus.textContent = '(đang phát)';
+                outroMusicStatus.className = 'text-xs text-emerald-400 italic font-bold';
+                btnOutroMusicToggle.className = 'px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-sm transition-all flex items-center gap-2';
+            } else {
+                outroMusicIcon.className = 'fa-solid fa-play';
+                outroMusicLabel.textContent = 'Phát nhạc Outro';
+                outroMusicStatus.textContent = '(đang tắt)';
+                outroMusicStatus.className = 'text-xs text-slate-400 italic';
+                btnOutroMusicToggle.className = 'px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-lg text-sm transition-all flex items-center gap-2';
+            }
+
+            outroVolumeSlider.value = Math.round((displayState.outroMusicVolume || 0.65) * 100);
+            outroVolumeLabel.textContent = Math.round((displayState.outroMusicVolume || 0.65) * 100) + '%';
         }
 
         btnModeLobby.addEventListener('click', () => {
@@ -1042,6 +1105,29 @@
             showToast(displayState.musicPlaying ? "🎵 Đã bật nhạc" : "🔇 Đã tắt nhạc", "info");
         });
 
+        // ============================================================
+        // 🎵 NÚT NHẠC OUTRO
+        // ============================================================
+        btnOutroMusicToggle.addEventListener('click', () => {
+            updateDisplayState({ outroMusicPlaying: !displayState.outroMusicPlaying });
+            showToast(
+                displayState.outroMusicPlaying 
+                    ? "🎵 Đã bật nhạc Outro" 
+                    : "🔇 Đã tắt nhạc Outro", 
+                "info"
+            );
+        });
+
+        outroVolumeSlider.addEventListener('input', (e) => {
+            outroVolumeLabel.textContent = e.target.value + '%';
+        });
+        outroVolumeSlider.addEventListener('change', (e) => {
+            updateDisplayState({ outroMusicVolume: parseInt(e.target.value) / 100 });
+        });
+
+        // ============================================================
+        // VOLUME NHẠC LOBBY
+        // ============================================================
         volumeSlider.addEventListener('input', (e) => {
             volumeLabel.textContent = e.target.value + '%';
         });
@@ -1051,7 +1137,14 @@
 
         onValue(ref(db, 'quizGame/display'), (snap) => {
             if (snap.exists()) {
-                displayState = snap.val();
+                const val = snap.val();
+                displayState = {
+                    mode: val.mode || 'LOBBY',
+                    musicPlaying: val.musicPlaying || false,
+                    musicVolume: val.musicVolume ?? 0.5,
+                    outroMusicPlaying: val.outroMusicPlaying || false,
+                    outroMusicVolume: val.outroMusicVolume ?? 0.65
+                };
             } else {
                 set(ref(db, 'quizGame/display'), displayState);
             }
@@ -1459,7 +1552,9 @@
                             display: {
                                 mode: 'LOBBY',
                                 musicPlaying: false,
-                                musicVolume: 0.5
+                                musicVolume: 0.5,
+                                outroMusicPlaying: false,
+                                outroMusicVolume: 0.65
                             }
                         });
                         showToast("🔄 Đã reset phòng game!", "success");
