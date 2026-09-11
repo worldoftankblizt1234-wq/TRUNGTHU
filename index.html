@@ -115,6 +115,52 @@
             transition: width 0.15s linear;
         }
 
+        /* ==================================================== */
+        /*   WATERMARK - GHI CHÚ BẢN QUYỀN GÓC DƯỚI            */
+        /* ==================================================== */
+        .watermark {
+            position: fixed;
+            bottom: 8px;
+            right: 12px;
+            z-index: 99998;
+            text-align: right;
+            font-size: 0.6rem;
+            line-height: 1.3;
+            color: rgba(255, 255, 255, 0.15);
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.3px;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            opacity: 0.6;
+        }
+
+        .watermark .line1 {
+            color: rgba(250, 204, 21, 0.25);
+            font-weight: 600;
+            font-size: 0.6rem;
+        }
+
+        .watermark .line2 {
+            color: rgba(255, 255, 255, 0.15);
+            font-weight: 500;
+        }
+
+        .watermark .line3 {
+            color: rgba(148, 163, 184, 0.15);
+            font-style: italic;
+            font-size: 0.55rem;
+        }
+
+        @media (max-width: 640px) {
+            .watermark {
+                font-size: 0.5rem;
+                bottom: 5px;
+                right: 8px;
+            }
+            .watermark .line1 { font-size: 0.5rem; }
+            .watermark .line3 { font-size: 0.45rem; }
+        }
+
         #lobbyLayer {
             position: fixed;
             inset: 0;
@@ -542,6 +588,13 @@
     </style>
 </head>
 <body class="tv-bg w-screen h-screen flex flex-col justify-between p-3 md:p-8 relative select-none">
+
+    <!-- WATERMARK GÓC DƯỚI PHẢI - HIỆN Ở MỌI MÀN HÌNH -->
+    <div class="watermark">
+        <div class="line1">Made by Tổ 4</div>
+        <div class="line2">Thiết kế Minh</div>
+        <div class="line3">© Product of Minh</div>
+    </div>
 
     <div id="loadingScreen">
         <div class="cloud" style="top: 15%; animation-duration: 40s;">☁️</div>
@@ -1543,7 +1596,6 @@
             setMusicVolumeWebAudio(displayState.musicVolume);
             setOutroVolumeWebAudio(displayState.outroMusicVolume || 0.65);
 
-            // Nhạc Lobby
             if (displayState.musicPlaying) {
                 musicShouldPlay = true;
                 if (!isPlayingMusic) {
@@ -1557,7 +1609,6 @@
                 }
             }
 
-            // Nhạc Outro - chỉ phát khi mode OUTRO VÀ outroMusicPlaying = true
             if (mode === 'OUTRO' && displayState.outroMusicPlaying) {
                 outroAudioShouldPlay = true;
                 if (!isPlayingOutroAudio) {
