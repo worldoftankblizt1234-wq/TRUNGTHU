@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
-            /* ĐÃ SỬA: Thêm Arial làm fallback */
             font-family: 'Plus Jakarta Sans', 'Arial', 'Segoe UI', sans-serif;
             background-color: #0f172a;
             color: #f8fafc;
@@ -261,13 +260,17 @@
                 </span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <button id="btnModeLobby" class="px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
                     <i class="fa-solid fa-moon"></i> Màn hình chờ
                 </button>
 
                 <button id="btnModeGame" class="px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
                     <i class="fa-solid fa-gamepad"></i> Vào Minigame
+                </button>
+
+                <button id="btnModeOutro" class="px-4 py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-heart"></i> Outro
                 </button>
 
                 <button id="btnMusicToggle" class="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
@@ -560,6 +563,7 @@
         const currentModeBadge = document.getElementById('currentModeBadge');
         const btnModeLobby = document.getElementById('btnModeLobby');
         const btnModeGame = document.getElementById('btnModeGame');
+        const btnModeOutro = document.getElementById('btnModeOutro');
         const btnMusicToggle = document.getElementById('btnMusicToggle');
         const musicIcon = document.getElementById('musicIcon');
         const musicLabel = document.getElementById('musicLabel');
@@ -986,14 +990,22 @@
 
         function renderDisplayUI() {
             currentModeBadge.textContent = `Mode: ${displayState.mode}`;
+            
             if (displayState.mode === 'GAME') {
                 currentModeBadge.className = 'text-xs font-bold px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/40';
                 btnModeLobby.className = 'px-4 py-3 bg-purple-600/40 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
                 btnModeGame.className = 'px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm ring-2 ring-indigo-400';
+                btnModeOutro.className = 'px-4 py-3 bg-pink-600/40 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+            } else if (displayState.mode === 'OUTRO') {
+                currentModeBadge.className = 'text-xs font-bold px-3 py-1 rounded-lg bg-pink-500/20 text-pink-400 border border-pink-500/40';
+                btnModeLobby.className = 'px-4 py-3 bg-purple-600/40 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+                btnModeGame.className = 'px-4 py-3 bg-indigo-600/40 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+                btnModeOutro.className = 'px-4 py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm ring-2 ring-pink-400';
             } else {
                 currentModeBadge.className = 'text-xs font-bold px-3 py-1 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/40';
                 btnModeLobby.className = 'px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm ring-2 ring-purple-400';
                 btnModeGame.className = 'px-4 py-3 bg-indigo-600/40 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+                btnModeOutro.className = 'px-4 py-3 bg-pink-600/40 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
             }
 
             if (displayState.musicPlaying) {
@@ -1018,6 +1030,11 @@
         btnModeGame.addEventListener('click', () => {
             updateDisplayState({ mode: 'GAME' });
             showToast("🎮 TV vào minigame", "success");
+        });
+
+        btnModeOutro.addEventListener('click', () => {
+            updateDisplayState({ mode: 'OUTRO' });
+            showToast("🌕 TV chuyển sang màn hình Outro", "success");
         });
 
         btnMusicToggle.addEventListener('click', () => {
