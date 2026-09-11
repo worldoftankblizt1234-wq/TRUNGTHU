@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,600&family=Noto+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -23,9 +23,8 @@
                         midnight: '#0c102b',
                     },
                     fontFamily: {
-                        // ĐÃ SỬA: Thêm fallback Arial, Times New Roman
-                        sans: ['Montserrat', 'Arial', 'Segoe UI', 'sans-serif'],
-                        serif: ['Playfair Display', 'Times New Roman', 'serif'],
+                        sans: ['Montserrat', 'Noto Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
                     }
                 }
             }
@@ -47,8 +46,7 @@
         }
 
         body {
-            /* ĐÃ SỬA: Thêm fallback Arial, Segoe UI */
-            font-family: 'Montserrat', 'Arial', 'Segoe UI', sans-serif;
+            font-family: 'Montserrat', 'Noto Sans', sans-serif;
             background-color: #0d1329;
             color: #ffffff;
             user-select: none;
@@ -148,6 +146,20 @@
             pointer-events: auto;
         }
 
+        #outroLayer {
+            position: fixed;
+            inset: 0;
+            z-index: 15;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out;
+        }
+
+        #outroLayer.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         #loadingScreen {
             position: fixed;
             inset: 0;
@@ -206,7 +218,7 @@
         }
 
         .loading-title {
-            font-family: 'Playfair Display', 'Times New Roman', serif;
+            font-family: 'Playfair Display', serif;
             font-size: 3rem;
             font-weight: 900;
             background: linear-gradient(135deg, #facc15, #f59e0b, #fde047, #facc15);
@@ -282,7 +294,7 @@
             font-size: 3rem;
             font-weight: 900;
             color: #facc15;
-            font-family: 'Playfair Display', 'Times New Roman', serif;
+            font-family: 'Playfair Display', serif;
             text-shadow: 0 0 30px rgba(250, 204, 21, 0.9);
             margin-bottom: 20px;
             letter-spacing: 2px;
@@ -566,6 +578,9 @@
     <audio id="questionMusic" loop preload="auto" style="display:none;">
         <source src="music1.mp3" type="audio/mpeg">
     </audio>
+    <audio id="outroMusic" loop preload="auto" style="display:none;">
+        <source src="music2.mp3" type="audio/mpeg">
+    </audio>
 
     <div id="lobbyLayer">
         <div class="absolute inset-0 bg-cover bg-center"
@@ -579,11 +594,38 @@
         
         <div class="relative w-full h-full flex flex-col items-center justify-center gap-4 md:gap-6 z-10 px-4">
             <h1 class="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black title-glow text-center leading-tight"
-                style="font-family: 'Playfair Display', 'Times New Roman', serif;">
+                style="font-family: 'Playfair Display', serif;">
                 🌕 ĐÊM HỘI TRĂNG RẰM 🏮
             </h1>
             <p class="text-base sm:text-xl md:text-3xl text-amber-200 font-bold tracking-widest animate-pulse text-center">
                 ⏳ Đang chờ Host bắt đầu...
+            </p>
+            <div class="mt-4 md:mt-8 flex gap-3 md:gap-4 text-2xl sm:text-4xl md:text-5xl">
+                <span>🏮</span><span>🥮</span><span>🏮</span><span>🥮</span>
+            </div>
+            <p class="mt-8 md:mt-12 text-slate-400 text-xs md:text-sm tracking-widest uppercase text-center">
+                <i class="fa-solid fa-music mr-2 text-amber-400"></i> Âm nhạc đang phát...
+            </p>
+        </div>
+    </div>
+
+    <div id="outroLayer">
+        <div class="absolute inset-0 bg-cover bg-center"
+             style="background-image: url('https://files.catbox.moe/b2cmp5.png');"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/70"></div>
+        
+        <div class="absolute floating-lantern" style="top: 10%; left: 8%; font-size: 4rem;">🏮</div>
+        <div class="absolute floating-lantern" style="top: 20%; right: 12%; font-size: 4.5rem; animation-delay: 2s;">🏮</div>
+        <div class="absolute floating-lantern" style="bottom: 15%; left: 15%; font-size: 3.5rem; animation-delay: 4s;">🥮</div>
+        <div class="absolute floating-lantern" style="bottom: 20%; right: 18%; font-size: 3.8rem; animation-delay: 1s;">🥮</div>
+        
+        <div class="relative w-full h-full flex flex-col items-center justify-center gap-4 md:gap-6 z-10 px-4">
+            <h1 class="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black title-glow text-center leading-tight"
+                style="font-family: 'Playfair Display', serif;">
+                🌕 CẢM ƠN CÁC BẠN 🏮
+            </h1>
+            <p class="text-base sm:text-xl md:text-3xl text-amber-200 font-bold tracking-widest animate-pulse text-center">
+                ✦ HẸN GẶP LẠI MÙA TRUNG THU SAU ✦
             </p>
             <div class="mt-4 md:mt-8 flex gap-3 md:gap-4 text-2xl sm:text-4xl md:text-5xl">
                 <span>🏮</span><span>🥮</span><span>🏮</span><span>🥮</span>
@@ -650,7 +692,7 @@
                 <div id="btnOptA" class="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80">
                     <div class="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
                         <div class="w-10 h-10 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-lg md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">A</div>
-                        <span id="textOptA" class="text-sm md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                        <span id="textOptA" class="text-sm md:text-2xl font-bold text-slate-100 max-w-full break-words leading-tight">---</span>
                     </div>
                     <div id="badgeOptA" class="hidden text-xl md:text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
@@ -658,7 +700,7 @@
                 <div id="btnOptB" class="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80">
                     <div class="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
                         <div class="w-10 h-10 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-lg md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">B</div>
-                        <span id="textOptB" class="text-sm md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                        <span id="textOptB" class="text-sm md:text-2xl font-bold text-slate-100 max-w-full break-words leading-tight">---</span>
                     </div>
                     <div id="badgeOptB" class="hidden text-xl md:text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
@@ -666,7 +708,7 @@
                 <div id="btnOptC" class="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80">
                     <div class="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
                         <div class="w-10 h-10 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-lg md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">C</div>
-                        <span id="textOptC" class="text-sm md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                        <span id="textOptC" class="text-sm md:text-2xl font-bold text-slate-100 max-w-full break-words leading-tight">---</span>
                     </div>
                     <div id="badgeOptC" class="hidden text-xl md:text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
@@ -674,7 +716,7 @@
                 <div id="btnOptD" class="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 flex items-center justify-between gap-3 md:gap-5 relative overflow-hidden border border-slate-700/80">
                     <div class="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
                         <div class="w-10 h-10 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 font-black text-lg md:text-3xl flex items-center justify-center shadow-lg flex-shrink-0">D</div>
-                        <span id="textOptD" class="text-sm md:text-2xl font-bold text-slate-100 truncate max-w-full">---</span>
+                        <span id="textOptD" class="text-sm md:text-2xl font-bold text-slate-100 max-w-full break-words leading-tight">---</span>
                     </div>
                     <div id="badgeOptD" class="hidden text-xl md:text-3xl text-emerald-400 flex-shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
@@ -749,7 +791,9 @@
         const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
         const AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music.mp3';
         const QUESTION_AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music1.mp3';
+        const OUTRO_AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music2.mp3';
         const QUESTION_AUDIO_VOLUME = 0.78;
+        const OUTRO_AUDIO_VOLUME = 0.65;
 
         let QUESTIONS = [];
 
@@ -794,6 +838,12 @@
         let questionAudioShouldPlay = false;
         let isPlayingQuestionAudio = false;
 
+        let outroAudioBuffer = null;
+        let outroAudioSource = null;
+        let outroAudioGainNode = null;
+        let outroAudioShouldPlay = false;
+        let isPlayingOutroAudio = false;
+
         const loadingScreen = document.getElementById('loadingScreen');
         const silkBarFill = document.getElementById('silkBarFill');
         const loadingPercent = document.getElementById('loadingPercent');
@@ -803,7 +853,9 @@
 
         const bgMusic = document.getElementById('bgMusic');
         const questionMusic = document.getElementById('questionMusic');
+        const outroMusic = document.getElementById('outroMusic');
         const lobbyLayer = document.getElementById('lobbyLayer');
+        const outroLayer = document.getElementById('outroLayer');
         const tvDisplayView = document.getElementById('tvDisplayView');
 
         const questionProgress = document.getElementById('questionProgress');
@@ -837,10 +889,11 @@
         ];
 
         const loadingProgress = {
-            image: { loaded: false, bytes: 0, total: 0, weight: 40 },
-            audio: { loaded: false, bytes: 0, total: 0, weight: 20 },
-            questionAudio: { loaded: false, bytes: 0, total: 0, weight: 20 },
-            quiz:  { loaded: false, bytes: 0, total: 0, weight: 20 },
+            image: { loaded: false, bytes: 0, total: 0, weight: 30 },
+            audio: { loaded: false, bytes: 0, total: 0, weight: 15 },
+            questionAudio: { loaded: false, bytes: 0, total: 0, weight: 15 },
+            outroAudio: { loaded: false, bytes: 0, total: 0, weight: 15 },
+            quiz:  { loaded: false, bytes: 0, total: 0, weight: 25 },
             speedSamples: [],
             lastBytes: 0,
             lastTime: Date.now(),
@@ -853,17 +906,19 @@
                 else if (this.audio.loaded) pct += this.audio.weight;
                 if (this.questionAudio.total > 0) pct += (this.questionAudio.bytes / this.questionAudio.total) * this.questionAudio.weight;
                 else if (this.questionAudio.loaded) pct += this.questionAudio.weight;
+                if (this.outroAudio.total > 0) pct += (this.outroAudio.bytes / this.outroAudio.total) * this.outroAudio.weight;
+                else if (this.outroAudio.loaded) pct += this.outroAudio.weight;
                 if (this.quiz.total > 0) pct += (this.quiz.bytes / this.quiz.total) * this.quiz.weight;
                 else if (this.quiz.loaded) pct += this.quiz.weight;
                 return Math.min(100, Math.round(pct));
             },
 
             getTotalBytes() {
-                return this.image.bytes + this.audio.bytes + this.questionAudio.bytes + this.quiz.bytes;
+                return this.image.bytes + this.audio.bytes + this.questionAudio.bytes + this.outroAudio.bytes + this.quiz.bytes;
             },
 
             getTotalSize() {
-                return (this.image.total || 0) + (this.audio.total || 0) + (this.questionAudio.total || 0) + (this.quiz.total || 0);
+                return (this.image.total || 0) + (this.audio.total || 0) + (this.questionAudio.total || 0) + (this.outroAudio.total || 0) + (this.quiz.total || 0);
             }
         };
 
@@ -918,7 +973,7 @@
                 netEta.textContent = 'Xong!';
             }
 
-            if (loadingProgress.image.loaded && loadingProgress.audio.loaded && loadingProgress.questionAudio.loaded && loadingProgress.quiz.loaded) {
+            if (loadingProgress.image.loaded && loadingProgress.audio.loaded && loadingProgress.questionAudio.loaded && loadingProgress.outroAudio.loaded && loadingProgress.quiz.loaded) {
                 finishLoading();
             }
         }
@@ -1106,6 +1161,79 @@
             });
         }
 
+        function preloadOutroAudioXHR(url) {
+            return new Promise((resolve) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = 'arraybuffer';
+                xhr.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        loadingProgress.outroAudio.total = e.total;
+                        loadingProgress.outroAudio.bytes = e.loaded;
+                    } else {
+                        loadingProgress.outroAudio.bytes = e.loaded;
+                        loadingProgress.outroAudio.total = Math.max(loadingProgress.outroAudio.total, e.loaded);
+                    }
+                    updateLoadingUI();
+                };
+                xhr.onload = async () => {
+                    if (xhr.status === 200) {
+                        const size = xhr.response.byteLength || 0;
+                        loadingProgress.outroAudio.bytes = size;
+                        loadingProgress.outroAudio.total = size;
+                        try {
+                            if (!audioContext) {
+                                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            }
+                            outroAudioBuffer = await audioContext.decodeAudioData(xhr.response);
+                            outroAudioGainNode = audioContext.createGain();
+                            outroAudioGainNode.gain.value = OUTRO_AUDIO_VOLUME;
+                            outroAudioGainNode.connect(audioContext.destination);
+                            loadingProgress.outroAudio.loaded = true;
+                        } catch (err) {
+                            try {
+                                const blobUrl = URL.createObjectURL(new Blob([xhr.response], { type: 'audio/mpeg' }));
+                                outroMusic.src = blobUrl;
+                                outroMusic.load();
+                            } catch (e2) {
+                                outroMusic.src = url;
+                                outroMusic.load();
+                            }
+                            loadingProgress.outroAudio.loaded = true;
+                        }
+                    } else {
+                        loadingProgress.outroAudio.loaded = true;
+                        loadingProgress.outroAudio.bytes = 1;
+                        loadingProgress.outroAudio.total = 1;
+                        outroMusic.src = 'music2.mp3';
+                        outroMusic.load();
+                    }
+                    updateLoadingUI();
+                    resolve();
+                };
+                xhr.onerror = () => {
+                    loadingProgress.outroAudio.loaded = true;
+                    loadingProgress.outroAudio.bytes = 1;
+                    loadingProgress.outroAudio.total = 1;
+                    outroMusic.src = 'music2.mp3';
+                    outroMusic.load();
+                    updateLoadingUI();
+                    resolve();
+                };
+                xhr.timeout = 60000;
+                xhr.ontimeout = () => {
+                    loadingProgress.outroAudio.loaded = true;
+                    loadingProgress.outroAudio.bytes = 1;
+                    loadingProgress.outroAudio.total = 1;
+                    outroMusic.src = 'music2.mp3';
+                    outroMusic.load();
+                    updateLoadingUI();
+                    resolve();
+                };
+                xhr.send();
+            });
+        }
+
         function loadQuestionsXHR(url) {
             return new Promise((resolve) => {
                 const xhr = new XMLHttpRequest();
@@ -1186,6 +1314,7 @@
                 preloadImageXHR(IMAGE_URL),
                 preloadAudioXHR(AUDIO_URL),
                 preloadQuestionAudioXHR(QUESTION_AUDIO_URL),
+                preloadOutroAudioXHR(OUTRO_AUDIO_URL),
                 loadQuestionsXHR(`${WORKER_URL}/quiz`)
             ]);
             applyDisplayState();
@@ -1294,6 +1423,46 @@
             }
         }
 
+        async function playOutroAudio() {
+            if (!outroAudioShouldPlay) return;
+
+            if (!audioContext || !outroAudioBuffer) {
+                outroMusic.currentTime = 0;
+                outroMusic.volume = OUTRO_AUDIO_VOLUME;
+                outroMusic.play().catch(e => console.warn(e));
+                isPlayingOutroAudio = true;
+                return;
+            }
+
+            const isRunning = await ensureAudioContextRunning();
+            if (!outroAudioShouldPlay) return;
+            if (!isRunning) return;
+
+            if (outroAudioSource) {
+                try { outroAudioSource.stop(); } catch(e) {}
+                outroAudioSource = null;
+            }
+
+            outroAudioSource = audioContext.createBufferSource();
+            outroAudioSource.buffer = outroAudioBuffer;
+            outroAudioSource.loop = true;
+            outroAudioSource.connect(outroAudioGainNode);
+            outroAudioSource.start(0);
+            isPlayingOutroAudio = true;
+        }
+
+        function pauseOutroAudio() {
+            outroAudioShouldPlay = false;
+            isPlayingOutroAudio = false;
+
+            if (outroAudioSource && audioContext) {
+                try { outroAudioSource.stop(); } catch(e) {}
+                outroAudioSource = null;
+            } else {
+                outroMusic.pause();
+            }
+        }
+
         async function attemptAudioUnlock() {
             if (!audioContext) return;
             if (audioContext.state === 'suspended') {
@@ -1310,6 +1479,9 @@
                 }
                 if (questionAudioShouldPlay && !isPlayingQuestionAudio) {
                     playQuestionAudio();
+                }
+                if (outroAudioShouldPlay && !isPlayingOutroAudio) {
+                    playOutroAudio();
                 }
             }
         }
@@ -1334,16 +1506,22 @@
         });
 
         function applyDisplayState() {
-            if (!lobbyLayer || !tvDisplayView) return;
+            if (!lobbyLayer || !tvDisplayView || !outroLayer) return;
 
-            const isGameMode = displayState.mode === 'GAME';
+            const mode = displayState.mode;
 
-            if (isGameMode) {
+            if (mode === 'GAME') {
                 lobbyLayer.classList.remove('visible');
+                outroLayer.classList.remove('visible');
                 tvDisplayView.classList.add('visible');
-            } else {
-                lobbyLayer.classList.add('visible');
+            } else if (mode === 'OUTRO') {
+                lobbyLayer.classList.remove('visible');
                 tvDisplayView.classList.remove('visible');
+                outroLayer.classList.add('visible');
+            } else {
+                tvDisplayView.classList.remove('visible');
+                outroLayer.classList.remove('visible');
+                lobbyLayer.classList.add('visible');
             }
 
             setMusicVolumeWebAudio(displayState.musicVolume);
