@@ -631,7 +631,7 @@
                 <span>🏮</span><span>🥮</span><span>🏮</span><span>🥮</span>
             </div>
             <p class="mt-8 md:mt-12 text-slate-400 text-xs md:text-sm tracking-widest uppercase text-center">
-                <i class="fa-solid fa-music mr-2 text-amber-400"></i> Âm nhạc đang phát...
+                <i class="fa-solid fa-music mr-2 text-pink-400"></i> Âm nhạc đang phát...
             </p>
         </div>
     </div>
@@ -810,7 +810,9 @@
         let displayState = {
             mode: 'LOBBY',
             musicPlaying: false,
-            musicVolume: 0.5
+            musicVolume: 0.5,
+            outroMusicPlaying: false,
+            outroMusicVolume: 0.65
         };
 
         let prizePool = [];
@@ -1463,6 +1465,13 @@
             }
         }
 
+        function setOutroVolumeWebAudio(vol) {
+            if (outroAudioGainNode) {
+                outroAudioGainNode.gain.value = vol;
+            }
+            outroMusic.volume = vol;
+        }
+
         async function attemptAudioUnlock() {
             if (!audioContext) return;
             if (audioContext.state === 'suspended') {
@@ -1501,7 +1510,14 @@
                 set(ref(db, 'quizGame/display'), displayState);
                 return;
             }
-            displayState = snap.val();
+            const val = snap.val();
+            displayState = {
+                mode: val.mode || 'LOBBY',
+                musicPlaying: val.musicPlaying || false,
+                musicVolume: val.musicVolume ?? 0.5,
+                outroMusicPlaying: val.outroMusicPlaying || false,
+                outroMusicVolume: val.outroMusicVolume ?? 0.65
+            };
             applyDisplayState();
         });
 
@@ -1525,7 +1541,9 @@
             }
 
             setMusicVolumeWebAudio(displayState.musicVolume);
+            setOutroVolumeWebAudio(displayState.outroMusicVolume || 0.65);
 
+            // Nhạc Lobby
             if (displayState.musicPlaying) {
                 musicShouldPlay = true;
                 if (!isPlayingMusic) {
@@ -1536,6 +1554,20 @@
                     pauseMusicWebAudio();
                 } else {
                     musicShouldPlay = false;
+                }
+            }
+
+            // Nhạc Outro - chỉ phát khi mode OUTRO VÀ outroMusicPlaying = true
+            if (mode === 'OUTRO' && displayState.outroMusicPlaying) {
+                outroAudioShouldPlay = true;
+                if (!isPlayingOutroAudio) {
+                    playOutroAudio();
+                }
+            } else {
+                if (isPlayingOutroAudio || outroAudioSource) {
+                    pauseOutroAudio();
+                } else {
+                    outroAudioShouldPlay = false;
                 }
             }
 
