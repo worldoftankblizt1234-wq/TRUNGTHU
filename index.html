@@ -119,25 +119,31 @@
             position: fixed;
             inset: 0;
             z-index: 5;
-            display: none;
-            transition: opacity 0.8s ease;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out;
         }
 
         #lobbyLayer.visible {
-            display: block;
             opacity: 1;
+            pointer-events: auto;
         }
 
         #tvDisplayView {
-            position: relative;
+            position: fixed;
+            inset: 0;
             z-index: 10;
-            display: none;
-            transition: opacity 0.7s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out;
         }
 
         #tvDisplayView.visible {
-            display: flex;
             opacity: 1;
+            pointer-events: auto;
         }
 
         #loadingScreen {
@@ -555,6 +561,9 @@
     <audio id="bgMusic" loop preload="auto" style="display:none;">
         <source src="music.mp3" type="audio/mpeg">
     </audio>
+    <audio id="questionMusic" loop preload="auto" style="display:none;">
+        <source src="music1.mp3" type="audio/mpeg">
+    </audio>
 
     <div id="lobbyLayer">
         <div class="absolute inset-0 bg-cover bg-center"
@@ -583,7 +592,7 @@
         </div>
     </div>
 
-    <main id="tvDisplayView" class="w-full h-full flex-col justify-between gap-3 md:gap-6 z-10 max-w-7xl mx-auto">
+    <main id="tvDisplayView" class="w-full h-full flex-col justify-between gap-3 md:gap-6 z-10 max-w-7xl mx-auto p-3 md:p-8">
 
         <header class="w-full flex flex-wrap md:flex-nowrap items-center justify-between gap-2 px-1 md:px-2 py-1">
             <div class="flex items-center gap-2 md:gap-4 flex-wrap">
@@ -737,6 +746,8 @@
 
         const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
         const AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music.mp3';
+        const QUESTION_AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music1.mp3';
+        const QUESTION_AUDIO_VOLUME = 0.78;
 
         let QUESTIONS = [];
 
@@ -775,6 +786,12 @@
         let musicShouldPlay = false;
         let isPlayingMusic = false;
 
+        let questionAudioBuffer = null;
+        let questionAudioSource = null;
+        let questionAudioGainNode = null;
+        let questionAudioShouldPlay = false;
+        let isPlayingQuestionAudio = false;
+
         const loadingScreen = document.getElementById('loadingScreen');
         const silkBarFill = document.getElementById('silkBarFill');
         const loadingPercent = document.getElementById('loadingPercent');
@@ -783,6 +800,7 @@
         const netEta = document.getElementById('netEta');
 
         const bgMusic = document.getElementById('bgMusic');
+        const questionMusic = document.getElementById('questionMusic');
         const lobbyLayer = document.getElementById('lobbyLayer');
         const tvDisplayView = document.getElementById('tvDisplayView');
 
@@ -817,8 +835,9 @@
         ];
 
         const loadingProgress = {
-            image: { loaded: false, bytes: 0, total: 0, weight: 50 },
-            audio: { loaded: false, bytes: 0, total: 0, weight: 30 },
+            image: { loaded: false, bytes: 0, total: 0, weight: 40 },
+            audio: { loaded: false, bytes: 0, total: 0, weight: 20 },
+            questionAudio: { loaded: false, bytes: 0, total: 0, weight: 20 },
             quiz:  { loaded: false, bytes: 0, total: 0, weight: 20 },
             speedSamples: [],
             lastBytes: 0,
@@ -830,17 +849,19 @@
                 else if (this.image.loaded) pct += this.image.weight;
                 if (this.audio.total > 0) pct += (this.audio.bytes / this.audio.total) * this.audio.weight;
                 else if (this.audio.loaded) pct += this.audio.weight;
+                if (this.questionAudio.total > 0) pct += (this.questionAudio.bytes / this.questionAudio.total) * this.questionAudio.weight;
+                else if (this.questionAudio.loaded) pct += this.questionAudio.weight;
                 if (this.quiz.total > 0) pct += (this.quiz.bytes / this.quiz.total) * this.quiz.weight;
                 else if (this.quiz.loaded) pct += this.quiz.weight;
                 return Math.min(100, Math.round(pct));
             },
 
             getTotalBytes() {
-                return this.image.bytes + this.audio.bytes + this.quiz.bytes;
+                return this.image.bytes + this.audio.bytes + this.questionAudio.bytes + this.quiz.bytes;
             },
 
             getTotalSize() {
-                return (this.image.total || 0) + (this.audio.total || 0) + (this.quiz.total || 0);
+                return (this.image.total || 0) + (this.audio.total || 0) + (this.questionAudio.total || 0) + (this.quiz.total || 0);
             }
         };
 
@@ -895,7 +916,7 @@
                 netEta.textContent = 'Xong!';
             }
 
-            if (loadingProgress.image.loaded && loadingProgress.audio.loaded && loadingProgress.quiz.loaded) {
+            if (loadingProgress.image.loaded && loadingProgress.audio.loaded && loadingProgress.questionAudio.loaded && loadingProgress.quiz.loaded) {
                 finishLoading();
             }
         }
@@ -958,7 +979,9 @@
                         loadingProgress.audio.bytes = size;
                         loadingProgress.audio.total = size;
                         try {
-                            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            if (!audioContext) {
+                                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            }
                             audioBuffer = await audioContext.decodeAudioData(xhr.response);
                             audioGainNode = audioContext.createGain();
                             audioGainNode.gain.value = displayState.musicVolume || 0.5;
@@ -1001,6 +1024,79 @@
                     loadingProgress.audio.total = 1;
                     bgMusic.src = 'music.mp3';
                     bgMusic.load();
+                    updateLoadingUI();
+                    resolve();
+                };
+                xhr.send();
+            });
+        }
+
+        function preloadQuestionAudioXHR(url) {
+            return new Promise((resolve) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = 'arraybuffer';
+                xhr.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        loadingProgress.questionAudio.total = e.total;
+                        loadingProgress.questionAudio.bytes = e.loaded;
+                    } else {
+                        loadingProgress.questionAudio.bytes = e.loaded;
+                        loadingProgress.questionAudio.total = Math.max(loadingProgress.questionAudio.total, e.loaded);
+                    }
+                    updateLoadingUI();
+                };
+                xhr.onload = async () => {
+                    if (xhr.status === 200) {
+                        const size = xhr.response.byteLength || 0;
+                        loadingProgress.questionAudio.bytes = size;
+                        loadingProgress.questionAudio.total = size;
+                        try {
+                            if (!audioContext) {
+                                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            }
+                            questionAudioBuffer = await audioContext.decodeAudioData(xhr.response);
+                            questionAudioGainNode = audioContext.createGain();
+                            questionAudioGainNode.gain.value = QUESTION_AUDIO_VOLUME;
+                            questionAudioGainNode.connect(audioContext.destination);
+                            loadingProgress.questionAudio.loaded = true;
+                        } catch (err) {
+                            try {
+                                const blobUrl = URL.createObjectURL(new Blob([xhr.response], { type: 'audio/mpeg' }));
+                                questionMusic.src = blobUrl;
+                                questionMusic.load();
+                            } catch (e2) {
+                                questionMusic.src = url;
+                                questionMusic.load();
+                            }
+                            loadingProgress.questionAudio.loaded = true;
+                        }
+                    } else {
+                        loadingProgress.questionAudio.loaded = true;
+                        loadingProgress.questionAudio.bytes = 1;
+                        loadingProgress.questionAudio.total = 1;
+                        questionMusic.src = 'music1.mp3';
+                        questionMusic.load();
+                    }
+                    updateLoadingUI();
+                    resolve();
+                };
+                xhr.onerror = () => {
+                    loadingProgress.questionAudio.loaded = true;
+                    loadingProgress.questionAudio.bytes = 1;
+                    loadingProgress.questionAudio.total = 1;
+                    questionMusic.src = 'music1.mp3';
+                    questionMusic.load();
+                    updateLoadingUI();
+                    resolve();
+                };
+                xhr.timeout = 60000;
+                xhr.ontimeout = () => {
+                    loadingProgress.questionAudio.loaded = true;
+                    loadingProgress.questionAudio.bytes = 1;
+                    loadingProgress.questionAudio.total = 1;
+                    questionMusic.src = 'music1.mp3';
+                    questionMusic.load();
                     updateLoadingUI();
                     resolve();
                 };
@@ -1087,6 +1183,7 @@
             await Promise.all([
                 preloadImageXHR(IMAGE_URL),
                 preloadAudioXHR(AUDIO_URL),
+                preloadQuestionAudioXHR(QUESTION_AUDIO_URL),
                 loadQuestionsXHR(`${WORKER_URL}/quiz`)
             ]);
             applyDisplayState();
@@ -1155,6 +1252,46 @@
             bgMusic.volume = vol;
         }
 
+        async function playQuestionAudio() {
+            if (!questionAudioShouldPlay) return;
+
+            if (!audioContext || !questionAudioBuffer) {
+                questionMusic.currentTime = 0;
+                questionMusic.volume = QUESTION_AUDIO_VOLUME;
+                questionMusic.play().catch(e => console.warn(e));
+                isPlayingQuestionAudio = true;
+                return;
+            }
+
+            const isRunning = await ensureAudioContextRunning();
+            if (!questionAudioShouldPlay) return;
+            if (!isRunning) return;
+
+            if (questionAudioSource) {
+                try { questionAudioSource.stop(); } catch(e) {}
+                questionAudioSource = null;
+            }
+
+            questionAudioSource = audioContext.createBufferSource();
+            questionAudioSource.buffer = questionAudioBuffer;
+            questionAudioSource.loop = true;
+            questionAudioSource.connect(questionAudioGainNode);
+            questionAudioSource.start(0);
+            isPlayingQuestionAudio = true;
+        }
+
+        function pauseQuestionAudio() {
+            questionAudioShouldPlay = false;
+            isPlayingQuestionAudio = false;
+
+            if (questionAudioSource && audioContext) {
+                try { questionAudioSource.stop(); } catch(e) {}
+                questionAudioSource = null;
+            } else {
+                questionMusic.pause();
+            }
+        }
+
         async function attemptAudioUnlock() {
             if (!audioContext) return;
             if (audioContext.state === 'suspended') {
@@ -1164,8 +1301,14 @@
                     return;
                 }
             }
-            if (audioContext.state === 'running' && musicShouldPlay && !isPlayingMusic) {
-                playMusicWebAudio();
+
+            if (audioContext.state === 'running') {
+                if (musicShouldPlay && !isPlayingMusic) {
+                    playMusicWebAudio();
+                }
+                if (questionAudioShouldPlay && !isPlayingQuestionAudio) {
+                    playQuestionAudio();
+                }
             }
         }
 
@@ -1285,11 +1428,17 @@
             });
 
             if (showResults) {
-                questionStatusTag.innerText = "Đã công bố đáp án";
-                questionStatusTag.className = "text-[10px] md:text-sm font-bold text-emerald-400 bg-emerald-500/20 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-emerald-500/40";
-                if (!lastConfettiRevealed) {
-                    triggerConfetti();
-                    lastConfettiRevealed = true;
+                if (gameState.hostAnswerCorrect) {
+                    questionStatusTag.innerText = "✅ Trả lời ĐÚNG!";
+                    questionStatusTag.className = "text-[10px] md:text-sm font-bold text-emerald-400 bg-emerald-500/20 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-emerald-500/40";
+                    if (!lastConfettiRevealed) {
+                        triggerConfetti();
+                        lastConfettiRevealed = true;
+                    }
+                } else {
+                    questionStatusTag.innerText = "❌ Trả lời SAI!";
+                    questionStatusTag.className = "text-[10px] md:text-sm font-bold text-red-400 bg-red-500/20 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-red-500/40";
+                    lastConfettiRevealed = false;
                 }
             } else {
                 questionStatusTag.innerText = "Thời gian làm bài";
@@ -1461,6 +1610,20 @@
             if (snapshot.exists()) {
                 gameState = { ...gameState, ...snapshot.val() };
             }
+
+            if (gameState.status === 'QUESTION') {
+                questionAudioShouldPlay = true;
+                if (!isPlayingQuestionAudio) {
+                    playQuestionAudio();
+                }
+            } else {
+                if (isPlayingQuestionAudio || questionAudioSource) {
+                    pauseQuestionAudio();
+                } else {
+                    questionAudioShouldPlay = false;
+                }
+            }
+
             renderTVUI();
             startLocalTimer();
         });
