@@ -1596,6 +1596,7 @@
             setMusicVolumeWebAudio(displayState.musicVolume);
             setOutroVolumeWebAudio(displayState.outroMusicVolume || 0.65);
 
+            // Nhạc Lobby
             if (displayState.musicPlaying) {
                 musicShouldPlay = true;
                 if (!isPlayingMusic) {
@@ -1609,6 +1610,7 @@
                 }
             }
 
+            // Nhạc Outro
             if (mode === 'OUTRO' && displayState.outroMusicPlaying) {
                 outroAudioShouldPlay = true;
                 if (!isPlayingOutroAudio) {
@@ -1619,6 +1621,24 @@
                     pauseOutroAudio();
                 } else {
                     outroAudioShouldPlay = false;
+                }
+            }
+
+            // NHẠC CÂU HỎI - chỉ phát khi mode = GAME VÀ status = QUESTION
+            const shouldPlayQuestionAudio = 
+                mode === 'GAME' && 
+                gameState.status === 'QUESTION';
+
+            if (shouldPlayQuestionAudio) {
+                questionAudioShouldPlay = true;
+                if (!isPlayingQuestionAudio) {
+                    playQuestionAudio();
+                }
+            } else {
+                if (isPlayingQuestionAudio || questionAudioSource) {
+                    pauseQuestionAudio();
+                } else {
+                    questionAudioShouldPlay = false;
                 }
             }
 
@@ -1874,7 +1894,12 @@
                 gameState = { ...gameState, ...snapshot.val() };
             }
 
-            if (gameState.status === 'QUESTION') {
+            // Nhạc câu hỏi chỉ phát khi status = QUESTION VÀ mode = GAME
+            const shouldPlayQuestionAudio = 
+                gameState.status === 'QUESTION' && 
+                displayState.mode === 'GAME';
+
+            if (shouldPlayQuestionAudio) {
                 questionAudioShouldPlay = true;
                 if (!isPlayingQuestionAudio) {
                     playQuestionAudio();
