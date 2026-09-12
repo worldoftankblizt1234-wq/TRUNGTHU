@@ -161,6 +161,144 @@
             .watermark .line3 { font-size: 0.45rem; }
         }
 
+        /* ==================================================== */
+        /*   POPUP "QUÀ ĐÃ HẾT" - HIỆN GIỮA MÀN HÌNH           */
+        /* ==================================================== */
+        #depletedPopup {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            animation: popupFadeIn 0.4s ease-out;
+            pointer-events: auto;
+        }
+
+        #depletedPopup.active {
+            display: flex;
+        }
+
+        @keyframes popupFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .depleted-popup-box {
+            background: linear-gradient(145deg, #1a1a3e, #0d1329);
+            border: 3px solid rgba(250, 204, 21, 0.8);
+            border-radius: 32px;
+            padding: 50px 60px;
+            max-width: 700px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 100px rgba(0, 0, 0, 0.95), 0 0 80px rgba(250, 204, 21, 0.4);
+            animation: popupPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes popupPopIn {
+            from { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+            to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        .depleted-popup-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(250, 204, 21, 0.15) 0%, transparent 60%);
+            animation: rotate 8s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .depleted-icon {
+            font-size: 6rem;
+            display: block;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 30px rgba(250, 204, 21, 0.8));
+            animation: popupShake 0.6s ease-in-out infinite alternate;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes popupShake {
+            0%, 100% { transform: scale(1) rotate(-5deg); }
+            50% { transform: scale(1.15) rotate(5deg); }
+        }
+
+        .depleted-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #facc15, #f59e0b, #fde047, #facc15);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            animation: gradientShift 2s ease infinite;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 40px rgba(250, 204, 21, 0.5);
+        }
+
+        .depleted-name {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8), 0 3px 10px rgba(0,0,0,0.9);
+            position: relative;
+            z-index: 1;
+            animation: namePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes namePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .depleted-subtitle {
+            font-size: 1.5rem;
+            color: #fbbf24;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 15px;
+        }
+
+        .depleted-message {
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 640px) {
+            .depleted-popup-box { padding: 30px 20px; border-radius: 24px; }
+            .depleted-icon { font-size: 4rem; }
+            .depleted-title { font-size: 1.8rem; }
+            .depleted-name { font-size: 2rem; }
+            .depleted-subtitle { font-size: 1rem; letter-spacing: 2px; }
+            .depleted-message { font-size: 0.9rem; }
+        }
+
         #lobbyLayer {
             position: fixed;
             inset: 0;
@@ -596,6 +734,17 @@
         <div class="line3">© Product of Minh</div>
     </div>
 
+    <!-- POPUP "QUÀ ĐÃ HẾT" - HIỆN GIỮA MÀN HÌNH -->
+    <div id="depletedPopup">
+        <div class="depleted-popup-box">
+            <span class="depleted-icon">🎁</span>
+            <div class="depleted-title">PHẦN QUÀ ĐÃ HẾT!</div>
+            <div class="depleted-name" id="depletedPrizeName">Quà A</div>
+            <div class="depleted-subtitle">✦ Chúc may mắn lần sau ✦</div>
+            <div class="depleted-message">Phần quà này sẽ không xuất hiện trong các lượt tiếp theo</div>
+        </div>
+    </div>
+
     <div id="loadingScreen">
         <div class="cloud" style="top: 15%; animation-duration: 40s;">☁️</div>
         <div class="cloud" style="top: 70%; animation-duration: 55s; animation-delay: -20s;">☁️</div>
@@ -870,6 +1019,10 @@
 
         let prizePool = [];
 
+        // Theo dõi prize pool cũ để phát hiện prize vừa hết
+        let previousPrizePool = null;
+        let depletedPopupTimeout = null;
+
         let localTimerInterval = null;
         let lastConfettiRevealed = false;
         let isQuestionsLoaded = false;
@@ -919,6 +1072,9 @@
         const timerDisplay = document.getElementById('timerDisplay');
         const timerBar = document.getElementById('timerBar');
         const btnFullscreen = document.getElementById('btnFullscreen');
+
+        const depletedPopup = document.getElementById('depletedPopup');
+        const depletedPrizeName = document.getElementById('depletedPrizeName');
 
         const blindboxOverlay = document.getElementById('blindboxOverlay');
         const blindboxGrid = document.getElementById('blindboxGrid');
@@ -1766,6 +1922,56 @@
             }
         });
 
+        // ============================================================
+        // POPUP "QUÀ ĐÃ HẾT"
+        // ============================================================
+        function showDepletedPopup(prizeName) {
+            // Xóa timeout cũ nếu có
+            if (depletedPopupTimeout) {
+                clearTimeout(depletedPopupTimeout);
+            }
+
+            depletedPrizeName.textContent = prizeName;
+            depletedPopup.classList.add('active');
+
+            // Tự động ẩn sau 4 giây
+            depletedPopupTimeout = setTimeout(() => {
+                depletedPopup.classList.remove('active');
+                depletedPopupTimeout = null;
+            }, 4000);
+        }
+
+        // ============================================================
+        // THEO DÕI PRIZE POOL - PHÁT HIỆN PRIZE VỪA HẾT
+        // ============================================================
+        onValue(ref(db, 'quizGame/prizePool'), (snap) => {
+            let newPool = [];
+            if (snap.exists()) {
+                const val = snap.val();
+                newPool = Array.isArray(val) ? val : Object.values(val);
+            }
+
+            // So sánh với prize pool cũ để phát hiện prize vừa hết
+            if (previousPrizePool && previousPrizePool.length > 0) {
+                newPool.forEach(newPrize => {
+                    const oldPrize = previousPrizePool.find(p => p.id === newPrize.id);
+                    if (oldPrize) {
+                        const oldQty = parseInt(oldPrize.quantity) || 0;
+                        const newQty = parseInt(newPrize.quantity) || 0;
+                        // Prize vừa hết: trước đó > 0, giờ <= 0
+                        if (oldQty > 0 && newQty <= 0) {
+                            console.log(`🎁 Phần quà "${newPrize.name}" vừa hết!`);
+                            showDepletedPopup(newPrize.name);
+                        }
+                    }
+                });
+            }
+
+            previousPrizePool = newPool;
+            prizePool = newPool;
+            console.log('🎁 Prize pool updated:', prizePool.length, 'items');
+        });
+
         function getPrizeById(id) {
             if (!id || !prizePool || prizePool.length === 0) return null;
             return prizePool.find(p => p.id === id) || null;
@@ -1842,7 +2048,7 @@
                 if (selectedPrize) {
                     const displayName = selectedPrize.name || (getPrizeById(selectedPrize.prizeId)?.name) || 'Quà';
                     if (selectedPrize.empty) {
-                        blindboxResult.textContent = '😅 Hộp này chưa có quà!';
+                        blindboxResult.textContent = '🍀 ' + selectedPrize.name + '!';
                         blindboxResult.className = 'blindbox-result-message empty';
                     } else {
                         blindboxResult.textContent = '🎉 Chúc mừng! Bạn nhận được: 🎁 ' + displayName;
@@ -1923,15 +2129,6 @@
                 set(ref(db, 'quizGame/blindbox'), {
                     isOpen: false, selectedBox: -1, boxes: [], revealed: false
                 });
-            }
-        });
-
-        onValue(ref(db, 'quizGame/prizePool'), (snap) => {
-            if (snap.exists()) {
-                const val = snap.val();
-                prizePool = Array.isArray(val) ? val : Object.values(val);
-            } else {
-                prizePool = [];
             }
         });
 
