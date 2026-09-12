@@ -92,7 +92,7 @@
         /* ===== PRIZE MANAGER MODAL ===== */
         .prize-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 44px;
+            grid-template-columns: 2fr 1fr 1fr 1fr 44px;
             gap: 8px;
             align-items: center;
             padding: 10px;
@@ -325,7 +325,7 @@
     <!--             PRIZE MANAGER MODAL                       -->
     <!-- ==================================================== -->
     <div id="prizeManagerModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[9998] flex items-center justify-center p-4 hidden">
-        <div class="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 max-w-3xl w-full shadow-2xl shadow-amber-500/20 max-h-[90vh] flex flex-col">
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 max-w-4xl w-full shadow-2xl shadow-amber-500/20 max-h-[90vh] flex flex-col">
             
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-slate-700/60 pb-4 mb-5">
@@ -338,7 +338,7 @@
                             QUẢN LÝ PHẦN QUÀ
                         </h2>
                         <p class="text-xs text-slate-400 mt-0.5">
-                            Thêm quà, tỷ lệ xuất hiện và số lượng. Hệ thống sẽ bốc ngẫu nhiên khi người chơi chọn blindbox.
+                            Thêm quà, tỷ lệ xuất hiện và số lượt. Mỗi lần bốc trúng sẽ trừ số lượt tương ứng.
                         </p>
                     </div>
                 </div>
@@ -351,10 +351,11 @@
             <div class="flex-1 overflow-y-auto pr-1" style="max-height: 55vh;">
 
                 <!-- Header labels -->
-                <div class="grid grid-cols-[2fr_1fr_1fr_44px] gap-2 px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <div class="grid grid-cols-[2fr_1fr_1fr_1fr_44px] gap-2 px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
                     <span>Tên quà</span>
                     <span class="text-center">Tỷ lệ %</span>
-                    <span class="text-center">Số lượng</span>
+                    <span class="text-center">Số lượt</span>
+                    <span class="text-center">Trừ/lần</span>
                     <span></span>
                 </div>
 
@@ -376,7 +377,7 @@
                             <div id="summaryTotalTypes" class="text-2xl font-black text-amber-400">0</div>
                         </div>
                         <div>
-                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Tổng số lượng</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Tổng số lượt</div>
                             <div id="summaryTotalQty" class="text-2xl font-black text-indigo-400">0</div>
                         </div>
                         <div>
@@ -547,7 +548,7 @@
         };
 
         // Prize pool — danh sách quà do Host quản lý
-        // Mỗi prize: { id, name, rate, quantity }
+        // Mỗi prize: { id, name, rate, quantity, deductPerWin }
         let prizePool = [];
 
         let localTimerInterval = null;
@@ -633,6 +634,9 @@
             } else if (type === 'success') {
                 toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
                 toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-emerald-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
+            } else if (type === 'warning') {
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-amber-400 text-lg";
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-amber-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
             } else {
                 toastIcon.className = "fa-solid fa-circle-info text-indigo-400 text-lg";
                 toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
@@ -640,7 +644,7 @@
 
             setTimeout(() => {
                 toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300";
-            }, 3000);
+            }, 3500);
         }
 
         function showConfirmModal(title, message, action) {
@@ -676,15 +680,24 @@
                 ];
             }
 
-            // Tạo bản sao pool để theo dõi số lượng còn lại
+            // Lọc prize còn lượt
             const available = prizePool
-                .filter(p => p.quantity > 0)
+                .filter(p => (p.quantity || 0) > 0)
                 .map(p => ({ ...p }));
+
+            // Nếu tất cả prize đều hết
+            if (available.length === 0) {
+                return [
+                    { name: "Chúc may mắn lần sau", icon: "🍀", empty: true },
+                    { name: "Chúc may mắn lần sau", icon: "🍀", empty: true },
+                    { name: "Chúc may mắn lần sau", icon: "🍀", empty: true }
+                ];
+            }
 
             const boxes = [];
             for (let i = 0; i < 3; i++) {
                 if (available.length === 0) {
-                    boxes.push({ name: "Hết quà", icon: "❓", empty: true });
+                    boxes.push({ name: "Chúc may mắn lần sau", icon: "🍀", empty: true });
                     continue;
                 }
 
@@ -709,13 +722,6 @@
                     prizeId: picked.id,
                     empty: false
                 });
-
-                // Giảm số lượng
-                picked.quantity -= 1;
-                if (picked.quantity <= 0) {
-                    const idx = available.indexOf(picked);
-                    if (idx > -1) available.splice(idx, 1);
-                }
             }
 
             return boxes;
@@ -753,6 +759,7 @@
                         <input type="text" data-idx="${idx}" data-field="name" value="${escapeHtml(prize.name)}" placeholder="Tên quà...">
                         <input type="number" data-idx="${idx}" data-field="rate" value="${prize.rate}" min="0" max="100" placeholder="%">
                         <input type="number" data-idx="${idx}" data-field="quantity" value="${prize.quantity}" min="0" placeholder="SL">
+                        <input type="number" data-idx="${idx}" data-field="deductPerWin" value="${prize.deductPerWin || 1}" min="1" placeholder="Trừ">
                         <button class="prize-delete-btn" data-idx="${idx}" title="Xóa quà">
                             <i class="fa-solid fa-trash"></i>
                         </button>
@@ -779,6 +786,10 @@
                         let v = parseInt(e.target.value);
                         if (isNaN(v) || v < 0) v = 0;
                         tempPrizePool[idx].quantity = v;
+                    } else if (field === 'deductPerWin') {
+                        let v = parseInt(e.target.value);
+                        if (isNaN(v) || v < 1) v = 1;
+                        tempPrizePool[idx].deductPerWin = v;
                     }
                     updatePrizeSummary();
                 });
@@ -832,7 +843,8 @@
                 id: 'p_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
                 name: '',
                 rate: 0,
-                quantity: 1
+                quantity: 1,
+                deductPerWin: 1
             });
             renderPrizeList();
             // Focus vào input cuối
@@ -847,7 +859,8 @@
                     id: p.id || ('p_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
                     name: (p.name || '').trim(),
                     rate: Math.max(0, parseFloat(p.rate) || 0),
-                    quantity: Math.max(0, parseInt(p.quantity) || 0)
+                    quantity: Math.max(0, parseInt(p.quantity) || 0),
+                    deductPerWin: Math.max(1, parseInt(p.deductPerWin) || 1)
                 }))
                 .filter(p => p.name !== '');
 
@@ -859,9 +872,11 @@
             prizePool = cleaned;
 
             try {
+                // Lưu cả prizePool (đang dùng) và prizePoolBackup (để reset)
                 await set(ref(db, 'quizGame/prizePool'), prizePool);
+                await set(ref(db, 'quizGame/prizePoolBackup'), prizePool);
                 prizeCountBadge.textContent = prizePool.length;
-                showToast(`✅ Đã lưu ${prizePool.length} phần quà lên Firebase!`, "success");
+                showToast(`✅ Đã lưu ${prizePool.length} phần quà!`, "success");
                 closePrizeManager();
             } catch (e) {
                 console.error("Save prize pool error:", e);
@@ -897,7 +912,7 @@
                 item.className = 'blindbox-item';
                 item.dataset.box = index;
                 item.innerHTML = `
-                    <span class="box-icon">🎁</span>
+                    <span class="box-icon">${prize.icon || '🎁'}</span>
                     <div class="text-slate-300 font-bold text-sm">HỘP ${index + 1}</div>
                     <div class="box-prize">❓</div>
                 `;
@@ -936,7 +951,7 @@
             
             const selectedPrize = currentBoxes[index];
             if (selectedPrize.empty) {
-                blindboxResult.textContent = '😅 Hộp này chưa có quà!';
+                blindboxResult.textContent = '🍀 ' + selectedPrize.name + '!';
                 blindboxResult.className = 'text-center text-xl font-bold min-h-[50px] text-amber-400';
             } else {
                 blindboxResult.textContent = '🎉 Chúc mừng! Bạn nhận được: ' + selectedPrize.icon + ' ' + selectedPrize.name;
@@ -945,6 +960,34 @@
             }
             
             blindboxCloseBtn.disabled = false;
+
+            // ✅ TRỪ SỐ LƯỢT KHI CHỌN PRIZE
+            let depletedPrizeName = null;
+            if (!selectedPrize.empty && selectedPrize.prizeId) {
+                const prizeIndex = prizePool.findIndex(p => p.id === selectedPrize.prizeId);
+                if (prizeIndex !== -1) {
+                    const prize = prizePool[prizeIndex];
+                    const deduct = prize.deductPerWin || 1;
+                    const oldQty = prize.quantity || 0;
+                    const newQty = Math.max(0, oldQty - deduct);
+                    prizePool[prizeIndex].quantity = newQty;
+
+                    console.log(`🎁 Trừ ${deduct} lượt khỏi "${prize.name}": ${oldQty} → ${newQty}`);
+
+                    // Nếu prize vừa hết
+                    if (oldQty > 0 && newQty <= 0) {
+                        depletedPrizeName = prize.name;
+                        showToast(`⚠️ Phần quà "${prize.name}" đã hết!`, "warning");
+                    }
+
+                    // Ghi prizePool mới lên Firebase
+                    try {
+                        await set(ref(db, 'quizGame/prizePool'), prizePool);
+                    } catch (e) {
+                        console.error("Ghi prizePool thất bại:", e);
+                    }
+                }
+            }
 
             try {
                 await update(ref(db, 'quizGame/blindbox'), {
@@ -1522,15 +1565,36 @@
             showToast(`⏱️ Đã đổi thời gian thành ${duration} giây!`, "success");
         });
 
+        // ============================================================
+        // RESET PHÒNG — RESET CẢ PRIZE POOL VỀ BACKUP
+        // ============================================================
         document.getElementById('btnResetAll').addEventListener('click', () => {
             showConfirmModal(
                 "Reset Toàn Bộ Phòng",
-                "Bạn có chắc chắn muốn đưa phòng về trạng thái ban đầu không? (KHÔNG xóa danh sách quà)",
+                "Bạn có chắc chắn muốn đưa phòng về trạng thái ban đầu không? Phần quà sẽ được reset về số lượt ban đầu.",
                 async () => {
                     try {
                         clearInterval(localTimerInterval);
                         isAnswerLocked = false;
                         selectedAnswer = null;
+
+                        // Reset prize pool về backup
+                        try {
+                            const backupSnap = await get(ref(db, 'quizGame/prizePoolBackup'));
+                            if (backupSnap.exists()) {
+                                const backup = backupSnap.val();
+                                const backupArr = Array.isArray(backup) ? backup : Object.values(backup);
+                                // Reset lại quantity trong prize pool hiện tại về giá trị backup
+                                const resetPool = backupArr.map(p => ({ ...p }));
+                                await set(ref(db, 'quizGame/prizePool'), resetPool);
+                                console.log('✅ Đã reset prize pool về backup');
+                            } else {
+                                console.log('⚠️ Chưa có backup prize pool');
+                            }
+                        } catch (e) {
+                            console.warn('Lỗi reset prize pool:', e);
+                        }
+
                         await update(ref(db, 'quizGame'), {
                             roomState: {
                                 currentQuestionIndex: -1,
@@ -1557,7 +1621,7 @@
                                 outroMusicVolume: 0.65
                             }
                         });
-                        showToast("🔄 Đã reset phòng game!", "success");
+                        showToast("🔄 Đã reset phòng + phần quà!", "success");
                     } catch (e) {
                         showToast("Lỗi reset: " + e.message, "error");
                     }
