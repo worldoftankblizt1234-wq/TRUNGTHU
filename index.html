@@ -53,6 +53,85 @@
             -webkit-user-select: none;
         }
 
+        /* ==================================================== */
+        /*   WATERMARK - CÁCH 4: PSEUDO-ELEMENT (KHÔNG CÓ DIV) */
+        /* ==================================================== */
+        /* Watermark chính - dùng ::after của body */
+        body::after {
+            content: "Made by Tổ 4\AThiết kế Minh\A© Product of Minh";
+            white-space: pre;
+            position: fixed;
+            bottom: 8px;
+            right: 12px;
+            z-index: 99998;
+            text-align: right;
+            font-size: 0.6rem;
+            line-height: 1.3;
+            color: rgba(255, 255, 255, 0.15);
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.3px;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            opacity: 0.6;
+        }
+
+        /* Watermark phụ - dùng ::before của body - dòng vàng */
+        body::before {
+            content: "Made by Tổ 4";
+            white-space: pre;
+            position: fixed;
+            bottom: 22px;
+            right: 12px;
+            z-index: 99998;
+            text-align: right;
+            font-size: 0.6rem;
+            line-height: 1.3;
+            color: rgba(250, 204, 21, 0.25);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            opacity: 0.6;
+        }
+
+        /* Watermark dòng giữa - xám nghiêng */
+        #watermarkMid {
+            content: "";
+            position: fixed;
+            bottom: 15px;
+            right: 12px;
+            z-index: 99998;
+            text-align: right;
+            font-size: 0.55rem;
+            line-height: 1.3;
+            color: rgba(148, 163, 184, 0.15);
+            font-family: 'Montserrat', sans-serif;
+            font-style: italic;
+            letter-spacing: 0.3px;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            opacity: 0.6;
+        }
+
+        @media (max-width: 640px) {
+            body::after {
+                font-size: 0.5rem;
+                bottom: 5px;
+                right: 8px;
+            }
+            body::before {
+                font-size: 0.5rem;
+                bottom: 16px;
+                right: 8px;
+            }
+            #watermarkMid {
+                font-size: 0.45rem;
+                bottom: 10px;
+                right: 8px;
+            }
+        }
+
         .tv-bg {
             background-image: 
                 linear-gradient(to bottom, rgba(12, 16, 43, 0.45), rgba(8, 11, 30, 0.85)),
@@ -113,52 +192,6 @@
 
         .timer-progress {
             transition: width 0.15s linear;
-        }
-
-        /* ==================================================== */
-        /*   WATERMARK - GHI CHÚ BẢN QUYỀN GÓC DƯỚI            */
-        /* ==================================================== */
-        .watermark {
-            position: fixed;
-            bottom: 8px;
-            right: 12px;
-            z-index: 99998;
-            text-align: right;
-            font-size: 0.6rem;
-            line-height: 1.3;
-            color: rgba(255, 255, 255, 0.15);
-            font-family: 'Montserrat', sans-serif;
-            letter-spacing: 0.3px;
-            pointer-events: none;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-            opacity: 0.6;
-        }
-
-        .watermark .line1 {
-            color: rgba(250, 204, 21, 0.25);
-            font-weight: 600;
-            font-size: 0.6rem;
-        }
-
-        .watermark .line2 {
-            color: rgba(255, 255, 255, 0.15);
-            font-weight: 500;
-        }
-
-        .watermark .line3 {
-            color: rgba(148, 163, 184, 0.15);
-            font-style: italic;
-            font-size: 0.55rem;
-        }
-
-        @media (max-width: 640px) {
-            .watermark {
-                font-size: 0.5rem;
-                bottom: 5px;
-                right: 8px;
-            }
-            .watermark .line1 { font-size: 0.5rem; }
-            .watermark .line3 { font-size: 0.45rem; }
         }
 
         /* ==================================================== */
@@ -727,12 +760,8 @@
 </head>
 <body class="tv-bg w-screen h-screen flex flex-col justify-between p-3 md:p-8 relative select-none">
 
-    <!-- WATERMARK GÓC DƯỚI PHẢI - HIỆN Ở MỌI MÀN HÌNH -->
-    <div class="watermark">
-        <div class="line1">Made by Tổ 4</div>
-        <div class="line2">Thiết kế Minh</div>
-        <div class="line3">© Product of Minh</div>
-    </div>
+    <!-- WATERMARK DÒNG GIỮA (Cách 4: không phải div, dùng id + CSS) -->
+    <div id="watermarkMid">Thiết kế Minh</div>
 
     <!-- POPUP "QUÀ ĐÃ HẾT" - HIỆN GIỮA MÀN HÌNH -->
     <div id="depletedPopup">
@@ -1018,8 +1047,6 @@
         };
 
         let prizePool = [];
-
-        // Theo dõi prize pool cũ để phát hiện prize vừa hết
         let previousPrizePool = null;
         let depletedPopupTimeout = null;
 
@@ -1926,7 +1953,6 @@
         // POPUP "QUÀ ĐÃ HẾT"
         // ============================================================
         function showDepletedPopup(prizeName) {
-            // Xóa timeout cũ nếu có
             if (depletedPopupTimeout) {
                 clearTimeout(depletedPopupTimeout);
             }
@@ -1934,11 +1960,11 @@
             depletedPrizeName.textContent = prizeName;
             depletedPopup.classList.add('active');
 
-            // Tự động ẩn sau 4 giây
+            // Tự động ẩn sau 5 giây
             depletedPopupTimeout = setTimeout(() => {
                 depletedPopup.classList.remove('active');
                 depletedPopupTimeout = null;
-            }, 6000);
+            }, 5000);
         }
 
         // ============================================================
@@ -1958,7 +1984,6 @@
                     if (oldPrize) {
                         const oldQty = parseInt(oldPrize.quantity) || 0;
                         const newQty = parseInt(newPrize.quantity) || 0;
-                        // Prize vừa hết: trước đó > 0, giờ <= 0
                         if (oldQty > 0 && newQty <= 0) {
                             console.log(`🎁 Phần quà "${newPrize.name}" vừa hết!`);
                             showDepletedPopup(newPrize.name);
@@ -1971,6 +1996,67 @@
             prizePool = newPool;
             console.log('🎁 Prize pool updated:', prizePool.length, 'items');
         });
+
+        // ============================================================
+        // CÁCH 1: VẼ WATERMARK LÊN CANVAS + CÁCH 5: TỰ MỌC LẠI
+        // ============================================================
+        function initCanvasWatermark() {
+            // Tạo canvas
+            const canvas = document.createElement('canvas');
+            canvas.id = 'watermarkCanvas';
+            canvas.style.position = 'fixed';
+            canvas.style.inset = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.zIndex = '99997';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.opacity = '0.6';
+            document.body.appendChild(canvas);
+
+            function drawWatermark() {
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = window.innerWidth * dpr;
+                canvas.height = window.innerHeight * dpr;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+                ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+                // Cấu hình font
+                ctx.font = "600 11px 'Montserrat', sans-serif";
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'bottom';
+
+                const x = window.innerWidth - 12;
+                const y = window.innerHeight - 8;
+
+                // Dòng 1: Made by Tổ 4 (vàng mờ)
+                ctx.fillStyle = 'rgba(250, 204, 21, 0.35)';
+                ctx.fillText('Made by Tổ 4', x, y - 22);
+
+                // Dòng 2: Thiết kế Minh (trắng mờ)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.fillText('Thiết kế Minh', x, y - 11);
+
+                // Dòng 3: © Product of Minh (xám nghiêng)
+                ctx.font = "italic 500 10px 'Montserrat', sans-serif";
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.25)';
+                ctx.fillText('© Product of Minh', x, y);
+            }
+
+            drawWatermark();
+
+            // Vẽ lại khi resize
+            window.addEventListener('resize', drawWatermark);
+
+            // CÁCH 5: Nếu ai xoá canvas → tự mọc lại sau 1 giây
+            setInterval(() => {
+                if (!document.getElementById('watermarkCanvas')) {
+                    console.log('🔄 Watermark canvas bị xoá, đang tạo lại...');
+                    document.body.appendChild(canvas);
+                    drawWatermark();
+                }
+            }, 1000);
+        }
 
         function getPrizeById(id) {
             if (!id || !prizePool || prizePool.length === 0) return null;
@@ -2100,7 +2186,6 @@
                 gameState = { ...gameState, ...snapshot.val() };
             }
 
-            // Nhạc câu hỏi chỉ phát khi status = QUESTION VÀ mode = GAME
             const shouldPlayQuestionAudio = 
                 gameState.status === 'QUESTION' && 
                 displayState.mode === 'GAME';
@@ -2134,6 +2219,11 @@
 
         applyDisplayState();
         bootstrap();
+
+        // ============================================================
+        // CÁCH 1 + CÁCH 5: KHỞI TẠO CANVAS WATERMARK
+        // ============================================================
+        initCanvasWatermark();
     </script>
 </body>
 </html>
