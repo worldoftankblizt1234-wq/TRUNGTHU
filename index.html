@@ -56,26 +56,25 @@
         /* ==================================================== */
         /*   WATERMARK - CÁCH 4: PSEUDO-ELEMENT (KHÔNG CÓ DIV) */
         /* ==================================================== */
-        /* Watermark chính - dùng ::after của body */
         body::after {
-            content: "Made by Tổ 4\AThiết kế Minh\A© Product of Minh";
+            content: "© Product of Minh";
             white-space: pre;
             position: fixed;
             bottom: 8px;
             right: 12px;
             z-index: 99998;
             text-align: right;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             line-height: 1.3;
-            color: rgba(255, 255, 255, 0.15);
+            color: rgba(148, 163, 184, 0.15);
             font-family: 'Montserrat', sans-serif;
+            font-style: italic;
             letter-spacing: 0.3px;
             pointer-events: none;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
             opacity: 0.6;
         }
 
-        /* Watermark phụ - dùng ::before của body - dòng vàng */
         body::before {
             content: "Made by Tổ 4";
             white-space: pre;
@@ -95,9 +94,7 @@
             opacity: 0.6;
         }
 
-        /* Watermark dòng giữa - xám nghiêng */
         #watermarkMid {
-            content: "";
             position: fixed;
             bottom: 15px;
             right: 12px;
@@ -105,9 +102,8 @@
             text-align: right;
             font-size: 0.55rem;
             line-height: 1.3;
-            color: rgba(148, 163, 184, 0.15);
+            color: rgba(255, 255, 255, 0.15);
             font-family: 'Montserrat', sans-serif;
-            font-style: italic;
             letter-spacing: 0.3px;
             pointer-events: none;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
@@ -116,7 +112,7 @@
 
         @media (max-width: 640px) {
             body::after {
-                font-size: 0.5rem;
+                font-size: 0.45rem;
                 bottom: 5px;
                 right: 8px;
             }
@@ -1779,7 +1775,6 @@
             setMusicVolumeWebAudio(displayState.musicVolume);
             setOutroVolumeWebAudio(displayState.outroMusicVolume || 0.65);
 
-            // Nhạc Lobby
             if (displayState.musicPlaying) {
                 musicShouldPlay = true;
                 if (!isPlayingMusic) {
@@ -1793,7 +1788,6 @@
                 }
             }
 
-            // Nhạc Outro
             if (mode === 'OUTRO' && displayState.outroMusicPlaying) {
                 outroAudioShouldPlay = true;
                 if (!isPlayingOutroAudio) {
@@ -1807,7 +1801,6 @@
                 }
             }
 
-            // NHẠC CÂU HỎI - chỉ phát khi mode = GAME VÀ status = QUESTION
             const shouldPlayQuestionAudio = 
                 mode === 'GAME' && 
                 gameState.status === 'QUESTION';
@@ -1960,7 +1953,6 @@
             depletedPrizeName.textContent = prizeName;
             depletedPopup.classList.add('active');
 
-            // Tự động ẩn sau 5 giây
             depletedPopupTimeout = setTimeout(() => {
                 depletedPopup.classList.remove('active');
                 depletedPopupTimeout = null;
@@ -1977,7 +1969,6 @@
                 newPool = Array.isArray(val) ? val : Object.values(val);
             }
 
-            // So sánh với prize pool cũ để phát hiện prize vừa hết
             if (previousPrizePool && previousPrizePool.length > 0) {
                 newPool.forEach(newPrize => {
                     const oldPrize = previousPrizePool.find(p => p.id === newPrize.id);
@@ -1998,10 +1989,12 @@
         });
 
         // ============================================================
-        // CÁCH 1: VẼ WATERMARK LÊN CANVAS + CÁCH 5: TỰ MỌC LẠI
+        // CÁCH 1 + CÁCH 3 + CÁCH 5: WATERMARK ĐA LỚP
         // ============================================================
-        function initCanvasWatermark() {
-            // Tạo canvas
+        function initWatermark() {
+            // ============================================================
+            // LỚP 1: CANVAS (Cách 1)
+            // ============================================================
             const canvas = document.createElement('canvas');
             canvas.id = 'watermarkCanvas';
             canvas.style.position = 'fixed';
@@ -2021,7 +2014,6 @@
                 ctx.scale(dpr, dpr);
                 ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-                // Cấu hình font
                 ctx.font = "600 11px 'Montserrat', sans-serif";
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
@@ -2029,33 +2021,70 @@
                 const x = window.innerWidth - 12;
                 const y = window.innerHeight - 8;
 
-                // Dòng 1: Made by Tổ 4 (vàng mờ)
                 ctx.fillStyle = 'rgba(250, 204, 21, 0.35)';
                 ctx.fillText('Made by Tổ 4', x, y - 22);
 
-                // Dòng 2: Thiết kế Minh (trắng mờ)
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
                 ctx.fillText('Thiết kế Minh', x, y - 11);
 
-                // Dòng 3: © Product of Minh (xám nghiêng)
                 ctx.font = "italic 500 10px 'Montserrat', sans-serif";
                 ctx.fillStyle = 'rgba(148, 163, 184, 0.25)';
                 ctx.fillText('© Product of Minh', x, y);
             }
 
             drawWatermark();
-
-            // Vẽ lại khi resize
             window.addEventListener('resize', drawWatermark);
 
-            // CÁCH 5: Nếu ai xoá canvas → tự mọc lại sau 1 giây
+            // ============================================================
+            // LỚP 2: MUTATIONOBSERVER (Cách 5 nâng cấp)
+            // Phát hiện ngay khi canvas bị xoá khỏi DOM
+            // ============================================================
+            const observer = new MutationObserver((mutations) => {
+                let canvasRemoved = false;
+                mutations.forEach((mutation) => {
+                    if (mutation.removedNodes.length > 0) {
+                        mutation.removedNodes.forEach((node) => {
+                            if (node.id === 'watermarkCanvas') {
+                                canvasRemoved = true;
+                            }
+                        });
+                    }
+                });
+
+                if (canvasRemoved || !document.getElementById('watermarkCanvas')) {
+                    console.log('🚨 MutationObserver: Watermark canvas bị xoá, mọc lại ngay...');
+                    // Đảm bảo canvas tồn tại
+                    if (!document.getElementById('watermarkCanvas')) {
+                        document.body.appendChild(canvas);
+                        drawWatermark();
+                    }
+                }
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            window.__watermarkObserver = observer;
+
+            // ============================================================
+            // LỚP 3: SETINTERVAL BACKUP (Cách 5 cũ)
+            // Dự phòng nếu MutationObserver bị tắt
+            // ============================================================
             setInterval(() => {
                 if (!document.getElementById('watermarkCanvas')) {
-                    console.log('🔄 Watermark canvas bị xoá, đang tạo lại...');
+                    console.log('🔄 setInterval: Watermark canvas bị xoá, mọc lại...');
                     document.body.appendChild(canvas);
                     drawWatermark();
                 }
-            }, 1000);
+            }, 2000);
+
+            // ============================================================
+            // LỚP 4: PSEUDO-ELEMENT (Cách 4)
+            // Đã có trong CSS: body::before và body::after
+            // Không thể xoá qua DOM — chỉ có thể sửa CSS
+            // ============================================================
         }
 
         function getPrizeById(id) {
@@ -2221,9 +2250,9 @@
         bootstrap();
 
         // ============================================================
-        // CÁCH 1 + CÁCH 5: KHỞI TẠO CANVAS WATERMARK
+        // KHỞI TẠO WATERMARK ĐA LỚP
         // ============================================================
-        initCanvasWatermark();
+        initWatermark();
     </script>
 </body>
 </html>
