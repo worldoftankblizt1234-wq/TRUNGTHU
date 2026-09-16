@@ -153,6 +153,52 @@
             border-radius: 12px;
             margin-bottom: 8px;
         }
+
+        /* ===== BLINDBOX TOGGLE SWITCH ===== */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #475569;
+            transition: 0.3s;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        .toggle-switch input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6 flex flex-col gap-6 relative max-w-5xl mx-auto">
@@ -179,6 +225,16 @@
             <div class="bg-slate-800/90 px-4 py-2 rounded-xl border border-slate-700/60 flex items-center gap-2">
                 <span class="text-xs text-slate-400 uppercase tracking-wider font-bold">Câu hỏi:</span>
                 <span id="questionCounter" class="text-xl font-black text-amber-400">0/0</span>
+            </div>
+
+            <!-- BLINDBOX TOGGLE -->
+            <div class="bg-slate-800/90 px-4 py-2 rounded-xl border border-slate-700/60 flex items-center gap-3">
+                <span class="text-xs text-slate-400 uppercase tracking-wider font-bold">Blindbox:</span>
+                <span id="blindboxToggleLabel" class="text-xs font-bold text-emerald-400">ON</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="blindboxToggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
 
             <button id="btnOpenPrizeManager" class="px-4 py-2.5 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/40 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 shadow-lg">
@@ -544,7 +600,8 @@
             musicPlaying: false,
             musicVolume: 0.5,
             outroMusicPlaying: false,
-            outroMusicVolume: 0.65
+            outroMusicVolume: 0.65,
+            blindboxEnabled: true
         };
 
         // Prize pool — danh sách quà do Host quản lý
@@ -589,6 +646,10 @@
         const blindboxGrid = document.getElementById('blindboxGrid');
         const blindboxResult = document.getElementById('blindboxResult');
         const blindboxCloseBtn = document.getElementById('blindboxCloseBtn');
+
+        // Blindbox Toggle DOM
+        const blindboxToggle = document.getElementById('blindboxToggle');
+        const blindboxToggleLabel = document.getElementById('blindboxToggleLabel');
 
         const currentModeBadge = document.getElementById('currentModeBadge');
         const btnModeLobby = document.getElementById('btnModeLobby');
@@ -872,7 +933,6 @@
             prizePool = cleaned;
 
             try {
-                // Lưu cả prizePool (đang dùng) và prizePoolBackup (để reset)
                 await set(ref(db, 'quizGame/prizePool'), prizePool);
                 await set(ref(db, 'quizGame/prizePoolBackup'), prizePool);
                 prizeCountBadge.textContent = prizePool.length;
@@ -961,8 +1021,7 @@
             
             blindboxCloseBtn.disabled = false;
 
-            // ✅ TRỪ SỐ LƯỢT KHI CHỌN PRIZE
-            let depletedPrizeName = null;
+            // TRỪ SỐ LƯỢT KHI CHỌN PRIZE
             if (!selectedPrize.empty && selectedPrize.prizeId) {
                 const prizeIndex = prizePool.findIndex(p => p.id === selectedPrize.prizeId);
                 if (prizeIndex !== -1) {
@@ -974,13 +1033,10 @@
 
                     console.log(`🎁 Trừ ${deduct} lượt khỏi "${prize.name}": ${oldQty} → ${newQty}`);
 
-                    // Nếu prize vừa hết
                     if (oldQty > 0 && newQty <= 0) {
-                        depletedPrizeName = prize.name;
                         showToast(`⚠️ Phần quà "${prize.name}" đã hết!`, "warning");
                     }
 
-                    // Ghi prizePool mới lên Firebase
                     try {
                         await set(ref(db, 'quizGame/prizePool'), prizePool);
                     } catch (e) {
@@ -1126,7 +1182,36 @@
 
             outroVolumeSlider.value = Math.round((displayState.outroMusicVolume || 0.65) * 100);
             outroVolumeLabel.textContent = Math.round((displayState.outroMusicVolume || 0.65) * 100) + '%';
+
+            // Cập nhật UI toggle Blindbox
+            updateBlindboxToggleUI();
         }
+
+        // ============================================================
+        // BLINDBOX TOGGLE
+        // ============================================================
+        function updateBlindboxToggleUI() {
+            const enabled = displayState.blindboxEnabled !== false;
+            blindboxToggle.checked = enabled;
+            if (enabled) {
+                blindboxToggleLabel.textContent = 'ON';
+                blindboxToggleLabel.className = 'text-xs font-bold text-emerald-400';
+            } else {
+                blindboxToggleLabel.textContent = 'OFF';
+                blindboxToggleLabel.className = 'text-xs font-bold text-red-400';
+            }
+        }
+
+        blindboxToggle.addEventListener('change', () => {
+            const enabled = blindboxToggle.checked;
+            updateDisplayState({ blindboxEnabled: enabled });
+            showToast(
+                enabled 
+                    ? "🎁 Đã BẬT blindbox — Trả lời đúng sẽ mở hộp quà" 
+                    : "🔇 Đã TẮT blindbox — Trả lời đúng sẽ không mở hộp quà", 
+                enabled ? "success" : "warning"
+            );
+        });
 
         btnModeLobby.addEventListener('click', () => {
             updateDisplayState({ mode: 'LOBBY' });
@@ -1186,7 +1271,8 @@
                     musicPlaying: val.musicPlaying || false,
                     musicVolume: val.musicVolume ?? 0.5,
                     outroMusicPlaying: val.outroMusicPlaying || false,
-                    outroMusicVolume: val.outroMusicVolume ?? 0.65
+                    outroMusicVolume: val.outroMusicVolume ?? 0.65,
+                    blindboxEnabled: val.blindboxEnabled !== false
                 };
             } else {
                 set(ref(db, 'quizGame/display'), displayState);
@@ -1309,10 +1395,16 @@
             });
 
             if (isCorrect) {
-                showToast("✅ Chính xác! Mở hộp quà nào!", "success");
-                setTimeout(() => {
-                    openBlindbox();
-                }, 800);
+                // KIỂM TRA BLINDBOX CÓ BẬT KHÔNG
+                const blindboxEnabled = displayState.blindboxEnabled !== false;
+                if (blindboxEnabled) {
+                    showToast("✅ Chính xác! Mở hộp quà nào!", "success");
+                    setTimeout(() => {
+                        openBlindbox();
+                    }, 800);
+                } else {
+                    showToast("✅ Chính xác! (Blindbox đang tắt)", "info");
+                }
             } else {
                 showToast("❌ Sai rồi! Đáp án đúng đã được highlight.", "error");
             }
@@ -1584,7 +1676,6 @@
                             if (backupSnap.exists()) {
                                 const backup = backupSnap.val();
                                 const backupArr = Array.isArray(backup) ? backup : Object.values(backup);
-                                // Reset lại quantity trong prize pool hiện tại về giá trị backup
                                 const resetPool = backupArr.map(p => ({ ...p }));
                                 await set(ref(db, 'quizGame/prizePool'), resetPool);
                                 console.log('✅ Đã reset prize pool về backup');
@@ -1618,7 +1709,8 @@
                                 musicPlaying: false,
                                 musicVolume: 0.5,
                                 outroMusicPlaying: false,
-                                outroMusicVolume: 0.65
+                                outroMusicVolume: 0.65,
+                                blindboxEnabled: displayState.blindboxEnabled !== false
                             }
                         });
                         showToast("🔄 Đã reset phòng + phần quà!", "success");
