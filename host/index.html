@@ -298,10 +298,12 @@
         <div class="glass-panel rounded-2xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 shadow-xl">
             <button id="btnNextQuestion" class="px-4 py-4 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-sm">
                 <i class="fa-solid fa-forward-step text-base"></i> Next Câu Tiếp theo
+                <span class="text-xs opacity-70 ml-1">(→)</span>
             </button>
 
-            <button id="btnClearAnswers" class="px-4 py-4 bg-slate-600 hover:bg-slate-500 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-slate-600/30 transition-all flex items-center justify-center gap-2 text-sm">
-                <i class="fa-solid fa-eraser text-base"></i> Xóa Highlight
+            <button id="btnPrevQuestion" class="px-4 py-4 bg-slate-600 hover:bg-slate-500 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-slate-600/30 transition-all flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-backward-step text-base"></i> Quay Lại Câu Trước
+                <span class="text-xs opacity-70 ml-1">(←)</span>
             </button>
         </div>
 
@@ -1582,10 +1584,9 @@
         }
 
         // ============================================================
-        // BUTTON HANDLERS
+        // NEXT / PREV QUESTION — TÁCH RIÊNG ĐỂ PHÍM MŨI TÊN GỌI ĐƯỢC
         // ============================================================
-
-        document.getElementById('btnNextQuestion').addEventListener('click', async () => {
+        async function goToNextQuestion() {
             if (!isQuestionsLoaded || QUESTIONS.length === 0) {
                 showToast("Chưa tải câu hỏi từ Worker!", "error");
                 return;
@@ -1637,7 +1638,43 @@
             });
 
             showToast(`📌 Câu ${nextIdx + 1}/${QUESTIONS.length}`, "success");
-        });
+        }
+
+        async function goToPrevQuestion() {
+            if (!isQuestionsLoaded || QUESTIONS.length === 0) {
+                showToast("Chưa tải câu hỏi từ Worker!", "error");
+                return;
+            }
+
+            let prevIdx = gameState.currentQuestionIndex;
+
+            if (prevIdx <= 0) {
+                showToast(`⬅️ Đã ở câu đầu tiên!`, "info");
+                return;
+            }
+
+            prevIdx -= 1;
+
+            // Reset timer mới cho câu cũ, giữ nguyên showResults và hostAnswer
+            const duration = parseInt(timerInput.value) || 15;
+            const endTimestamp = Date.now() + (duration * 1000);
+
+            await updateRoomStateInRTDB({
+                currentQuestionIndex: prevIdx,
+                status: 'QUESTION',
+                timerDuration: duration,
+                timerEndTimestamp: endTimestamp
+                // KHÔNG reset showResults, hostAnswer, hostAnswerCorrect
+            });
+
+            showToast(`⬅️ Quay lại câu ${prevIdx + 1}/${QUESTIONS.length}`, "info");
+        }
+
+        // ============================================================
+        // BUTTON HANDLERS
+        // ============================================================
+        document.getElementById('btnNextQuestion').addEventListener('click', goToNextQuestion);
+        document.getElementById('btnPrevQuestion').addEventListener('click', goToPrevQuestion);
 
         document.getElementById('btnClearAnswers').addEventListener('click', async () => {
             isAnswerLocked = false;
@@ -1655,6 +1692,31 @@
             const duration = parseInt(timerInput.value) || 15;
             await updateRoomStateInRTDB({ timerDuration: duration });
             showToast(`⏱️ Đã đổi thời gian thành ${duration} giây!`, "success");
+        });
+
+        // ============================================================
+        // KEYBOARD SHORTCUTS — CHỈ TRÊN HOST
+        // ============================================================
+        document.addEventListener('keydown', (e) => {
+            // Bỏ qua nếu đang gõ trong input/textarea
+            const tag = e.target.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+
+            // Bỏ qua nếu đang mở modal
+            if (!prizeManagerModal.classList.contains('hidden')) return;
+            if (!confirmModal.classList.contains('hidden')) return;
+            if (!blindboxOverlay.classList.contains('hidden')) return;
+
+            // Chỉ hoạt động khi mode GAME + status QUESTION
+            if (displayState.mode !== 'GAME' || gameState.status !== 'QUESTION') return;
+
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                goToNextQuestion();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                goToPrevQuestion();
+            }
         });
 
         // ============================================================
