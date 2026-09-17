@@ -54,7 +54,7 @@
         }
 
         /* ==================================================== */
-        /*   WATERMARK - CÁCH 4: PSEUDO-ELEMENT                  */
+        /*   WATERMARK - CÁCH 4: PSEUDO-ELEMENT (KHÔNG CÓ DIV) */
         /* ==================================================== */
         body::after {
             content: "© Product of Minh";
@@ -111,9 +111,21 @@
         }
 
         @media (max-width: 640px) {
-            body::after { font-size: 0.45rem; bottom: 5px; right: 8px; }
-            body::before { font-size: 0.5rem; bottom: 16px; right: 8px; }
-            #watermarkMid { font-size: 0.45rem; bottom: 10px; right: 8px; }
+            body::after {
+                font-size: 0.45rem;
+                bottom: 5px;
+                right: 8px;
+            }
+            body::before {
+                font-size: 0.5rem;
+                bottom: 16px;
+                right: 8px;
+            }
+            #watermarkMid {
+                font-size: 0.45rem;
+                bottom: 10px;
+                right: 8px;
+            }
         }
 
         .tv-bg {
@@ -179,7 +191,7 @@
         }
 
         /* ==================================================== */
-        /*   POPUP "QUÀ ĐÃ HẾT"                                  */
+        /*   POPUP "QUÀ ĐÃ HẾT" - HIỆN GIỮA MÀN HÌNH           */
         /* ==================================================== */
         #depletedPopup {
             position: fixed;
@@ -195,7 +207,9 @@
             pointer-events: auto;
         }
 
-        #depletedPopup.active { display: flex; }
+        #depletedPopup.active {
+            display: flex;
+        }
 
         @keyframes popupFadeIn {
             from { opacity: 0; }
@@ -314,9 +328,6 @@
             .depleted-message { font-size: 0.9rem; }
         }
 
-        /* ==================================================== */
-        /*   LAYERS                                             */
-        /* ==================================================== */
         #lobbyLayer {
             position: fixed;
             inset: 0;
@@ -325,6 +336,7 @@
             pointer-events: none;
             transition: opacity 1s ease-in-out;
         }
+
         #lobbyLayer.visible {
             opacity: 1;
             pointer-events: auto;
@@ -341,6 +353,7 @@
             pointer-events: none;
             transition: opacity 1s ease-in-out;
         }
+
         #tvDisplayView.visible {
             opacity: 1;
             pointer-events: auto;
@@ -354,34 +367,10 @@
             pointer-events: none;
             transition: opacity 1s ease-in-out;
         }
+
         #outroLayer.visible {
             opacity: 1;
             pointer-events: auto;
-        }
-
-        /* ==================================================== */
-        /*   PRE-INTRO LAYER (MỚI)                              */
-        /* ==================================================== */
-        #preIntroLayer {
-            position: fixed;
-            inset: 0;
-            z-index: 20;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 1s ease-in-out;
-            background-color: #000;
-        }
-        #preIntroLayer.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        #preIntroLayer .pre-intro-bg {
-            position: absolute;
-            inset: 0;
-            background-image: url('https://files.catbox.moe/4wljga.webp');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
         }
 
         #loadingScreen {
@@ -767,10 +756,10 @@
 </head>
 <body class="tv-bg w-screen h-screen flex flex-col justify-between p-3 md:p-8 relative select-none">
 
-    <!-- WATERMARK DÒNG GIỮA -->
+    <!-- WATERMARK DÒNG GIỮA (Cách 4: không phải div, dùng id + CSS) -->
     <div id="watermarkMid">Thiết kế Minh</div>
 
-    <!-- POPUP "QUÀ ĐÃ HẾT" -->
+    <!-- POPUP "QUÀ ĐÃ HẾT" - HIỆN GIỮA MÀN HÌNH -->
     <div id="depletedPopup">
         <div class="depleted-popup-box">
             <span class="depleted-icon">🎁</span>
@@ -819,14 +808,6 @@
     <audio id="outroMusic" loop preload="auto" style="display:none;">
         <source src="music2.mp3" type="audio/mpeg">
     </audio>
-    <audio id="preIntroMusic" loop preload="auto" style="display:none;">
-        <source src="https://files.catbox.moe/3jeet7.mp3" type="audio/mpeg">
-    </audio>
-
-    <!-- PRE-INTRO LAYER (MỚI) -->
-    <div id="preIntroLayer">
-        <div class="pre-intro-bg"></div>
-    </div>
 
     <div id="lobbyLayer">
         <div class="absolute inset-0 bg-cover bg-center"
@@ -1038,9 +1019,6 @@
         const AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music.mp3';
         const QUESTION_AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music1.mp3';
         const OUTRO_AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music2.mp3';
-        const PRE_INTRO_AUDIO_URL = 'https://files.catbox.moe/3jeet7.mp3';
-        const PRE_INTRO_IMAGE_URL = 'https://files.catbox.moe/4wljga.webp';
-
         const QUESTION_AUDIO_VOLUME = 0.78;
         const OUTRO_AUDIO_VOLUME = 0.65;
 
@@ -1061,10 +1039,7 @@
             musicPlaying: false,
             musicVolume: 0.5,
             outroMusicPlaying: false,
-            outroMusicVolume: 0.65,
-            blindboxEnabled: true,
-            preIntro: false,
-            preIntroVolume: 1.0
+            outroMusicVolume: 0.65
         };
 
         let prizePool = [];
@@ -1100,12 +1075,6 @@
         let outroAudioShouldPlay = false;
         let isPlayingOutroAudio = false;
 
-        let preIntroAudioBuffer = null;
-        let preIntroAudioSource = null;
-        let preIntroAudioGainNode = null;
-        let preIntroAudioShouldPlay = false;
-        let isPlayingPreIntroAudio = false;
-
         const loadingScreen = document.getElementById('loadingScreen');
         const silkBarFill = document.getElementById('silkBarFill');
         const loadingPercent = document.getElementById('loadingPercent');
@@ -1116,10 +1085,8 @@
         const bgMusic = document.getElementById('bgMusic');
         const questionMusic = document.getElementById('questionMusic');
         const outroMusic = document.getElementById('outroMusic');
-        const preIntroMusic = document.getElementById('preIntroMusic');
         const lobbyLayer = document.getElementById('lobbyLayer');
         const outroLayer = document.getElementById('outroLayer');
-        const preIntroLayer = document.getElementById('preIntroLayer');
         const tvDisplayView = document.getElementById('tvDisplayView');
 
         const questionProgress = document.getElementById('questionProgress');
@@ -1156,11 +1123,10 @@
         ];
 
         const loadingProgress = {
-            image: { loaded: false, bytes: 0, total: 0, weight: 25 },
-            audio: { loaded: false, bytes: 0, total: 0, weight: 12 },
-            questionAudio: { loaded: false, bytes: 0, total: 0, weight: 12 },
-            outroAudio: { loaded: false, bytes: 0, total: 0, weight: 12 },
-            preIntroAudio: { loaded: false, bytes: 0, total: 0, weight: 14 },
+            image: { loaded: false, bytes: 0, total: 0, weight: 30 },
+            audio: { loaded: false, bytes: 0, total: 0, weight: 15 },
+            questionAudio: { loaded: false, bytes: 0, total: 0, weight: 15 },
+            outroAudio: { loaded: false, bytes: 0, total: 0, weight: 15 },
             quiz:  { loaded: false, bytes: 0, total: 0, weight: 25 },
             speedSamples: [],
             lastBytes: 0,
@@ -1176,19 +1142,17 @@
                 else if (this.questionAudio.loaded) pct += this.questionAudio.weight;
                 if (this.outroAudio.total > 0) pct += (this.outroAudio.bytes / this.outroAudio.total) * this.outroAudio.weight;
                 else if (this.outroAudio.loaded) pct += this.outroAudio.weight;
-                if (this.preIntroAudio.total > 0) pct += (this.preIntroAudio.bytes / this.preIntroAudio.total) * this.preIntroAudio.weight;
-                else if (this.preIntroAudio.loaded) pct += this.preIntroAudio.weight;
                 if (this.quiz.total > 0) pct += (this.quiz.bytes / this.quiz.total) * this.quiz.weight;
                 else if (this.quiz.loaded) pct += this.quiz.weight;
                 return Math.min(100, Math.round(pct));
             },
 
             getTotalBytes() {
-                return this.image.bytes + this.audio.bytes + this.questionAudio.bytes + this.outroAudio.bytes + this.preIntroAudio.bytes + this.quiz.bytes;
+                return this.image.bytes + this.audio.bytes + this.questionAudio.bytes + this.outroAudio.bytes + this.quiz.bytes;
             },
 
             getTotalSize() {
-                return (this.image.total || 0) + (this.audio.total || 0) + (this.questionAudio.total || 0) + (this.outroAudio.total || 0) + (this.preIntroAudio.total || 0) + (this.quiz.total || 0);
+                return (this.image.total || 0) + (this.audio.total || 0) + (this.questionAudio.total || 0) + (this.outroAudio.total || 0) + (this.quiz.total || 0);
             }
         };
 
@@ -1243,7 +1207,7 @@
                 netEta.textContent = 'Xong!';
             }
 
-            if (loadingProgress.image.loaded && loadingProgress.audio.loaded && loadingProgress.questionAudio.loaded && loadingProgress.outroAudio.loaded && loadingProgress.preIntroAudio.loaded && loadingProgress.quiz.loaded) {
+            if (loadingProgress.image.loaded && loadingProgress.audio.loaded && loadingProgress.questionAudio.loaded && loadingProgress.outroAudio.loaded && loadingProgress.quiz.loaded) {
                 finishLoading();
             }
         }
@@ -1504,79 +1468,6 @@
             });
         }
 
-        function preloadPreIntroAudioXHR(url) {
-            return new Promise((resolve) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', url, true);
-                xhr.responseType = 'arraybuffer';
-                xhr.onprogress = (e) => {
-                    if (e.lengthComputable) {
-                        loadingProgress.preIntroAudio.total = e.total;
-                        loadingProgress.preIntroAudio.bytes = e.loaded;
-                    } else {
-                        loadingProgress.preIntroAudio.bytes = e.loaded;
-                        loadingProgress.preIntroAudio.total = Math.max(loadingProgress.preIntroAudio.total, e.loaded);
-                    }
-                    updateLoadingUI();
-                };
-                xhr.onload = async () => {
-                    if (xhr.status === 200) {
-                        const size = xhr.response.byteLength || 0;
-                        loadingProgress.preIntroAudio.bytes = size;
-                        loadingProgress.preIntroAudio.total = size;
-                        try {
-                            if (!audioContext) {
-                                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                            }
-                            preIntroAudioBuffer = await audioContext.decodeAudioData(xhr.response);
-                            preIntroAudioGainNode = audioContext.createGain();
-                            preIntroAudioGainNode.gain.value = displayState.preIntroVolume ?? 1.0;
-                            preIntroAudioGainNode.connect(audioContext.destination);
-                            loadingProgress.preIntroAudio.loaded = true;
-                        } catch (err) {
-                            try {
-                                const blobUrl = URL.createObjectURL(new Blob([xhr.response], { type: 'audio/mpeg' }));
-                                preIntroMusic.src = blobUrl;
-                                preIntroMusic.load();
-                            } catch (e2) {
-                                preIntroMusic.src = url;
-                                preIntroMusic.load();
-                            }
-                            loadingProgress.preIntroAudio.loaded = true;
-                        }
-                    } else {
-                        loadingProgress.preIntroAudio.loaded = true;
-                        loadingProgress.preIntroAudio.bytes = 1;
-                        loadingProgress.preIntroAudio.total = 1;
-                        preIntroMusic.src = url;
-                        preIntroMusic.load();
-                    }
-                    updateLoadingUI();
-                    resolve();
-                };
-                xhr.onerror = () => {
-                    loadingProgress.preIntroAudio.loaded = true;
-                    loadingProgress.preIntroAudio.bytes = 1;
-                    loadingProgress.preIntroAudio.total = 1;
-                    preIntroMusic.src = url;
-                    preIntroMusic.load();
-                    updateLoadingUI();
-                    resolve();
-                };
-                xhr.timeout = 60000;
-                xhr.ontimeout = () => {
-                    loadingProgress.preIntroAudio.loaded = true;
-                    loadingProgress.preIntroAudio.bytes = 1;
-                    loadingProgress.preIntroAudio.total = 1;
-                    preIntroMusic.src = url;
-                    preIntroMusic.load();
-                    updateLoadingUI();
-                    resolve();
-                };
-                xhr.send();
-            });
-        }
-
         function loadQuestionsXHR(url) {
             return new Promise((resolve) => {
                 const xhr = new XMLHttpRequest();
@@ -1658,7 +1549,6 @@
                 preloadAudioXHR(AUDIO_URL),
                 preloadQuestionAudioXHR(QUESTION_AUDIO_URL),
                 preloadOutroAudioXHR(OUTRO_AUDIO_URL),
-                preloadPreIntroAudioXHR(PRE_INTRO_AUDIO_URL),
                 loadQuestionsXHR(`${WORKER_URL}/quiz`)
             ]);
             applyDisplayState();
@@ -1686,6 +1576,7 @@
             }
 
             const isRunning = await ensureAudioContextRunning();
+
             if (!musicShouldPlay) return;
             if (!isRunning) return;
 
@@ -1813,53 +1704,6 @@
             outroMusic.volume = vol;
         }
 
-        async function playPreIntroAudio() {
-            if (!preIntroAudioShouldPlay) return;
-
-            if (!audioContext || !preIntroAudioBuffer) {
-                preIntroMusic.currentTime = 0;
-                preIntroMusic.volume = displayState.preIntroVolume ?? 1.0;
-                preIntroMusic.play().catch(e => console.warn(e));
-                isPlayingPreIntroAudio = true;
-                return;
-            }
-
-            const isRunning = await ensureAudioContextRunning();
-            if (!preIntroAudioShouldPlay) return;
-            if (!isRunning) return;
-
-            if (preIntroAudioSource) {
-                try { preIntroAudioSource.stop(); } catch(e) {}
-                preIntroAudioSource = null;
-            }
-
-            preIntroAudioSource = audioContext.createBufferSource();
-            preIntroAudioSource.buffer = preIntroAudioBuffer;
-            preIntroAudioSource.loop = true;
-            preIntroAudioSource.connect(preIntroAudioGainNode);
-            preIntroAudioSource.start(0);
-            isPlayingPreIntroAudio = true;
-        }
-
-        function pausePreIntroAudio() {
-            preIntroAudioShouldPlay = false;
-            isPlayingPreIntroAudio = false;
-
-            if (preIntroAudioSource && audioContext) {
-                try { preIntroAudioSource.stop(); } catch(e) {}
-                preIntroAudioSource = null;
-            } else {
-                preIntroMusic.pause();
-            }
-        }
-
-        function setPreIntroVolumeWebAudio(vol) {
-            if (preIntroAudioGainNode) {
-                preIntroAudioGainNode.gain.value = vol;
-            }
-            preIntroMusic.volume = vol;
-        }
-
         async function attemptAudioUnlock() {
             if (!audioContext) return;
             if (audioContext.state === 'suspended') {
@@ -1871,10 +1715,15 @@
             }
 
             if (audioContext.state === 'running') {
-                if (musicShouldPlay && !isPlayingMusic) playMusicWebAudio();
-                if (questionAudioShouldPlay && !isPlayingQuestionAudio) playQuestionAudio();
-                if (outroAudioShouldPlay && !isPlayingOutroAudio) playOutroAudio();
-                if (preIntroAudioShouldPlay && !isPlayingPreIntroAudio) playPreIntroAudio();
+                if (musicShouldPlay && !isPlayingMusic) {
+                    playMusicWebAudio();
+                }
+                if (questionAudioShouldPlay && !isPlayingQuestionAudio) {
+                    playQuestionAudio();
+                }
+                if (outroAudioShouldPlay && !isPlayingOutroAudio) {
+                    playOutroAudio();
+                }
             }
         }
 
@@ -1883,12 +1732,11 @@
         document.addEventListener('touchstart', attemptAudioUnlock);
         document.addEventListener('pointerdown', attemptAudioUnlock);
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') attemptAudioUnlock();
+            if (document.visibilityState === 'visible') {
+                attemptAudioUnlock();
+            }
         });
 
-        // ============================================================
-        // LISTEN DISPLAY STATE
-        // ============================================================
         onValue(ref(db, 'quizGame/display'), (snap) => {
             if (!snap.exists()) {
                 set(ref(db, 'quizGame/display'), displayState);
@@ -1900,67 +1748,38 @@
                 musicPlaying: val.musicPlaying || false,
                 musicVolume: val.musicVolume ?? 0.5,
                 outroMusicPlaying: val.outroMusicPlaying || false,
-                outroMusicVolume: val.outroMusicVolume ?? 0.65,
-                blindboxEnabled: val.blindboxEnabled !== false,
-                preIntro: val.preIntro === true,
-                preIntroVolume: val.preIntroVolume ?? 1.0
+                outroMusicVolume: val.outroMusicVolume ?? 0.65
             };
             applyDisplayState();
         });
 
         function applyDisplayState() {
-            if (!lobbyLayer || !tvDisplayView || !outroLayer || !preIntroLayer) return;
+            if (!lobbyLayer || !tvDisplayView || !outroLayer) return;
 
-            const preIntroOn = displayState.preIntro === true;
             const mode = displayState.mode;
 
-            // ============== PRE-INTRO LAYER ==============
-            if (preIntroOn) {
-                // Ẩn hết layer khác, hiện Pre-Intro
+            if (mode === 'GAME') {
+                lobbyLayer.classList.remove('visible');
+                outroLayer.classList.remove('visible');
+                tvDisplayView.classList.add('visible');
+            } else if (mode === 'OUTRO') {
                 lobbyLayer.classList.remove('visible');
                 tvDisplayView.classList.remove('visible');
-                outroLayer.classList.remove('visible');
-                preIntroLayer.classList.add('visible');
+                outroLayer.classList.add('visible');
             } else {
-                preIntroLayer.classList.remove('visible');
-
-                // Hiện layer theo mode
-                if (mode === 'GAME') {
-                    lobbyLayer.classList.remove('visible');
-                    outroLayer.classList.remove('visible');
-                    tvDisplayView.classList.add('visible');
-                } else if (mode === 'OUTRO') {
-                    lobbyLayer.classList.remove('visible');
-                    tvDisplayView.classList.remove('visible');
-                    outroLayer.classList.add('visible');
-                } else {
-                    tvDisplayView.classList.remove('visible');
-                    outroLayer.classList.remove('visible');
-                    lobbyLayer.classList.add('visible');
-                }
+                tvDisplayView.classList.remove('visible');
+                outroLayer.classList.remove('visible');
+                lobbyLayer.classList.add('visible');
             }
 
-            // ============== VOLUME ==============
             setMusicVolumeWebAudio(displayState.musicVolume);
             setOutroVolumeWebAudio(displayState.outroMusicVolume || 0.65);
-            setPreIntroVolumeWebAudio(displayState.preIntroVolume ?? 1.0);
 
-            // ============== NHẠC PRE-INTRO ==============
-            if (preIntroOn) {
-                preIntroAudioShouldPlay = true;
-                if (!isPlayingPreIntroAudio) playPreIntroAudio();
-            } else {
-                if (isPlayingPreIntroAudio || preIntroAudioSource) {
-                    pausePreIntroAudio();
-                } else {
-                    preIntroAudioShouldPlay = false;
-                }
-            }
-
-            // ============== NHẠC LOBBY ==============
-            if (!preIntroOn && displayState.musicPlaying) {
+            if (displayState.musicPlaying) {
                 musicShouldPlay = true;
-                if (!isPlayingMusic) playMusicWebAudio();
+                if (!isPlayingMusic) {
+                    playMusicWebAudio();
+                }
             } else {
                 if (isPlayingMusic || audioSource) {
                     pauseMusicWebAudio();
@@ -1969,10 +1788,11 @@
                 }
             }
 
-            // ============== NHẠC OUTRO ==============
-            if (!preIntroOn && mode === 'OUTRO' && displayState.outroMusicPlaying) {
+            if (mode === 'OUTRO' && displayState.outroMusicPlaying) {
                 outroAudioShouldPlay = true;
-                if (!isPlayingOutroAudio) playOutroAudio();
+                if (!isPlayingOutroAudio) {
+                    playOutroAudio();
+                }
             } else {
                 if (isPlayingOutroAudio || outroAudioSource) {
                     pauseOutroAudio();
@@ -1981,15 +1801,15 @@
                 }
             }
 
-            // ============== NHẠC CÂU HỎI ==============
             const shouldPlayQuestionAudio = 
-                !preIntroOn &&
                 mode === 'GAME' && 
                 gameState.status === 'QUESTION';
 
             if (shouldPlayQuestionAudio) {
                 questionAudioShouldPlay = true;
-                if (!isPlayingQuestionAudio) playQuestionAudio();
+                if (!isPlayingQuestionAudio) {
+                    playQuestionAudio();
+                }
             } else {
                 if (isPlayingQuestionAudio || questionAudioSource) {
                     pauseQuestionAudio();
@@ -2122,18 +1942,26 @@
             }
         });
 
+        // ============================================================
+        // POPUP "QUÀ ĐÃ HẾT"
+        // ============================================================
         function showDepletedPopup(prizeName) {
             if (depletedPopupTimeout) {
                 clearTimeout(depletedPopupTimeout);
             }
+
             depletedPrizeName.textContent = prizeName;
             depletedPopup.classList.add('active');
+
             depletedPopupTimeout = setTimeout(() => {
                 depletedPopup.classList.remove('active');
                 depletedPopupTimeout = null;
             }, 5000);
         }
 
+        // ============================================================
+        // THEO DÕI PRIZE POOL - PHÁT HIỆN PRIZE VỪA HẾT
+        // ============================================================
         onValue(ref(db, 'quizGame/prizePool'), (snap) => {
             let newPool = [];
             if (snap.exists()) {
@@ -2148,6 +1976,7 @@
                         const oldQty = parseInt(oldPrize.quantity) || 0;
                         const newQty = parseInt(newPrize.quantity) || 0;
                         if (oldQty > 0 && newQty <= 0) {
+                            console.log(`🎁 Phần quà "${newPrize.name}" vừa hết!`);
                             showDepletedPopup(newPrize.name);
                         }
                     }
@@ -2156,9 +1985,16 @@
 
             previousPrizePool = newPool;
             prizePool = newPool;
+            console.log('🎁 Prize pool updated:', prizePool.length, 'items');
         });
 
+        // ============================================================
+        // CÁCH 1 + CÁCH 3 + CÁCH 5: WATERMARK ĐA LỚP
+        // ============================================================
         function initWatermark() {
+            // ============================================================
+            // LỚP 1: CANVAS (Cách 1)
+            // ============================================================
             const canvas = document.createElement('canvas');
             canvas.id = 'watermarkCanvas';
             canvas.style.position = 'fixed';
@@ -2199,20 +2035,56 @@
             drawWatermark();
             window.addEventListener('resize', drawWatermark);
 
-            const observer = new MutationObserver(() => {
-                if (!document.getElementById('watermarkCanvas')) {
-                    document.body.appendChild(canvas);
-                    drawWatermark();
+            // ============================================================
+            // LỚP 2: MUTATIONOBSERVER (Cách 5 nâng cấp)
+            // Phát hiện ngay khi canvas bị xoá khỏi DOM
+            // ============================================================
+            const observer = new MutationObserver((mutations) => {
+                let canvasRemoved = false;
+                mutations.forEach((mutation) => {
+                    if (mutation.removedNodes.length > 0) {
+                        mutation.removedNodes.forEach((node) => {
+                            if (node.id === 'watermarkCanvas') {
+                                canvasRemoved = true;
+                            }
+                        });
+                    }
+                });
+
+                if (canvasRemoved || !document.getElementById('watermarkCanvas')) {
+                    console.log('🚨 MutationObserver: Watermark canvas bị xoá, mọc lại ngay...');
+                    // Đảm bảo canvas tồn tại
+                    if (!document.getElementById('watermarkCanvas')) {
+                        document.body.appendChild(canvas);
+                        drawWatermark();
+                    }
                 }
             });
-            observer.observe(document.body, { childList: true, subtree: true });
 
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            window.__watermarkObserver = observer;
+
+            // ============================================================
+            // LỚP 3: SETINTERVAL BACKUP (Cách 5 cũ)
+            // Dự phòng nếu MutationObserver bị tắt
+            // ============================================================
             setInterval(() => {
                 if (!document.getElementById('watermarkCanvas')) {
+                    console.log('🔄 setInterval: Watermark canvas bị xoá, mọc lại...');
                     document.body.appendChild(canvas);
                     drawWatermark();
                 }
             }, 2000);
+
+            // ============================================================
+            // LỚP 4: PSEUDO-ELEMENT (Cách 4)
+            // Đã có trong CSS: body::before và body::after
+            // Không thể xoá qua DOM — chỉ có thể sửa CSS
+            // ============================================================
         }
 
         function getPrizeById(id) {
@@ -2344,13 +2216,14 @@
             }
 
             const shouldPlayQuestionAudio = 
-                displayState.preIntro !== true &&
                 gameState.status === 'QUESTION' && 
                 displayState.mode === 'GAME';
 
             if (shouldPlayQuestionAudio) {
                 questionAudioShouldPlay = true;
-                if (!isPlayingQuestionAudio) playQuestionAudio();
+                if (!isPlayingQuestionAudio) {
+                    playQuestionAudio();
+                }
             } else {
                 if (isPlayingQuestionAudio || questionAudioSource) {
                     pauseQuestionAudio();
@@ -2375,6 +2248,10 @@
 
         applyDisplayState();
         bootstrap();
+
+        // ============================================================
+        // KHỞI TẠO WATERMARK ĐA LỚP
+        // ============================================================
         initWatermark();
     </script>
 </body>
