@@ -199,42 +199,6 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
-
-        /* ===== PRE-INTRO TOGGLE (màu cam) ===== */
-        .toggle-switch.pre-intro input:checked + .toggle-slider {
-            background-color: #f59e0b;
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
-        }
-
-        /* ===== LOCKED PANEL ===== */
-        .locked-panel {
-            opacity: 0.5;
-            pointer-events: none;
-            filter: grayscale(40%);
-            position: relative;
-        }
-        .locked-panel::after {
-            content: "🔒 PANEL ĐANG BỊ KHOÁ";
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.7);
-            color: #f59e0b;
-            font-weight: 800;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            border-radius: 1rem;
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        .pre-intro-active {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.1));
-            border-color: rgba(245, 158, 11, 0.6) !important;
-            box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
-        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6 flex flex-col gap-6 relative max-w-5xl mx-auto">
@@ -331,7 +295,7 @@
         </div>
 
         <!-- Live Action Toolbar -->
-        <div id="actionToolbar" class="glass-panel rounded-2xl p-5 grid grid-cols-1 sm:grid-cols-3 gap-4 shadow-xl">
+        <div class="glass-panel rounded-2xl p-5 grid grid-cols-1 sm:grid-cols-3 gap-4 shadow-xl">
             <button id="btnNextQuestion" class="px-4 py-4 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-sm">
                 <i class="fa-solid fa-forward-step text-base"></i> Next Câu Tiếp theo
                 <span class="text-xs opacity-70 ml-1">(→)</span>
@@ -358,98 +322,63 @@
                 </span>
             </div>
 
-            <!-- ⭐ PRE-INTRO TOGGLE (TRÊN CÙNG) -->
-            <div id="preIntroPanel" class="mb-4 bg-orange-500/10 border border-orange-500/40 rounded-xl p-4 flex flex-col gap-3">
-                <div class="flex items-center justify-between gap-3 flex-wrap">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-star text-orange-400 text-xl"></i>
-                        <span class="text-sm font-bold text-orange-300">PRE-INTRO</span>
-                        <span id="preIntroStatus" class="text-xs text-slate-400 italic">(đang tắt)</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span id="preIntroToggleLabel" class="text-xs font-bold text-red-400">OFF</span>
-                        <label class="toggle-switch pre-intro">
-                            <input type="checkbox" id="preIntroToggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <button id="btnModeLobby" class="px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-moon"></i> Màn hình chờ
+                </button>
 
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-volume-low text-slate-400"></i>
-                    <span class="text-xs text-orange-300 font-bold whitespace-nowrap">Âm lượng Pre-Intro:</span>
-                    <input type="range" id="preIntroVolumeSlider" min="0" max="100" value="100"
-                           class="flex-1 accent-orange-400 cursor-pointer">
-                    <span id="preIntroVolumeLabel" class="text-xs font-mono text-orange-400 w-12 text-right">100%</span>
-                </div>
+                <button id="btnModeGame" class="px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-gamepad"></i> Vào Minigame
+                </button>
 
-                <p class="text-xs text-slate-500 italic">
-                    <i class="fa-solid fa-circle-info mr-1 text-orange-400"></i>
-                    Khi BẬT: TV hiện nền Pre-Intro + phát nhạc Pre-Intro. Panel điều khiển bị KHOÁ.
-                    Khi TẮT: TV tắt hết nhạc, quay về Lobby. Panel mở khoá.
-                </p>
+                <button id="btnModeOutro" class="px-4 py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-heart"></i> Outro
+                </button>
+
+                <button id="btnMusicToggle" class="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i id="musicIcon" class="fa-solid fa-volume-xmark"></i>
+                    <span id="musicLabel">Bật nhạc</span>
+                </button>
             </div>
 
-            <!-- PANEL CHÍNH (bị khoá khi Pre-Intro ON) -->
-            <div id="mainControlPanel">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <button id="btnModeLobby" class="px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-moon"></i> Màn hình chờ
-                    </button>
-
-                    <button id="btnModeGame" class="px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-gamepad"></i> Vào Minigame
-                    </button>
-
-                    <button id="btnModeOutro" class="px-4 py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-heart"></i> Outro
-                    </button>
-
-                    <button id="btnMusicToggle" class="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
-                        <i id="musicIcon" class="fa-solid fa-volume-xmark"></i>
-                        <span id="musicLabel">Bật nhạc</span>
-                    </button>
-                </div>
-
-                <!-- NÚT NHẠC OUTRO -->
-                <div id="outroMusicControl" class="mt-4 hidden">
-                    <div class="bg-pink-500/10 border border-pink-500/40 rounded-xl p-4 flex flex-col gap-3">
-                        <div class="flex items-center justify-between gap-3 flex-wrap">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-music text-pink-400 text-xl"></i>
-                                <span class="text-sm font-bold text-pink-300">Nhạc Outro</span>
-                                <span id="outroMusicStatus" class="text-xs text-slate-400 italic">(đang tắt)</span>
-                            </div>
-                            <button id="btnOutroMusicToggle" class="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-lg text-sm transition-all flex items-center gap-2">
-                                <i id="outroMusicIcon" class="fa-solid fa-play"></i>
-                                <span id="outroMusicLabel">Phát nhạc Outro</span>
-                            </button>
+            <!-- 🎵 NÚT NHẠC OUTRO - CHỈ HIỆN KHI Ở MODE OUTRO -->
+            <div id="outroMusicControl" class="mt-4 hidden">
+                <div class="bg-pink-500/10 border border-pink-500/40 rounded-xl p-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-music text-pink-400 text-xl"></i>
+                            <span class="text-sm font-bold text-pink-300">Nhạc Outro</span>
+                            <span id="outroMusicStatus" class="text-xs text-slate-400 italic">(đang tắt)</span>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-volume-low text-slate-400"></i>
-                            <input type="range" id="outroVolumeSlider" min="0" max="100" value="65"
-                                   class="flex-1 accent-pink-400 cursor-pointer">
-                            <span id="outroVolumeLabel" class="text-xs font-mono text-pink-400 w-10 text-right">65%</span>
-                        </div>
-                        <p class="text-xs text-slate-500 italic">
-                            <i class="fa-solid fa-circle-info mr-1 text-pink-400"></i>
-                            Nhạc Outro chỉ phát khi TV đang ở mode OUTRO.
-                        </p>
+                        <button id="btnOutroMusicToggle" class="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-lg text-sm transition-all flex items-center gap-2">
+                            <i id="outroMusicIcon" class="fa-solid fa-play"></i>
+                            <span id="outroMusicLabel">Phát nhạc Outro</span>
+                        </button>
                     </div>
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-volume-low text-slate-400"></i>
+                        <input type="range" id="outroVolumeSlider" min="0" max="100" value="65"
+                               class="flex-1 accent-pink-400 cursor-pointer">
+                        <span id="outroVolumeLabel" class="text-xs font-mono text-pink-400 w-10 text-right">65%</span>
+                    </div>
+                    <p class="text-xs text-slate-500 italic">
+                        <i class="fa-solid fa-circle-info mr-1 text-pink-400"></i>
+                        Nhạc Outro chỉ phát khi TV đang ở mode OUTRO. Khi rời mode, nhạc tự tắt.
+                    </p>
                 </div>
-
-                <div class="mt-4 flex items-center gap-3">
-                    <i class="fa-solid fa-volume-low text-slate-400"></i>
-                    <input type="range" id="volumeSlider" min="0" max="100" value="50"
-                           class="flex-1 accent-amber-400 cursor-pointer">
-                    <span id="volumeLabel" class="text-xs font-mono text-amber-400 w-10 text-right">50%</span>
-                </div>
-
-                <p class="mt-3 text-xs text-slate-500 italic">
-                    <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i>
-                    Nhạc Lobby: <code class="text-amber-400">/music.mp3</code> — Nhạc Outro: <code class="text-pink-400">/music2.mp3</code>
-                </p>
             </div>
+
+            <div class="mt-4 flex items-center gap-3">
+                <i class="fa-solid fa-volume-low text-slate-400"></i>
+                <input type="range" id="volumeSlider" min="0" max="100" value="50"
+                       class="flex-1 accent-amber-400 cursor-pointer">
+                <span id="volumeLabel" class="text-xs font-mono text-amber-400 w-10 text-right">50%</span>
+            </div>
+
+            <p class="mt-3 text-xs text-slate-500 italic">
+                <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i>
+                Nhạc Lobby phát qua file <code class="text-amber-400">/music.mp3</code>, nhạc Outro qua <code class="text-pink-400">/music2.mp3</code>. Host điều khiển bật/tắt và âm lượng.
+            </p>
         </div>
 
     </main>
@@ -460,6 +389,7 @@
     <div id="prizeManagerModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[9998] flex items-center justify-center p-4 hidden">
         <div class="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 max-w-4xl w-full shadow-2xl shadow-amber-500/20 max-h-[90vh] flex flex-col">
             
+            <!-- Header -->
             <div class="flex items-center justify-between border-b border-slate-700/60 pb-4 mb-5">
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
@@ -479,7 +409,10 @@
                 </button>
             </div>
 
+            <!-- Scrollable Content -->
             <div class="flex-1 overflow-y-auto pr-1" style="max-height: 55vh;">
+
+                <!-- Header labels -->
                 <div class="grid grid-cols-[2fr_1fr_1fr_1fr_44px] gap-2 px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
                     <span>Tên quà</span>
                     <span class="text-center">Tỷ lệ %</span>
@@ -488,12 +421,17 @@
                     <span></span>
                 </div>
 
-                <div id="prizeListContainer"></div>
+                <!-- Prize List -->
+                <div id="prizeListContainer">
+                    <!-- JS renders here -->
+                </div>
 
+                <!-- Add Button -->
                 <button id="btnAddPrize" class="w-full mt-3 py-3 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border-2 border-dashed border-emerald-500/50 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
                     <i class="fa-solid fa-plus"></i> Thêm Quà Mới
                 </button>
 
+                <!-- Summary -->
                 <div class="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-700/60">
                     <div class="grid grid-cols-3 gap-3 text-center">
                         <div>
@@ -511,11 +449,13 @@
                     </div>
                     <p id="summaryWarning" class="text-xs text-amber-400 mt-3 text-center hidden">
                         <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                        Tổng tỷ lệ không bằng 100%.
+                        Tổng tỷ lệ không bằng 100%. Hệ thống vẫn hoạt động nhưng nên điều chỉnh cho chính xác.
                     </p>
                 </div>
+
             </div>
 
+            <!-- Footer Buttons -->
             <div class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/60">
                 <button id="btnCancelPrizeManager" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-sm transition-all">
                     <i class="fa-solid fa-xmark mr-1"></i> Hủy
@@ -524,6 +464,7 @@
                     <i class="fa-solid fa-floppy-disk mr-1"></i> Lưu Danh Sách Quà
                 </button>
             </div>
+
         </div>
     </div>
 
@@ -587,7 +528,9 @@
                 <p class="text-slate-400 text-sm mt-2">Chọn 1 trong 3 hộp quà bí mật để nhận phần thưởng!</p>
             </div>
             
-            <div id="blindboxGrid" class="grid grid-cols-3 gap-4 mb-6"></div>
+            <div id="blindboxGrid" class="grid grid-cols-3 gap-4 mb-6">
+                <!-- Boxes will be generated by JS -->
+            </div>
             
             <div id="blindboxResult" class="text-center text-xl font-bold min-h-[50px] text-emerald-400"></div>
             
@@ -625,6 +568,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
         const WORKER_URL = "https://qsttrungthu.anhminhadof123.workers.dev";
 
         const firebaseConfig = {
@@ -641,6 +587,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // ============================================================
+        // STATE
+        // ============================================================
         let QUESTIONS = [];
         let gameState = {
             currentQuestionIndex: -1,
@@ -658,22 +607,29 @@
             musicVolume: 0.5,
             outroMusicPlaying: false,
             outroMusicVolume: 0.65,
-            blindboxEnabled: true,
-            preIntro: false,
-            preIntroVolume: 1.0
+            blindboxEnabled: true
         };
 
+        // Prize pool — danh sách quà do Host quản lý
+        // Mỗi prize: { id, name, rate, quantity, deductPerWin }
         let prizePool = [];
+
         let localTimerInterval = null;
         let confirmAction = null;
         let isQuestionsLoaded = false;
         let selectedAnswer = null;
         let isAnswerLocked = false;
+
         let currentBoxes = [];
         let selectedBoxIndex = -1;
         let isBoxRevealed = false;
+
+        // Prize manager temp state (chỉnh sửa trước khi lưu)
         let tempPrizePool = [];
 
+        // ============================================================
+        // DOM ELEMENTS
+        // ============================================================
         const dbStatusBadge = document.getElementById('dbStatusBadge');
         const qText = document.getElementById('qText');
         const optionsContainer = document.getElementById('optionsContainer');
@@ -697,18 +653,9 @@
         const blindboxResult = document.getElementById('blindboxResult');
         const blindboxCloseBtn = document.getElementById('blindboxCloseBtn');
 
+        // Blindbox Toggle DOM
         const blindboxToggle = document.getElementById('blindboxToggle');
         const blindboxToggleLabel = document.getElementById('blindboxToggleLabel');
-
-        // Pre-Intro DOM
-        const preIntroToggle = document.getElementById('preIntroToggle');
-        const preIntroToggleLabel = document.getElementById('preIntroToggleLabel');
-        const preIntroStatus = document.getElementById('preIntroStatus');
-        const preIntroPanel = document.getElementById('preIntroPanel');
-        const preIntroVolumeSlider = document.getElementById('preIntroVolumeSlider');
-        const preIntroVolumeLabel = document.getElementById('preIntroVolumeLabel');
-        const mainControlPanel = document.getElementById('mainControlPanel');
-        const actionToolbar = document.getElementById('actionToolbar');
 
         const currentModeBadge = document.getElementById('currentModeBadge');
         const btnModeLobby = document.getElementById('btnModeLobby');
@@ -720,6 +667,7 @@
         const volumeSlider = document.getElementById('volumeSlider');
         const volumeLabel = document.getElementById('volumeLabel');
 
+        // Outro Music Control DOM
         const outroMusicControl = document.getElementById('outroMusicControl');
         const outroMusicStatus = document.getElementById('outroMusicStatus');
         const btnOutroMusicToggle = document.getElementById('btnOutroMusicToggle');
@@ -728,6 +676,7 @@
         const outroVolumeSlider = document.getElementById('outroVolumeSlider');
         const outroVolumeLabel = document.getElementById('outroVolumeLabel');
 
+        // Prize Manager DOM
         const prizeManagerModal = document.getElementById('prizeManagerModal');
         const prizeListContainer = document.getElementById('prizeListContainer');
         const btnOpenPrizeManager = document.getElementById('btnOpenPrizeManager');
@@ -741,6 +690,9 @@
         const summaryTotalRate = document.getElementById('summaryTotalRate');
         const summaryWarning = document.getElementById('summaryWarning');
 
+        // ============================================================
+        // UTILITY
+        // ============================================================
         function showToast(msg, type = 'info') {
             toastMessage.innerText = msg;
             if (type === 'error') {
@@ -782,8 +734,11 @@
             }
         });
 
-        // PRIZE POOL
+        // ============================================================
+        // 🎁 PRIZE POOL — LOGIC BỐC QUÀ
+        // ============================================================
         function generateBoxes() {
+            // Nếu chưa có quà → trả về 3 hộp rỗng
             if (!prizePool || prizePool.length === 0) {
                 return [
                     { name: "Chưa có quà", icon: "❓", empty: true },
@@ -791,7 +746,13 @@
                     { name: "Chưa có quà", icon: "❓", empty: true }
                 ];
             }
-            const available = prizePool.filter(p => (p.quantity || 0) > 0).map(p => ({ ...p }));
+
+            // Lọc prize còn lượt
+            const available = prizePool
+                .filter(p => (p.quantity || 0) > 0)
+                .map(p => ({ ...p }));
+
+            // Nếu tất cả prize đều hết
             if (available.length === 0) {
                 return [
                     { name: "Chúc may mắn lần sau", icon: "🍀", empty: true },
@@ -799,14 +760,18 @@
                     { name: "Chúc may mắn lần sau", icon: "🍀", empty: true }
                 ];
             }
+
             const boxes = [];
             for (let i = 0; i < 3; i++) {
                 if (available.length === 0) {
                     boxes.push({ name: "Chúc may mắn lần sau", icon: "🍀", empty: true });
                     continue;
                 }
+
+                // Chọn theo tỷ lệ %
                 const totalRate = available.reduce((s, p) => s + (p.rate || 0), 0);
                 let picked = null;
+
                 if (totalRate > 0) {
                     let random = Math.random() * totalRate;
                     for (const prize of available) {
@@ -814,7 +779,10 @@
                         if (random <= 0) { picked = prize; break; }
                     }
                 }
+
+                // Fallback nếu tỷ lệ = 0 hết
                 if (!picked) picked = available[Math.floor(Math.random() * available.length)];
+
                 boxes.push({
                     name: picked.name,
                     icon: "🎁",
@@ -822,10 +790,15 @@
                     empty: false
                 });
             }
+
             return boxes;
         }
 
+        // ============================================================
+        // PRIZE MANAGER — UI
+        // ============================================================
         function openPrizeManager() {
+            // Clone prizePool sang tempPrizePool để chỉnh sửa
             tempPrizePool = JSON.parse(JSON.stringify(prizePool || []));
             renderPrizeList();
             prizeManagerModal.classList.remove('hidden');
@@ -862,6 +835,7 @@
                 });
             }
 
+            // Gắn event listeners
             prizeListContainer.querySelectorAll('input').forEach(inp => {
                 inp.addEventListener('input', (e) => {
                     const idx = parseInt(e.target.dataset.idx);
@@ -940,11 +914,13 @@
                 deductPerWin: 1
             });
             renderPrizeList();
+            // Focus vào input cuối
             const inputs = prizeListContainer.querySelectorAll('input[data-field="name"]');
             if (inputs.length > 0) inputs[inputs.length - 1].focus();
         });
 
         btnSavePrizeManager.addEventListener('click', async () => {
+            // Validate
             const cleaned = tempPrizePool
                 .map(p => ({
                     id: p.id || ('p_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
@@ -974,6 +950,7 @@
             }
         });
 
+        // Listen Firebase prizePool (sync đa tab)
         onValue(ref(db, 'quizGame/prizePool'), (snap) => {
             if (snap.exists()) {
                 const val = snap.val();
@@ -984,7 +961,9 @@
             prizeCountBadge.textContent = prizePool.length;
         });
 
-        // BLINDBOX
+        // ============================================================
+        // BLINDBOX LOGIC
+        // ============================================================
         async function openBlindbox() {
             selectedBoxIndex = -1;
             isBoxRevealed = false;
@@ -1015,8 +994,10 @@
                     boxes: currentBoxes,
                     revealed: false
                 });
+                console.log('✅ Đã sync blindbox open lên Firebase');
             } catch (e) {
                 console.error("Sync blindbox open error:", e);
+                showToast("Lỗi đồng bộ blindbox: " + e.message, "error");
             }
         }
 
@@ -1046,6 +1027,7 @@
             
             blindboxCloseBtn.disabled = false;
 
+            // TRỪ SỐ LƯỢT KHI CHỌN PRIZE
             if (!selectedPrize.empty && selectedPrize.prizeId) {
                 const prizeIndex = prizePool.findIndex(p => p.id === selectedPrize.prizeId);
                 if (prizeIndex !== -1) {
@@ -1054,6 +1036,8 @@
                     const oldQty = prize.quantity || 0;
                     const newQty = Math.max(0, oldQty - deduct);
                     prizePool[prizeIndex].quantity = newQty;
+
+                    console.log(`🎁 Trừ ${deduct} lượt khỏi "${prize.name}": ${oldQty} → ${newQty}`);
 
                     if (oldQty > 0 && newQty <= 0) {
                         showToast(`⚠️ Phần quà "${prize.name}" đã hết!`, "warning");
@@ -1073,6 +1057,7 @@
                     revealed: true,
                     boxes: currentBoxes
                 });
+                console.log('✅ Đã sync blindbox reveal lên Firebase');
             } catch (e) {
                 console.error("Sync blindbox reveal error:", e);
             }
@@ -1109,6 +1094,7 @@
                     boxes: [],
                     revealed: false
                 });
+                console.log('✅ Đã sync blindbox close lên Firebase');
             } catch (e) {
                 console.error("Sync blindbox close error:", e);
             }
@@ -1130,7 +1116,9 @@
             }
         });
 
-        // DISPLAY
+        // ============================================================
+        // 🎬 DISPLAY / MUSIC CONTROL
+        // ============================================================
         async function updateDisplayState(patch) {
             try {
                 const newState = { ...displayState, ...patch };
@@ -1176,12 +1164,14 @@
             volumeSlider.value = Math.round(displayState.musicVolume * 100);
             volumeLabel.textContent = Math.round(displayState.musicVolume * 100) + '%';
 
+            // Hiển thị panel nhạc Outro khi ở mode OUTRO
             if (displayState.mode === 'OUTRO') {
                 outroMusicControl.classList.remove('hidden');
             } else {
                 outroMusicControl.classList.add('hidden');
             }
 
+            // Cập nhật UI nhạc Outro
             if (displayState.outroMusicPlaying) {
                 outroMusicIcon.className = 'fa-solid fa-pause';
                 outroMusicLabel.textContent = 'Tắt nhạc Outro';
@@ -1199,7 +1189,14 @@
             outroVolumeSlider.value = Math.round((displayState.outroMusicVolume || 0.65) * 100);
             outroVolumeLabel.textContent = Math.round((displayState.outroMusicVolume || 0.65) * 100) + '%';
 
-            // BLINDBOX TOGGLE
+            // Cập nhật UI toggle Blindbox
+            updateBlindboxToggleUI();
+        }
+
+        // ============================================================
+        // BLINDBOX TOGGLE
+        // ============================================================
+        function updateBlindboxToggleUI() {
             const enabled = displayState.blindboxEnabled !== false;
             blindboxToggle.checked = enabled;
             if (enabled) {
@@ -1209,78 +1206,17 @@
                 blindboxToggleLabel.textContent = 'OFF';
                 blindboxToggleLabel.className = 'text-xs font-bold text-red-400';
             }
-
-            // PRE-INTRO TOGGLE
-            const preIntroOn = displayState.preIntro === true;
-            preIntroToggle.checked = preIntroOn;
-
-            if (preIntroOn) {
-                preIntroToggleLabel.textContent = 'ON';
-                preIntroToggleLabel.className = 'text-xs font-bold text-emerald-400';
-                preIntroStatus.textContent = '(đang phát Pre-Intro)';
-                preIntroStatus.className = 'text-xs text-orange-400 italic font-bold';
-                preIntroPanel.classList.add('pre-intro-active');
-
-                // KHOÁ PANEL CHÍNH
-                mainControlPanel.classList.add('locked-panel');
-                actionToolbar.classList.add('locked-panel');
-            } else {
-                preIntroToggleLabel.textContent = 'OFF';
-                preIntroToggleLabel.className = 'text-xs font-bold text-red-400';
-                preIntroStatus.textContent = '(đang tắt)';
-                preIntroStatus.className = 'text-xs text-slate-400 italic';
-                preIntroPanel.classList.remove('pre-intro-active');
-
-                // MỞ KHOÁ
-                mainControlPanel.classList.remove('locked-panel');
-                actionToolbar.classList.remove('locked-panel');
-            }
-
-            preIntroVolumeSlider.value = Math.round((displayState.preIntroVolume ?? 1.0) * 100);
-            preIntroVolumeLabel.textContent = Math.round((displayState.preIntroVolume ?? 1.0) * 100) + '%';
         }
 
-        // BLINDBOX TOGGLE
         blindboxToggle.addEventListener('change', () => {
             const enabled = blindboxToggle.checked;
             updateDisplayState({ blindboxEnabled: enabled });
             showToast(
                 enabled 
-                    ? "🎁 Đã BẬT blindbox" 
-                    : "🔇 Đã TẮT blindbox", 
+                    ? "🎁 Đã BẬT blindbox — Trả lời đúng sẽ mở hộp quà" 
+                    : "🔇 Đã TẮT blindbox — Trả lời đúng sẽ không mở hộp quà", 
                 enabled ? "success" : "warning"
             );
-        });
-
-        // PRE-INTRO TOGGLE
-        preIntroToggle.addEventListener('change', async () => {
-            const enabled = preIntroToggle.checked;
-            
-            if (enabled) {
-                // BẬT Pre-Intro: TV hiện nền + phát nhạc, TV tắt nhạc khác
-                await updateDisplayState({ 
-                    preIntro: true,
-                    preIntroVolume: displayState.preIntroVolume ?? 1.0
-                });
-                showToast("⭐ Đã BẬT Pre-Intro — TV hiện nền + phát nhạc, panel bị KHOÁ", "success");
-            } else {
-                // TẮT Pre-Intro: TV tắt nhạc Pre-Intro, quay về Lobby
-                await updateDisplayState({ 
-                    preIntro: false,
-                    mode: 'LOBBY',
-                    musicPlaying: false,
-                    outroMusicPlaying: false
-                });
-                showToast("🔇 Đã TẮT Pre-Intro — TV về Lobby, panel mở khoá", "warning");
-            }
-        });
-
-        // PRE-INTRO VOLUME
-        preIntroVolumeSlider.addEventListener('input', (e) => {
-            preIntroVolumeLabel.textContent = e.target.value + '%';
-        });
-        preIntroVolumeSlider.addEventListener('change', (e) => {
-            updateDisplayState({ preIntroVolume: parseInt(e.target.value) / 100 });
         });
 
         btnModeLobby.addEventListener('click', () => {
@@ -1303,6 +1239,9 @@
             showToast(displayState.musicPlaying ? "🎵 Đã bật nhạc" : "🔇 Đã tắt nhạc", "info");
         });
 
+        // ============================================================
+        // 🎵 NÚT NHẠC OUTRO
+        // ============================================================
         btnOutroMusicToggle.addEventListener('click', () => {
             updateDisplayState({ outroMusicPlaying: !displayState.outroMusicPlaying });
             showToast(
@@ -1320,6 +1259,9 @@
             updateDisplayState({ outroMusicVolume: parseInt(e.target.value) / 100 });
         });
 
+        // ============================================================
+        // VOLUME NHẠC LOBBY
+        // ============================================================
         volumeSlider.addEventListener('input', (e) => {
             volumeLabel.textContent = e.target.value + '%';
         });
@@ -1336,9 +1278,7 @@
                     musicVolume: val.musicVolume ?? 0.5,
                     outroMusicPlaying: val.outroMusicPlaying || false,
                     outroMusicVolume: val.outroMusicVolume ?? 0.65,
-                    blindboxEnabled: val.blindboxEnabled !== false,
-                    preIntro: val.preIntro === true,
-                    preIntroVolume: val.preIntroVolume ?? 1.0
+                    blindboxEnabled: val.blindboxEnabled !== false
                 };
             } else {
                 set(ref(db, 'quizGame/display'), displayState);
@@ -1348,7 +1288,9 @@
 
         renderDisplayUI();
 
+        // ============================================================
         // LOAD QUESTIONS
+        // ============================================================
         async function loadQuestionsFromWorker() {
             try {
                 dbStatusBadge.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải từ Worker...';
@@ -1417,7 +1359,9 @@
             }
         }
 
-        // HANDLE ANSWER
+        // ============================================================
+        // HANDLE ANSWER — GỬI hostAnswer LÊN FIREBASE
+        // ============================================================
         function handleAnswerClick(optionIndex) {
             if (isAnswerLocked || gameState.status !== 'QUESTION') {
                 showToast("Không thể chọn đáp án lúc này!", "error");
@@ -1457,6 +1401,7 @@
             });
 
             if (isCorrect) {
+                // KIỂM TRA BLINDBOX CÓ BẬT KHÔNG
                 const blindboxEnabled = displayState.blindboxEnabled !== false;
                 if (blindboxEnabled) {
                     showToast("✅ Chính xác! Mở hộp quà nào!", "success");
@@ -1477,7 +1422,9 @@
             });
         }
 
+        // ============================================================
         // RENDER UI
+        // ============================================================
         function renderUI() {
             const idx = gameState.currentQuestionIndex;
 
@@ -1583,6 +1530,9 @@
             }
         }
 
+        // ============================================================
+        // TIMER
+        // ============================================================
         function startLocalTimerAnimation() {
             clearInterval(localTimerInterval);
             if (!gameState.timerEndTimestamp || gameState.status !== 'QUESTION') {
@@ -1607,6 +1557,9 @@
             }, 100);
         }
 
+        // ============================================================
+        // SYNC TO WORKER
+        // ============================================================
         async function syncToWorker(stateData) {
             try {
                 await fetch(WORKER_URL, {
@@ -1619,6 +1572,9 @@
             }
         }
 
+        // ============================================================
+        // UPDATE ROOM STATE
+        // ============================================================
         async function updateRoomStateInRTDB(newState) {
             try {
                 const roomRef = ref(db, 'quizGame/roomState');
@@ -1631,6 +1587,9 @@
             }
         }
 
+        // ============================================================
+        // NEXT / PREV QUESTION — TÁCH RIÊNG ĐỂ PHÍM MŨI TÊN GỌI ĐƯỢC
+        // ============================================================
         async function goToNextQuestion() {
             if (!isQuestionsLoaded || QUESTIONS.length === 0) {
                 showToast("Chưa tải câu hỏi từ Worker!", "error");
@@ -1700,6 +1659,7 @@
 
             prevIdx -= 1;
 
+            // Reset timer mới cho câu cũ, giữ nguyên showResults và hostAnswer
             const duration = parseInt(timerInput.value) || 15;
             const endTimestamp = Date.now() + (duration * 1000);
 
@@ -1708,11 +1668,15 @@
                 status: 'QUESTION',
                 timerDuration: duration,
                 timerEndTimestamp: endTimestamp
+                // KHÔNG reset showResults, hostAnswer, hostAnswerCorrect
             });
 
             showToast(`⬅️ Quay lại câu ${prevIdx + 1}/${QUESTIONS.length}`, "info");
         }
 
+        // ============================================================
+        // BUTTON HANDLERS
+        // ============================================================
         document.getElementById('btnNextQuestion').addEventListener('click', goToNextQuestion);
         document.getElementById('btnPrevQuestion').addEventListener('click', goToPrevQuestion);
 
@@ -1734,18 +1698,20 @@
             showToast(`⏱️ Đã đổi thời gian thành ${duration} giây!`, "success");
         });
 
-        // KEYBOARD SHORTCUTS
+        // ============================================================
+        // KEYBOARD SHORTCUTS — CHỈ TRÊN HOST
+        // ============================================================
         document.addEventListener('keydown', (e) => {
+            // Bỏ qua nếu đang gõ trong input/textarea
             const tag = e.target.tagName;
             if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
 
+            // Bỏ qua nếu đang mở modal
             if (!prizeManagerModal.classList.contains('hidden')) return;
             if (!confirmModal.classList.contains('hidden')) return;
             if (!blindboxOverlay.classList.contains('hidden')) return;
 
-            // Nếu Pre-Intro đang bật → khoá phím
-            if (displayState.preIntro === true) return;
-
+            // Chỉ hoạt động khi mode GAME + status QUESTION
             if (displayState.mode !== 'GAME' || gameState.status !== 'QUESTION') return;
 
             if (e.key === 'ArrowRight') {
@@ -1757,7 +1723,9 @@
             }
         });
 
-        // RESET
+        // ============================================================
+        // RESET PHÒNG — RESET CẢ PRIZE POOL VỀ BACKUP
+        // ============================================================
         document.getElementById('btnResetAll').addEventListener('click', () => {
             showConfirmModal(
                 "Reset Toàn Bộ Phòng",
@@ -1768,6 +1736,7 @@
                         isAnswerLocked = false;
                         selectedAnswer = null;
 
+                        // Reset prize pool về backup
                         try {
                             const backupSnap = await get(ref(db, 'quizGame/prizePoolBackup'));
                             if (backupSnap.exists()) {
@@ -1775,6 +1744,9 @@
                                 const backupArr = Array.isArray(backup) ? backup : Object.values(backup);
                                 const resetPool = backupArr.map(p => ({ ...p }));
                                 await set(ref(db, 'quizGame/prizePool'), resetPool);
+                                console.log('✅ Đã reset prize pool về backup');
+                            } else {
+                                console.log('⚠️ Chưa có backup prize pool');
                             }
                         } catch (e) {
                             console.warn('Lỗi reset prize pool:', e);
@@ -1804,9 +1776,7 @@
                                 musicVolume: 0.5,
                                 outroMusicPlaying: false,
                                 outroMusicVolume: 0.65,
-                                blindboxEnabled: displayState.blindboxEnabled !== false,
-                                preIntro: false,
-                                preIntroVolume: displayState.preIntroVolume ?? 1.0
+                                blindboxEnabled: displayState.blindboxEnabled !== false
                             }
                         });
                         showToast("🔄 Đã reset phòng + phần quà!", "success");
@@ -1817,6 +1787,9 @@
             );
         });
 
+        // ============================================================
+        // LISTEN ROOM STATE
+        // ============================================================
         const roomStateRef = ref(db, 'quizGame/roomState');
         onValue(roomStateRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -1841,6 +1814,9 @@
             dbStatusBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-semibold';
         });
 
+        // ============================================================
+        // INIT
+        // ============================================================
         loadQuestionsFromWorker();
     </script>
 </body>
