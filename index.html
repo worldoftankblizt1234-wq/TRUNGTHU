@@ -811,7 +811,7 @@
 
     <div id="lobbyLayer">
         <div class="absolute inset-0 bg-cover bg-center"
-             style="background-image: url('https://files.catbox.moe/9tm8bl.png');"></div>
+             style="background-image: url('https://files.catbox.moe/9py9n2.webp');"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80"></div>
         
         <div class="absolute floating-lantern" style="top: 10%; left: 8%; font-size: 4rem;">🏮</div>
@@ -1015,7 +1015,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const IMAGE_URL = 'https://files.catbox.moe/9tm8bl.png';
+        const IMAGE_URL = 'https://files.catbox.moe/9py9n2.webp';
         const AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music.mp3';
         const QUESTION_AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music1.mp3';
         const OUTRO_AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music2.mp3';
@@ -1942,26 +1942,18 @@
             }
         });
 
-        // ============================================================
-        // POPUP "QUÀ ĐÃ HẾT"
-        // ============================================================
         function showDepletedPopup(prizeName) {
             if (depletedPopupTimeout) {
                 clearTimeout(depletedPopupTimeout);
             }
-
             depletedPrizeName.textContent = prizeName;
             depletedPopup.classList.add('active');
-
             depletedPopupTimeout = setTimeout(() => {
                 depletedPopup.classList.remove('active');
                 depletedPopupTimeout = null;
             }, 5000);
         }
 
-        // ============================================================
-        // THEO DÕI PRIZE POOL - PHÁT HIỆN PRIZE VỪA HẾT
-        // ============================================================
         onValue(ref(db, 'quizGame/prizePool'), (snap) => {
             let newPool = [];
             if (snap.exists()) {
@@ -1976,7 +1968,6 @@
                         const oldQty = parseInt(oldPrize.quantity) || 0;
                         const newQty = parseInt(newPrize.quantity) || 0;
                         if (oldQty > 0 && newQty <= 0) {
-                            console.log(`🎁 Phần quà "${newPrize.name}" vừa hết!`);
                             showDepletedPopup(newPrize.name);
                         }
                     }
@@ -1985,16 +1976,9 @@
 
             previousPrizePool = newPool;
             prizePool = newPool;
-            console.log('🎁 Prize pool updated:', prizePool.length, 'items');
         });
 
-        // ============================================================
-        // CÁCH 1 + CÁCH 3 + CÁCH 5: WATERMARK ĐA LỚP
-        // ============================================================
         function initWatermark() {
-            // ============================================================
-            // LỚP 1: CANVAS (Cách 1)
-            // ============================================================
             const canvas = document.createElement('canvas');
             canvas.id = 'watermarkCanvas';
             canvas.style.position = 'fixed';
@@ -2035,56 +2019,20 @@
             drawWatermark();
             window.addEventListener('resize', drawWatermark);
 
-            // ============================================================
-            // LỚP 2: MUTATIONOBSERVER (Cách 5 nâng cấp)
-            // Phát hiện ngay khi canvas bị xoá khỏi DOM
-            // ============================================================
-            const observer = new MutationObserver((mutations) => {
-                let canvasRemoved = false;
-                mutations.forEach((mutation) => {
-                    if (mutation.removedNodes.length > 0) {
-                        mutation.removedNodes.forEach((node) => {
-                            if (node.id === 'watermarkCanvas') {
-                                canvasRemoved = true;
-                            }
-                        });
-                    }
-                });
-
-                if (canvasRemoved || !document.getElementById('watermarkCanvas')) {
-                    console.log('🚨 MutationObserver: Watermark canvas bị xoá, mọc lại ngay...');
-                    // Đảm bảo canvas tồn tại
-                    if (!document.getElementById('watermarkCanvas')) {
-                        document.body.appendChild(canvas);
-                        drawWatermark();
-                    }
+            const observer = new MutationObserver(() => {
+                if (!document.getElementById('watermarkCanvas')) {
+                    document.body.appendChild(canvas);
+                    drawWatermark();
                 }
             });
+            observer.observe(document.body, { childList: true, subtree: true });
 
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-
-            window.__watermarkObserver = observer;
-
-            // ============================================================
-            // LỚP 3: SETINTERVAL BACKUP (Cách 5 cũ)
-            // Dự phòng nếu MutationObserver bị tắt
-            // ============================================================
             setInterval(() => {
                 if (!document.getElementById('watermarkCanvas')) {
-                    console.log('🔄 setInterval: Watermark canvas bị xoá, mọc lại...');
                     document.body.appendChild(canvas);
                     drawWatermark();
                 }
             }, 2000);
-
-            // ============================================================
-            // LỚP 4: PSEUDO-ELEMENT (Cách 4)
-            // Đã có trong CSS: body::before và body::after
-            // Không thể xoá qua DOM — chỉ có thể sửa CSS
-            // ============================================================
         }
 
         function getPrizeById(id) {
@@ -2248,10 +2196,6 @@
 
         applyDisplayState();
         bootstrap();
-
-        // ============================================================
-        // KHỞI TẠO WATERMARK ĐA LỚP
-        // ============================================================
         initWatermark();
     </script>
 </body>
