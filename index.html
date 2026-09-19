@@ -41,8 +41,10 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
-            overscroll-behavior: none;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
         }
 
         body {
@@ -54,7 +56,70 @@
         }
 
         /* ==================================================== */
-        /*   WATERMARK - CÁCH 4: PSEUDO-ELEMENT (KHÔNG CÓ DIV) */
+        /*   SCROLL BAR ĐẸP CHO CẢ PC VÀ MOBILE                  */
+        /* ==================================================== */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #facc15, #f59e0b);
+            border-radius: 10px;
+            border: 2px solid rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #fde047, #facc15);
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.9);
+        }
+
+        /* Firefox */
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: #facc15 rgba(15, 23, 42, 0.8);
+        }
+
+        @media (max-width: 640px) {
+            ::-webkit-scrollbar { width: 6px; height: 6px; }
+            ::-webkit-scrollbar-thumb { border: 1px solid rgba(15, 23, 42, 0.8); }
+        }
+
+        /* ==================================================== */
+        /*   PROGRESS BAR SCROLL (THANH TIẾN ĐỘ LƯỚT)           */
+        /* ==================================================== */
+        #scrollProgress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #dc2626, #ef4444, #facc15, #fde047);
+            background-size: 200% 100%;
+            z-index: 999999;
+            box-shadow: 0 0 12px rgba(250, 204, 21, 0.8), 0 0 20px rgba(239, 68, 68, 0.6);
+            transition: width 0.1s linear;
+            animation: scrollShine 2s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scrollShine {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        @media (max-width: 640px) {
+            #scrollProgress { height: 3px; }
+        }
+
+        /* ==================================================== */
+        /*   WATERMARK                                          */
         /* ==================================================== */
         body::after {
             content: "© Product of Minh";
@@ -111,21 +176,9 @@
         }
 
         @media (max-width: 640px) {
-            body::after {
-                font-size: 0.45rem;
-                bottom: 5px;
-                right: 8px;
-            }
-            body::before {
-                font-size: 0.5rem;
-                bottom: 16px;
-                right: 8px;
-            }
-            #watermarkMid {
-                font-size: 0.45rem;
-                bottom: 10px;
-                right: 8px;
-            }
+            body::after { font-size: 0.45rem; bottom: 5px; right: 8px; }
+            body::before { font-size: 0.5rem; bottom: 16px; right: 8px; }
+            #watermarkMid { font-size: 0.45rem; bottom: 10px; right: 8px; }
         }
 
         .tv-bg {
@@ -135,6 +188,7 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            min-height: 100vh;
         }
 
         .glass-panel {
@@ -224,7 +278,7 @@
         }
 
         /* ==================================================== */
-        /*   POPUP "QUÀ ĐÃ HẾT" - HIỆN GIỮA MÀN HÌNH           */
+        /*   POPUP "QUÀ ĐÃ HẾT"                                 */
         /* ==================================================== */
         #depletedPopup {
             position: fixed;
@@ -314,7 +368,6 @@
             animation: gradientShift 2s ease infinite;
             position: relative;
             z-index: 1;
-            text-shadow: 0 0 40px rgba(250, 204, 21, 0.5);
         }
 
         .depleted-name {
@@ -376,12 +429,12 @@
         }
 
         #tvDisplayView {
-            position: fixed;
-            inset: 0;
+            position: relative;
             z-index: 10;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            min-height: 100vh;
             opacity: 0;
             pointer-events: none;
             transition: opacity 1s ease-in-out;
@@ -787,7 +840,10 @@
         }
     </style>
 </head>
-<body class="tv-bg w-screen h-screen flex flex-col justify-between p-3 md:p-8 relative select-none">
+<body class="tv-bg w-screen min-h-screen flex flex-col justify-between p-3 md:p-8 relative select-none">
+
+    <!-- THANH TIẾN ĐỘ SCROLL -->
+    <div id="scrollProgress"></div>
 
     <!-- WATERMARK DÒNG GIỮA -->
     <div id="watermarkMid">Thiết kế Minh</div>
@@ -896,7 +952,7 @@
         </div>
     </div>
 
-    <main id="tvDisplayView" class="w-full h-full flex-col justify-between gap-3 md:gap-6 z-10 max-w-7xl mx-auto p-3 md:p-8">
+    <main id="tvDisplayView" class="w-full min-h-screen flex-col justify-between gap-3 md:gap-6 z-10 max-w-7xl mx-auto p-3 md:p-8 pb-16">
 
         <header class="w-full flex flex-wrap md:flex-nowrap items-center justify-between gap-2 px-1 md:px-2 py-1">
             <div class="flex items-center gap-2 md:gap-4 flex-wrap">
@@ -1057,10 +1113,9 @@
         const AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music.mp3';
         const QUESTION_AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music1.mp3';
         const OUTRO_AUDIO_URL = 'https://vuihoitrungthu.pages.dev/music2.mp3';
-        const QUESTION_AUDIO_VOLUME = 0.78;
+        const QUESTION_AUDIO_VOLUME_DEFAULT = 0.78;
         const OUTRO_AUDIO_VOLUME = 0.65;
 
-        // Chỉ số câu đặc biệt (câu 33 → index 32)
         const SPECIAL_QUESTION_INDEX = 32;
         const SPECIAL_TOPIC_LABEL = 'MỘC BẢN THỜI NGUYỄN VỀ TRUNG THU';
 
@@ -1080,6 +1135,7 @@
             mode: 'LOBBY',
             musicPlaying: false,
             musicVolume: 0.5,
+            questionVolume: QUESTION_AUDIO_VOLUME_DEFAULT,
             outroMusicPlaying: false,
             outroMusicVolume: 0.65
         };
@@ -1123,6 +1179,7 @@
         const netSpeed = document.getElementById('netSpeed');
         const netLoaded = document.getElementById('netLoaded');
         const netEta = document.getElementById('netEta');
+        const scrollProgress = document.getElementById('scrollProgress');
 
         const bgMusic = document.getElementById('bgMusic');
         const questionMusic = document.getElementById('questionMusic');
@@ -1199,6 +1256,19 @@
                 return (this.image.total || 0) + (this.audio.total || 0) + (this.questionAudio.total || 0) + (this.outroAudio.total || 0) + (this.quiz.total || 0);
             }
         };
+
+        // ============================================================
+        // SCROLL PROGRESS BAR
+        // ============================================================
+        function updateScrollProgress() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollPct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+            scrollProgress.style.width = scrollPct + '%';
+        }
+
+        window.addEventListener('scroll', updateScrollProgress, { passive: true });
+        window.addEventListener('resize', updateScrollProgress);
 
         function measureSpeed() {
             const now = Date.now();
@@ -1392,7 +1462,7 @@
                             }
                             questionAudioBuffer = await audioContext.decodeAudioData(xhr.response);
                             questionAudioGainNode = audioContext.createGain();
-                            questionAudioGainNode.gain.value = QUESTION_AUDIO_VOLUME;
+                            questionAudioGainNode.gain.value = displayState.questionVolume ?? QUESTION_AUDIO_VOLUME_DEFAULT;
                             questionAudioGainNode.connect(audioContext.destination);
                             loadingProgress.questionAudio.loaded = true;
                         } catch (err) {
@@ -1666,7 +1736,7 @@
 
             if (!audioContext || !questionAudioBuffer) {
                 questionMusic.currentTime = 0;
-                questionMusic.volume = QUESTION_AUDIO_VOLUME;
+                questionMusic.volume = displayState.questionVolume ?? QUESTION_AUDIO_VOLUME_DEFAULT;
                 questionMusic.play().catch(e => console.warn(e));
                 isPlayingQuestionAudio = true;
                 return;
@@ -1699,6 +1769,13 @@
             } else {
                 questionMusic.pause();
             }
+        }
+
+        function setQuestionVolumeWebAudio(vol) {
+            if (questionAudioGainNode) {
+                questionAudioGainNode.gain.value = vol;
+            }
+            questionMusic.volume = vol;
         }
 
         async function playOutroAudio() {
@@ -1791,6 +1868,7 @@
                 mode: val.mode || 'LOBBY',
                 musicPlaying: val.musicPlaying || false,
                 musicVolume: val.musicVolume ?? 0.5,
+                questionVolume: val.questionVolume ?? QUESTION_AUDIO_VOLUME_DEFAULT,
                 outroMusicPlaying: val.outroMusicPlaying || false,
                 outroMusicVolume: val.outroMusicVolume ?? 0.65
             };
@@ -1817,6 +1895,7 @@
             }
 
             setMusicVolumeWebAudio(displayState.musicVolume);
+            setQuestionVolumeWebAudio(displayState.questionVolume ?? QUESTION_AUDIO_VOLUME_DEFAULT);
             setOutroVolumeWebAudio(displayState.outroMusicVolume || 0.65);
 
             if (displayState.musicPlaying) {
@@ -1882,7 +1961,6 @@
                 timerDisplay.innerText = `${gameState.timerDuration || 15}s`;
                 timerBar.style.width = '100%';
                 
-                // Ẩn ảnh mộc bản + reset topic label
                 mocBanImageWrapper.classList.remove('active');
                 topicLabel.innerText = 'THỬ THÁCH ĐỐ VUI';
 
@@ -1902,9 +1980,6 @@
             questionProgress.innerText = `CÂU HỎI ${idx + 1} / ${QUESTIONS.length}`;
             questionText.innerText = q.question;
 
-            // ====================================================
-            // ẢNH MỘC BẢN - CHỈ HIỆN Ở CÂU 33 (INDEX 32)
-            // ====================================================
             if (idx === SPECIAL_QUESTION_INDEX) {
                 mocBanImageWrapper.classList.add('active');
                 topicLabel.innerText = SPECIAL_TOPIC_LABEL;
@@ -2257,6 +2332,9 @@
         applyDisplayState();
         bootstrap();
         initWatermark();
+
+        // Khởi tạo scroll progress bar
+        updateScrollProgress();
     </script>
 </body>
 </html>
