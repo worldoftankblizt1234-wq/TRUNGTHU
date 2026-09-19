@@ -198,7 +198,7 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         #mocBanImageWrapper.active {
@@ -206,20 +206,20 @@
         }
 
         #mocBanImageWrapper img {
-            width: 30%;
-            max-width: 250px;
+            width: 65%;
+            max-width: 500px;
             height: auto;
-            border-radius: 12px;
+            border-radius: 14px;
             border: 2px solid rgba(250, 204, 21, 0.6);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 30px rgba(250, 204, 21, 0.3);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7), 0 0 40px rgba(250, 204, 21, 0.35);
             object-fit: contain;
         }
 
         @media (max-width: 640px) {
             #mocBanImageWrapper img {
-                width: 40%;
-                max-width: 150px;
-                border-radius: 8px;
+                width: 80%;
+                max-width: 300px;
+                border-radius: 10px;
             }
         }
 
@@ -789,10 +789,10 @@
 </head>
 <body class="tv-bg w-screen h-screen flex flex-col justify-between p-3 md:p-8 relative select-none">
 
-    <!-- WATERMARK DÒNG GIỮA (Cách 4: không phải div, dùng id + CSS) -->
+    <!-- WATERMARK DÒNG GIỮA -->
     <div id="watermarkMid">Thiết kế Minh</div>
 
-    <!-- POPUP "QUÀ ĐÃ HẾT" - HIỆN GIỮA MÀN HÌNH -->
+    <!-- POPUP "QUÀ ĐÃ HẾT" -->
     <div id="depletedPopup">
         <div class="depleted-popup-box">
             <span class="depleted-icon">🎁</span>
@@ -931,7 +931,7 @@
                 
                 <!-- ẢNH MỘC BẢN - CHỈ HIỆN Ở CÂU 33 -->
                 <div id="mocBanImageWrapper">
-                    <img src="https://files.catbox.moe/z8utih.jpg" alt="Mộc bản thời Nguyễn">
+                    <img src="https://files.catbox.moe/z8utih.jpg" alt="Mộc bản thời Nguyễn về Trung thu">
                 </div>
 
                 <div class="flex items-center justify-between gap-2 md:gap-4 mb-3 md:mb-4 flex-wrap">
@@ -1062,7 +1062,7 @@
 
         // Chỉ số câu đặc biệt (câu 33 → index 32)
         const SPECIAL_QUESTION_INDEX = 32;
-        const SPECIAL_TOPIC_LABEL = 'MỘC BẢN THỜI NGUYỄN';
+        const SPECIAL_TOPIC_LABEL = 'MỘC BẢN THỜI NGUYỄN VỀ TRUNG THU';
 
         let QUESTIONS = [];
 
