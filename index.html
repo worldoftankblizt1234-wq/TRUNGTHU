@@ -80,7 +80,6 @@
             background-clip: padding-box;
         }
 
-        /* Firefox */
         html {
             scrollbar-width: thin;
             scrollbar-color: rgba(148, 163, 184, 0.4) rgba(30, 41, 59, 0.3);
@@ -92,7 +91,7 @@
         }
 
         /* ==================================================== */
-        /*   PROGRESS BAR SCROLL (THANH TIẾN ĐỘ LƯỚT)           */
+        /*   PROGRESS BAR SCROLL                                */
         /* ==================================================== */
         #scrollProgress {
             position: fixed;
@@ -245,7 +244,7 @@
         }
 
         /* ==================================================== */
-        /*   HEADER STICKY (TIMER LUÔN HIỂN THỊ KHI CUỘN)       */
+        /*   HEADER STICKY                                      */
         /* ==================================================== */
         #stickyHeader {
             position: sticky;
@@ -265,7 +264,7 @@
         }
 
         /* ==================================================== */
-        /*   FLOATING TIMER - LUÔN NỔI KHI SCROLL               */
+        /*   FLOATING TIMER                                     */
         /* ==================================================== */
         #floatingTimer {
             position: fixed;
@@ -321,6 +320,72 @@
             }
             #floatingTimer i { font-size: 1rem; }
             #floatingTimerDisplay { font-size: 1.15rem; min-width: 40px; }
+        }
+
+        /* ==================================================== */
+        /*   PRE-INTRO IMAGE LAYER - HOST ĐIỀU KHIỂN            */
+        /* ==================================================== */
+        #preIntroLayer {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            pointer-events: none;
+        }
+
+        #preIntroLayer.visible {
+            display: flex;
+            opacity: 1;
+            animation: preIntroFadeIn 0.8s ease-out;
+        }
+
+        @keyframes preIntroFadeIn {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        #preIntroImage {
+            max-width: 95vw;
+            max-height: 92vh;
+            width: auto;
+            height: auto;
+            border-radius: 16px;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.9), 0 0 60px rgba(250, 204, 21, 0.3);
+            border: 3px solid rgba(250, 204, 21, 0.5);
+            object-fit: contain;
+            transition: opacity 0.5s ease, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: preIntroZoom 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes preIntroZoom {
+            from { transform: scale(0.7) rotate(-2deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        #preIntroLayer.fit-cover #preIntroImage {
+            max-width: 100vw;
+            max-height: 100vh;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            border: none;
+            object-fit: cover;
+        }
+
+        @media (max-width: 640px) {
+            #preIntroImage {
+                max-width: 98vw;
+                max-height: 90vh;
+                border-radius: 10px;
+                border-width: 2px;
+            }
         }
 
         /* ==================================================== */
@@ -924,7 +989,7 @@
     <!-- THANH TIẾN ĐỘ SCROLL -->
     <div id="scrollProgress"></div>
 
-    <!-- FLOATING TIMER - LUÔN NỔI KHI CUỘN -->
+    <!-- FLOATING TIMER -->
     <div id="floatingTimer">
         <i class="fa-solid fa-stopwatch"></i>
         <span id="floatingTimerDisplay">15s</span>
@@ -932,6 +997,11 @@
 
     <!-- WATERMARK DÒNG GIỮA -->
     <div id="watermarkMid">Thiết kế Minh</div>
+
+    <!-- PRE-INTRO IMAGE LAYER - HOST ĐIỀU KHIỂN -->
+    <div id="preIntroLayer">
+        <img id="preIntroImage" src="" alt="Pre-Intro">
+    </div>
 
     <!-- POPUP "QUÀ ĐÃ HẾT" -->
     <div id="depletedPopup">
@@ -1225,6 +1295,17 @@
             outroMusicVolume: 0.65
         };
 
+        // PRE-INTRO STATE
+        let preIntroState = {
+            enabled: false,
+            url: '',
+            fitMode: 'contain',
+            opacity: 1.0
+        };
+        let lastPreIntroSignature = '';
+        let preIntroImageLoaded = false;
+        let currentPreIntroUrl = '';
+
         let prizePool = [];
         let previousPrizePool = null;
         let depletedPopupTimeout = null;
@@ -1285,6 +1366,9 @@
         const stickyHeader = document.getElementById('stickyHeader');
         const floatingTimer = document.getElementById('floatingTimer');
         const floatingTimerDisplay = document.getElementById('floatingTimerDisplay');
+
+        const preIntroLayer = document.getElementById('preIntroLayer');
+        const preIntroImage = document.getElementById('preIntroImage');
 
         const depletedPopup = document.getElementById('depletedPopup');
         const depletedPrizeName = document.getElementById('depletedPrizeName');
@@ -1355,7 +1439,6 @@
             const scrollPct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
             scrollProgress.style.width = scrollPct + '%';
 
-            // Phát hiện khi header bị "dính"
             if (stickyHeader) {
                 const rect = stickyHeader.getBoundingClientRect();
                 const headerTop = stickyHeader.offsetTop;
@@ -1958,6 +2041,9 @@
             }
         });
 
+        // ============================================================
+        // FIREBASE: DISPLAY STATE (MODE + MUSIC)
+        // ============================================================
         onValue(ref(db, 'quizGame/display'), (snap) => {
             if (!snap.exists()) {
                 set(ref(db, 'quizGame/display'), displayState);
@@ -1975,6 +2061,124 @@
             applyDisplayState();
         });
 
+        // ============================================================
+        // FIREBASE: PRE-INTRO LISTENER
+        // ============================================================
+        const preIntroRef = ref(db, 'quizGame/display/preIntro');
+
+        onValue(preIntroRef, (snap) => {
+            if (!snap.exists()) {
+                console.log('📷 TV: preIntro chưa có dữ liệu');
+                preIntroState = {
+                    enabled: false,
+                    url: '',
+                    fitMode: 'contain',
+                    opacity: 1.0
+                };
+                renderPreIntro();
+                return;
+            }
+
+            const val = snap.val();
+            preIntroState = {
+                enabled: val.enabled ?? false,
+                url: val.url ?? '',
+                fitMode: val.fitMode ?? 'contain',
+                opacity: val.opacity ?? 1.0
+            };
+
+            console.log('📷 TV: preIntro update', preIntroState);
+            renderPreIntro();
+        }, (error) => {
+            console.error('❌ TV: Firebase preIntro error:', error);
+        });
+
+        // ============================================================
+        // RENDER PRE-INTRO
+        // ============================================================
+        function renderPreIntro() {
+            const signature = JSON.stringify(preIntroState);
+            if (signature === lastPreIntroSignature) return;
+            lastPreIntroSignature = signature;
+
+            const { enabled, url, fitMode, opacity } = preIntroState;
+
+            // Nếu không bật hoặc không có URL → ẩn
+            if (!enabled || !url || url.trim() === '') {
+                hidePreIntro();
+                return;
+            }
+
+            // Nếu URL đổi → cần load ảnh mới
+            if (url !== currentPreIntroUrl) {
+                loadPreIntroImage(url, fitMode, opacity);
+            } else {
+                // URL giống → chỉ update fit + opacity + show
+                applyPreIntroStyles(fitMode, opacity);
+                showPreIntro();
+            }
+        }
+
+        function loadPreIntroImage(url, fitMode, opacity) {
+            console.log('🖼️ TV: Đang tải preIntro image:', url);
+
+            // Ẩn layer cũ trước
+            hidePreIntro();
+
+            // Preload ảnh mới
+            const testImg = new Image();
+            testImg.crossOrigin = 'anonymous';
+
+            testImg.onload = () => {
+                preIntroImage.src = url;
+                currentPreIntroUrl = url;
+                preIntroImageLoaded = true;
+                applyPreIntroStyles(fitMode, opacity);
+
+                // Đợi 1 chút cho ảnh render rồi mới show
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        showPreIntro();
+                    }, 100);
+                });
+
+                console.log('✅ TV: PreIntro image loaded');
+            };
+
+            testImg.onerror = () => {
+                console.warn('⚠️ TV: Không tải được preIntro image:', url);
+                hidePreIntro();
+            };
+
+            testImg.src = url;
+        }
+
+        function applyPreIntroStyles(fitMode, opacity) {
+            if (fitMode === 'cover') {
+                preIntroLayer.classList.add('fit-cover');
+            } else {
+                preIntroLayer.classList.remove('fit-cover');
+            }
+            preIntroImage.style.opacity = opacity ?? 1;
+        }
+
+        function showPreIntro() {
+            preIntroLayer.classList.add('visible');
+        }
+
+        function hidePreIntro() {
+            preIntroLayer.classList.remove('visible');
+            // Reset URL cache sau khi ẩn hoàn toàn để lần sau load lại
+            setTimeout(() => {
+                if (!preIntroLayer.classList.contains('visible')) {
+                    // Giữ nguyên currentPreIntroUrl nếu vẫn cùng URL
+                }
+            }, 800);
+        }
+
+        // ============================================================
+        // APPLY DISPLAY STATE
+        // ============================================================
         function applyDisplayState() {
             if (!lobbyLayer || !tvDisplayView || !outroLayer) return;
 
@@ -2150,7 +2354,6 @@
                 return;
             }
 
-            // Hiện floating timer khi có câu hỏi
             if (floatingTimer) floatingTimer.classList.add('show');
 
             localTimerInterval = setInterval(() => {
@@ -2443,8 +2646,10 @@
         bootstrap();
         initWatermark();
 
-        // Khởi tạo scroll progress bar
         updateScrollProgress();
+
+        console.log('📺 TV Screen đã sẵn sàng');
+        console.log('📷 PRE-INTRO layer đã tích hợp - Lắng nghe quizGame/display/preIntro');
     </script>
 </body>
 </html>
