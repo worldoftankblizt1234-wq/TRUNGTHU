@@ -3,603 +3,584 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Host Control - Đêm Hội Trăng Rằm</title>
+    <title>Host Dashboard - Realtime Quiz Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        gold: {
-                            100: '#fffbeb', 300: '#fde047', 400: '#facc15',
-                            500: '#eab308', 600: '#ca8a04',
-                        },
-                    },
-                    fontFamily: {
-                        sans: ['Montserrat', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-
         body {
-            font-family: 'Montserrat', sans-serif;
-            background: #0d1329;
-            color: #ffffff;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
+            font-family: 'Plus Jakarta Sans', 'Arial', 'Segoe UI', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
         }
-
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(30, 41, 59, 0.3);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.4);
-            border-radius: 10px;
-            border: 2px solid transparent;
-            background-clip: padding-box;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(148, 163, 184, 0.65);
-            background-clip: padding-box;
-        }
-
-        .host-bg {
-            background-image: 
-                linear-gradient(to bottom, rgba(12, 16, 43, 0.92), rgba(8, 11, 30, 0.98)),
-                url('https://files.catbox.moe/9tm8bl.png');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            min-height: 100vh;
-        }
-
         .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1.5px solid rgba(255, 215, 0, 0.35);
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.55);
-        }
-
-        .glass-card {
-            background: rgba(23, 32, 65, 0.85);
+            background: rgba(30, 41, 59, 0.75);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .timer-progress {
+            transition: width 0.2s linear;
+        }
+        .option-btn {
+            cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .glass-card:hover {
-            border-color: rgba(250, 204, 21, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(250, 204, 21, 0.15);
+        .option-btn:hover {
+            transform: scale(1.02);
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+        .option-btn.correct {
+            background: rgba(34, 197, 94, 0.3) !important;
+            border-color: #4ade80 !important;
+            box-shadow: 0 0 30px rgba(74, 222, 128, 0.4);
+        }
+        .option-btn.wrong {
+            background: rgba(239, 68, 68, 0.3) !important;
+            border-color: #f87171 !important;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+        }
+        .option-btn.selected-correct {
+            background: rgba(34, 197, 94, 0.4) !important;
+            border-color: #4ade80 !important;
+            box-shadow: 0 0 40px rgba(74, 222, 128, 0.6);
+            animation: pulse-correct 1.5s infinite;
+        }
+        .option-btn.selected-wrong {
+            background: rgba(239, 68, 68, 0.4) !important;
+            border-color: #f87171 !important;
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.6);
+            animation: pulse-wrong 1.5s infinite;
+        }
+        @keyframes pulse-correct {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        @keyframes pulse-wrong {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .option-btn .tick-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 16px;
+            flex-shrink: 0;
+            animation: tickPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .option-btn.selected-correct .tick-icon {
+            background: #4ade80;
+            color: #052e16;
+            box-shadow: 0 0 25px rgba(74, 222, 128, 0.9), 0 0 40px rgba(74, 222, 128, 0.5);
+        }
+        .option-btn.selected-wrong .tick-icon {
+            background: #f87171;
+            color: #450a0a;
+            box-shadow: 0 0 25px rgba(248, 113, 113, 0.9), 0 0 40px rgba(248, 113, 113, 0.5);
+        }
+        @keyframes tickPop {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
-        .title-glow {
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.9), 0 3px 8px rgba(0,0,0,0.9);
+        /* ===== PRIZE MANAGER MODAL ===== */
+        .prize-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 44px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+        .prize-row:hover {
+            border-color: rgba(250, 204, 21, 0.4);
+            background: rgba(15, 23, 42, 0.9);
+        }
+        .prize-row input {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .prize-row input:focus {
+            border-color: #facc15;
+            box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.15);
+        }
+        .prize-row input[type="number"] {
+            text-align: center;
+        }
+        .prize-delete-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .prize-delete-btn:hover {
+            background: rgba(239, 68, 68, 0.9);
+            color: #fff;
+            transform: scale(1.05);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-style: italic;
+            font-size: 14px;
+            border: 2px dashed rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            margin-bottom: 8px;
         }
 
-        /* TOGGLE SWITCH */
+        /* ===== BLINDBOX TOGGLE SWITCH ===== */
         .toggle-switch {
             position: relative;
             display: inline-block;
-            width: 80px;
-            height: 42px;
+            width: 52px;
+            height: 28px;
             flex-shrink: 0;
         }
-
         .toggle-switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-
         .toggle-slider {
             position: absolute;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: 2px solid rgba(148, 163, 184, 0.3);
-            transition: 0.4s;
-            border-radius: 999px;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+            inset: 0;
+            background-color: #475569;
+            transition: 0.3s;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .toggle-slider:before {
             position: absolute;
             content: "";
-            height: 32px;
-            width: 32px;
+            height: 20px;
+            width: 20px;
             left: 4px;
             bottom: 3px;
-            background: linear-gradient(145deg, #94a3b8, #64748b);
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background-color: white;
+            transition: 0.3s;
             border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
-
-        input:checked + .toggle-slider {
-            background: linear-gradient(145deg, #16a34a, #15803d);
-            border-color: rgba(74, 222, 128, 0.6);
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 25px rgba(74, 222, 128, 0.5);
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
         }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(38px);
-            background: linear-gradient(145deg, #fde047, #facc15);
-            box-shadow: 0 4px 15px rgba(250, 204, 21, 0.7);
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
         }
-
-        input:disabled + .toggle-slider {
+        .toggle-switch input:disabled + .toggle-slider {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-
-        /* PREVIEW BOX */
-        .preview-box {
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px dashed rgba(148, 163, 184, 0.4);
-            border-radius: 16px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 220px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .preview-box img {
-            max-width: 100%;
-            max-height: 260px;
-            object-fit: contain;
-            border-radius: 8px;
-            transition: opacity 0.5s ease;
-        }
-
-        .preview-box.has-image {
-            border-style: solid;
-            border-color: rgba(74, 222, 128, 0.5);
-            background: rgba(15, 23, 42, 0.9);
-        }
-
-        /* STATUS BADGE */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 16px;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .status-badge.on {
-            background: rgba(74, 222, 128, 0.2);
-            color: #4ade80;
-            border: 1px solid rgba(74, 222, 128, 0.5);
-        }
-
-        .status-badge.off {
-            background: rgba(148, 163, 184, 0.15);
-            color: #94a3b8;
-            border: 1px solid rgba(148, 163, 184, 0.3);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .status-badge.on .status-dot {
-            animation: pulse-dot 1.5s ease-in-out infinite;
-            box-shadow: 0 0 10px currentColor;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.3); }
-        }
-
-        /* INPUT */
-        .input-field {
-            background: rgba(15, 23, 42, 0.9);
-            border: 1.5px solid rgba(148, 163, 184, 0.3);
-            color: #e2e8f0;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            width: 100%;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: rgba(250, 204, 21, 0.7);
-            box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15);
-        }
-
-        /* BUTTON */
-        .btn-primary {
-            background: linear-gradient(135deg, #facc15, #f59e0b);
-            color: #0d1329;
-            font-weight: 800;
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-            box-shadow: 0 6px 20px rgba(250, 204, 21, 0.35);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.5);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background: rgba(148, 163, 184, 0.15);
-            color: #cbd5e1;
-            font-weight: 700;
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 1.5px solid rgba(148, 163, 184, 0.3);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(148, 163, 184, 0.25);
-            border-color: rgba(250, 204, 21, 0.5);
-            color: #fde047;
-        }
-
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.15);
-            color: #f87171;
-            font-weight: 700;
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 1.5px solid rgba(239, 68, 68, 0.4);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-danger:hover {
-            background: rgba(239, 68, 68, 0.3);
-            border-color: rgba(239, 68, 68, 0.7);
-        }
-
-        /* RANGE SLIDER */
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 8px;
-            border-radius: 999px;
-            background: linear-gradient(90deg, #facc15, #f59e0b);
-            outline: none;
-            cursor: pointer;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #fde047;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), 0 0 15px rgba(250, 204, 21, 0.7);
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #fde047;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), 0 0 15px rgba(250, 204, 21, 0.7);
-            cursor: pointer;
-            border: none;
-        }
-
-        /* TOAST */
-        #toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: linear-gradient(145deg, #1a1a3e, #0d1329);
-            border: 2px solid rgba(250, 204, 21, 0.7);
-            color: #fde047;
-            padding: 16px 32px;
-            border-radius: 14px;
-            font-weight: 700;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 0 40px rgba(250, 204, 21, 0.4);
-            z-index: 999999;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            max-width: 90vw;
-        }
-
-        #toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        #toast.error {
-            border-color: rgba(239, 68, 68, 0.8);
-            color: #fca5a5;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 0 40px rgba(239, 68, 68, 0.4);
-        }
-
-        #toast.success {
-            border-color: rgba(74, 222, 128, 0.8);
-            color: #86efac;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 0 40px rgba(74, 222, 128, 0.4);
-        }
-
-        @media (max-width: 640px) {
-            .toggle-switch {
-                width: 68px;
-                height: 36px;
-            }
-            .toggle-slider:before {
-                height: 26px;
-                width: 26px;
-                left: 4px;
-                bottom: 3px;
-            }
-            input:checked + .toggle-slider:before {
-                transform: translateX(30px);
-            }
-            .btn-primary {
-                padding: 10px 18px;
-                font-size: 0.85rem;
-            }
         }
     </style>
 </head>
-<body class="host-bg min-h-screen p-3 md:p-8">
+<body class="min-h-screen p-4 md:p-6 flex flex-col gap-6 relative max-w-5xl mx-auto">
 
-    <!-- HEADER -->
-    <header class="max-w-5xl mx-auto mb-6">
-        <div class="glass-panel rounded-2xl md:rounded-3xl p-4 md:p-6 flex items-center justify-between gap-3 flex-wrap">
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-amber-400 to-yellow-600 text-slate-950 w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shadow-xl">
-                    <i class="fa-solid fa-tv text-xl md:text-2xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg md:text-2xl font-black title-glow leading-tight" style="font-family: 'Playfair Display', serif;">
-                        HOST CONTROL
-                    </h1>
-                    <p class="text-xs md:text-sm text-amber-200 font-semibold tracking-wider">
-                        🌕 ĐÊM HỘI TRĂNG RẰM 🏮
-                    </p>
-                </div>
+    <header class="glass-panel rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-2xl font-black shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-crown text-amber-400"></i>
             </div>
-
-            <div id="syncStatus" class="status-badge off">
-                <span class="status-dot"></span>
-                <span id="syncStatusText">Đang kết nối...</span>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                    HOST CONTROLLER
+                    <span id="dbStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold">
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải...
+                    </span>
+                </h1>
+                <p class="text-xs text-slate-400 truncate max-w-xs md:max-w-md">
+                    Worker: <span class="text-indigo-400 font-mono">qsttrungthu.anhminhadof123.workers.dev</span>
+                </p>
             </div>
         </div>
-    </header>
 
-    <!-- MAIN -->
-    <main class="max-w-5xl mx-auto space-y-4 md:space-y-6 pb-20">
+        <div class="flex items-center gap-3 flex-wrap">
+            <div class="bg-slate-800/90 px-4 py-2 rounded-xl border border-slate-700/60 flex items-center gap-2">
+                <span class="text-xs text-slate-400 uppercase tracking-wider font-bold">Câu hỏi:</span>
+                <span id="questionCounter" class="text-xl font-black text-amber-400">0/0</span>
+            </div>
 
-        <!-- PRE-INTRO PANEL -->
-        <section class="glass-panel rounded-2xl md:rounded-3xl p-5 md:p-8">
-
-            <!-- TITLE + TOGGLE -->
-            <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
-                <div class="flex items-center gap-3 flex-1 min-w-[200px]">
-                    <div class="bg-gradient-to-br from-purple-500 to-pink-600 text-white w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                        <i class="fa-solid fa-image text-lg md:text-xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl md:text-2xl font-black text-amber-300 leading-tight">
-                            PRE-INTRO
-                        </h2>
-                        <p class="text-xs md:text-sm text-slate-400 font-medium">
-                            Ảnh hiển thị trên màn hình TV
-                        </p>
-                    </div>
-                </div>
-
+            <!-- BLINDBOX TOGGLE -->
+            <div class="bg-slate-800/90 px-4 py-2 rounded-xl border border-slate-700/60 flex items-center gap-3">
+                <span class="text-xs text-slate-400 uppercase tracking-wider font-bold">Blindbox:</span>
+                <span id="blindboxToggleLabel" class="text-xs font-bold text-emerald-400">ON</span>
                 <label class="toggle-switch">
-                    <input type="checkbox" id="preIntroToggle">
+                    <input type="checkbox" id="blindboxToggle" checked>
                     <span class="toggle-slider"></span>
                 </label>
             </div>
 
-            <!-- STATUS -->
-            <div class="mb-5 flex items-center gap-3 flex-wrap">
-                <span id="preIntroStatus" class="status-badge off">
-                    <span class="status-dot"></span>
-                    <span id="preIntroStatusText">ĐANG TẮT</span>
+            <button id="btnOpenPrizeManager" class="px-4 py-2.5 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/40 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-gift"></i> Quản Lý Quà
+                <span id="prizeCountBadge" class="text-xs bg-amber-500 text-slate-950 rounded-full px-2 py-0.5 font-black">0</span>
+            </button>
+
+            <button id="btnResetAll" class="px-4 py-2.5 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/40 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-rotate-left"></i> Reset Phòng
+            </button>
+        </div>
+    </header>
+
+    <main class="flex flex-col gap-6 flex-1 w-full">
+
+        <!-- Question Card View -->
+        <div class="glass-panel rounded-2xl p-6 md:p-8 flex flex-col gap-5 shadow-2xl relative overflow-hidden">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
+                <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question"></i> <span id="hostTopicLabel">Khung xem câu hỏi & đáp án</span>
                 </span>
-                <span class="text-xs text-slate-500 italic">
-                    <i class="fa-solid fa-info-circle mr-1"></i>
-                    Trạng thái được lưu tự động - F5 vẫn giữ nguyên
+                <span id="gameStatusText" class="text-xs font-semibold px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg border border-slate-700">
+                    Chưa bắt đầu
                 </span>
             </div>
 
-            <!-- URL INPUT -->
-            <div class="mb-5">
-                <label class="block text-sm font-bold text-amber-200 mb-2 uppercase tracking-wider">
-                    <i class="fa-solid fa-link mr-2"></i> URL Ảnh
-                </label>
-                <div class="flex gap-2 flex-col sm:flex-row">
-                    <input 
-                        type="text" 
-                        id="preIntroUrl" 
-                        class="input-field flex-1" 
-                        placeholder="https://example.com/image.jpg"
-                    >
-                    <button id="preIntroLoadBtn" class="btn-primary justify-center">
-                        <i class="fa-solid fa-download"></i>
-                        Tải & Lưu
-                    </button>
+            <!-- ẢNH MỘC BẢN - CHỈ HIỆN Ở CÂU 33 -->
+            <div id="hostMocBanWrapper" style="display: none; justify-content: center; margin-bottom: 14px;">
+                <img src="https://files.catbox.moe/z8utih.jpg" alt="Mộc bản thời Nguyễn về Trung thu"
+                     style="width: 65%; max-width: 500px; height: auto; border-radius: 14px; border: 2px solid rgba(250, 204, 21, 0.6); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);">
+            </div>
+
+            <h2 id="qText" class="text-xl md:text-2xl font-bold text-white min-h-[60px] flex items-center">
+                Đang tải câu hỏi từ Worker...
+            </h2>
+
+            <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                <div class="col-span-1 sm:col-span-2 p-8 rounded-xl border border-dashed border-slate-700 text-center text-slate-500 font-medium bg-slate-900/40">
+                    <i class="fa-solid fa-spinner fa-spin text-3xl mb-2 text-indigo-500 block"></i>
+                    Đang tải dữ liệu...
                 </div>
             </div>
 
-            <!-- PREVIEW -->
-            <div class="mb-5">
-                <label class="block text-sm font-bold text-amber-200 mb-2 uppercase tracking-wider">
-                    <i class="fa-solid fa-eye mr-2"></i> Xem trước
-                </label>
-                <div id="previewBox" class="preview-box p-3">
-                    <div id="previewEmpty" class="text-center text-slate-500">
-                        <i class="fa-solid fa-image text-4xl mb-2 opacity-40"></i>
-                        <p class="text-sm">Chưa có ảnh</p>
+            <div class="mt-4 bg-slate-900/80 p-4 md:p-5 rounded-xl border border-slate-700/60 flex flex-col gap-3">
+                <div class="flex justify-between items-center flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-amber-400 text-xl"></i>
+                        <span class="text-sm font-semibold text-slate-300">Đếm ngược:</span>
+                        <span id="timerDisplay" class="text-2xl font-black text-amber-400">15s</span>
                     </div>
-                    <img id="previewImg" src="" alt="Preview" style="display: none;">
-                    <div id="previewLoading" class="absolute inset-0 flex items-center justify-center bg-slate-950/80 rounded-2xl" style="display: none;">
-                        <div class="text-center">
-                            <i class="fa-solid fa-spinner fa-spin text-3xl text-amber-400 mb-2"></i>
-                            <p class="text-sm text-amber-200 font-bold">Đang tải ảnh...</p>
+                    <div class="flex items-center gap-2">
+                        <label for="timerInput" class="text-xs text-slate-400">Thời gian (giây):</label>
+                        <input type="number" id="timerInput" value="15" min="5" max="120" class="w-16 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-center font-bold text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <button id="btnSetTime" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white rounded-lg transition-colors">
+                            Lưu
+                        </button>
+                    </div>
+                </div>
+
+                <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                    <div id="timerBar" class="timer-progress h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-red-500 rounded-full w-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Action Toolbar -->
+        <div class="glass-panel rounded-2xl p-5 grid grid-cols-1 sm:grid-cols-3 gap-4 shadow-xl">
+            <button id="btnNextQuestion" class="px-4 py-4 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-forward-step text-base"></i> Next Câu Tiếp theo
+                <span class="text-xs opacity-70 ml-1">(→)</span>
+            </button>
+
+            <button id="btnPrevQuestion" class="px-4 py-4 bg-slate-600 hover:bg-slate-500 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-slate-600/30 transition-all flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-backward-step text-base"></i> Quay Lại Câu Trước
+                <span class="text-xs opacity-70 ml-1">(←)</span>
+            </button>
+
+            <button id="btnClearAnswers" class="px-4 py-4 bg-slate-700 hover:bg-slate-600 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-slate-700/30 transition-all flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-eraser text-base"></i> Xóa Highlight
+            </button>
+        </div>
+
+        <!-- 🎬 DISPLAY CONTROL PANEL -->
+        <div class="glass-panel rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-700/60 pb-3">
+                <span class="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-tv"></i> Điều khiển màn hình TV
+                </span>
+                <span id="currentModeBadge" class="text-xs font-bold px-3 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">
+                    Mode: LOBBY
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <button id="btnModeLobby" class="px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-moon"></i> Màn hình chờ
+                </button>
+
+                <button id="btnModeGame" class="px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-gamepad"></i> Vào Minigame
+                </button>
+
+                <button id="btnModeOutro" class="px-4 py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-heart"></i> Outro
+                </button>
+
+                <button id="btnMusicToggle" class="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i id="musicIcon" class="fa-solid fa-volume-xmark"></i>
+                    <span id="musicLabel">Bật nhạc</span>
+                </button>
+            </div>
+
+            <!-- 🎵 NÚT NHẠC OUTRO - CHỈ HIỆN KHI Ở MODE OUTRO -->
+            <div id="outroMusicControl" class="mt-4 hidden">
+                <div class="bg-pink-500/10 border border-pink-500/40 rounded-xl p-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-music text-pink-400 text-xl"></i>
+                            <span class="text-sm font-bold text-pink-300">Nhạc Outro</span>
+                            <span id="outroMusicStatus" class="text-xs text-slate-400 italic">(đang tắt)</span>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- OPTIONS -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                <!-- FIT MODE -->
-                <div>
-                    <label class="block text-sm font-bold text-amber-200 mb-2 uppercase tracking-wider">
-                        <i class="fa-solid fa-crop mr-2"></i> Chế độ hiển thị
-                    </label>
-                    <div class="flex gap-2">
-                        <button 
-                            data-fit="contain" 
-                            class="fit-btn btn-secondary flex-1 justify-center active"
-                        >
-                            <i class="fa-solid fa-expand"></i> Vừa khung
-                        </button>
-                        <button 
-                            data-fit="cover" 
-                            class="fit-btn btn-secondary flex-1 justify-center"
-                        >
-                            <i class="fa-solid fa-arrows-alt"></i> Phủ kín
+                        <button id="btnOutroMusicToggle" class="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-lg text-sm transition-all flex items-center gap-2">
+                            <i id="outroMusicIcon" class="fa-solid fa-play"></i>
+                            <span id="outroMusicLabel">Phát nhạc Outro</span>
                         </button>
                     </div>
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-volume-low text-slate-400"></i>
+                        <input type="range" id="outroVolumeSlider" min="0" max="100" value="65"
+                               class="flex-1 accent-pink-400 cursor-pointer">
+                        <span id="outroVolumeLabel" class="text-xs font-mono text-pink-400 w-10 text-right">65%</span>
+                    </div>
+                    <p class="text-xs text-slate-500 italic">
+                        <i class="fa-solid fa-circle-info mr-1 text-pink-400"></i>
+                        Nhạc Outro chỉ phát khi TV đang ở mode OUTRO. Khi rời mode, nhạc tự tắt.
+                    </p>
                 </div>
-
-                <!-- OPACITY -->
-                <div>
-                    <label class="block text-sm font-bold text-amber-200 mb-2 uppercase tracking-wider">
-                        <i class="fa-solid fa-circle-half-stroke mr-2"></i> Độ mờ
-                        <span id="opacityValue" class="text-amber-400 font-black ml-1">100%</span>
-                    </label>
-                    <input 
-                        type="range" 
-                        id="opacitySlider" 
-                        min="10" 
-                        max="100" 
-                        value="100"
-                    >
-                </div>
-
             </div>
 
-            <!-- QUICK ACTIONS -->
-            <div class="mt-6 pt-5 border-t border-slate-700/50 flex flex-wrap gap-2">
-                <button id="testBtn" class="btn-secondary">
-                    <i class="fa-solid fa-flask"></i> Xem trước
-                </button>
-                <button id="resetBtn" class="btn-danger">
-                    <i class="fa-solid fa-rotate-left"></i> Reset về mặc định
-                </button>
+            <!-- ÂM LƯỢNG NHẠC LOBBY -->
+            <div class="mt-4 flex items-center gap-3">
+                <i class="fa-solid fa-volume-low text-slate-400"></i>
+                <span class="text-xs text-amber-300 font-bold whitespace-nowrap">Nhạc Lobby:</span>
+                <input type="range" id="volumeSlider" min="0" max="100" value="50"
+                       class="flex-1 accent-amber-400 cursor-pointer">
+                <span id="volumeLabel" class="text-xs font-mono text-amber-400 w-10 text-right">50%</span>
             </div>
 
-        </section>
+            <!-- ÂM LƯỢNG NHẠC CÂU HỎI (MỚI) -->
+            <div class="mt-3 flex items-center gap-3">
+                <i class="fa-solid fa-volume-low text-slate-400"></i>
+                <span class="text-xs text-blue-300 font-bold whitespace-nowrap">Nhạc Câu Hỏi:</span>
+                <input type="range" id="questionVolumeSlider" min="0" max="100" value="78"
+                       class="flex-1 accent-blue-400 cursor-pointer">
+                <span id="questionVolumeLabel" class="text-xs font-mono text-blue-400 w-10 text-right">78%</span>
+            </div>
 
-        <!-- INFO PANEL -->
-        <section class="glass-panel rounded-2xl md:rounded-3xl p-5 md:p-6">
-            <h3 class="text-lg font-black text-amber-300 mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-circle-info"></i>
-                HƯỚNG DẪN NHANH
-            </h3>
-            <ul class="space-y-2 text-sm text-slate-300">
-                <li class="flex items-start gap-2">
-                    <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
-                    <span>Bật <b class="text-amber-300">PRE-INTRO</b> để hiện ảnh trên TV ngay lập tức.</span>
-                </li>
-                <li class="flex items-start gap-2">
-                    <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
-                    <span>Nhập URL ảnh rồi bấm <b class="text-amber-300">Tải & Lưu</b> - ảnh sẽ được tải về và hiển thị.</span>
-                </li>
-                <li class="flex items-start gap-2">
-                    <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
-                    <span>Mọi thay đổi được <b class="text-amber-300">lưu tự động</b> vào Firebase - F5 không mất.</span>
-                </li>
-                <li class="flex items-start gap-2">
-                    <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
-                    <span>Mặc định khi mở lần đầu: <b class="text-emerald-400">BẬT</b> (nếu chưa có dữ liệu).</span>
-                </li>
-            </ul>
-        </section>
+            <p class="mt-3 text-xs text-slate-500 italic">
+                <i class="fa-solid fa-circle-info mr-1 text-indigo-400"></i>
+                Nhạc Lobby: <code class="text-amber-400">/music.mp3</code> — Nhạc Câu hỏi: <code class="text-blue-400">/music1.mp3</code> — Nhạc Outro: <code class="text-pink-400">/music2.mp3</code>
+            </p>
+        </div>
 
     </main>
 
-    <!-- TOAST -->
-    <div id="toast">
-        <i class="fa-solid fa-circle-check"></i>
-        <span id="toastText">Đã lưu!</span>
+    <!-- ==================================================== -->
+    <!--             PRIZE MANAGER MODAL                       -->
+    <!-- ==================================================== -->
+    <div id="prizeManagerModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[9998] flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 max-w-4xl w-full shadow-2xl shadow-amber-500/20 max-h-[90vh] flex flex-col">
+            
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-4 mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                        <i class="fa-solid fa-gift text-slate-950"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-transparent">
+                            QUẢN LÝ PHẦN QUÀ
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Thêm quà, tỷ lệ xuất hiện và số lượt. Mỗi lần bốc trúng sẽ trừ số lượt tương ứng.
+                        </p>
+                    </div>
+                </div>
+                <button id="btnClosePrizeManager" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white transition-all flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pr-1" style="max-height: 55vh;">
+
+                <div class="grid grid-cols-[2fr_1fr_1fr_1fr_44px] gap-2 px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <span>Tên quà</span>
+                    <span class="text-center">Tỷ lệ %</span>
+                    <span class="text-center">Số lượt</span>
+                    <span class="text-center">Trừ/lần</span>
+                    <span></span>
+                </div>
+
+                <div id="prizeListContainer"></div>
+
+                <button id="btnAddPrize" class="w-full mt-3 py-3 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border-2 border-dashed border-emerald-500/50 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Thêm Quà Mới
+                </button>
+
+                <div class="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-700/60">
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Tổng loại quà</div>
+                            <div id="summaryTotalTypes" class="text-2xl font-black text-amber-400">0</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Tổng số lượt</div>
+                            <div id="summaryTotalQty" class="text-2xl font-black text-indigo-400">0</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Tổng tỷ lệ %</div>
+                            <div id="summaryTotalRate" class="text-2xl font-black text-emerald-400">0%</div>
+                        </div>
+                    </div>
+                    <p id="summaryWarning" class="text-xs text-amber-400 mt-3 text-center hidden">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                        Tổng tỷ lệ không bằng 100%.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/60">
+                <button id="btnCancelPrizeManager" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-sm transition-all">
+                    <i class="fa-solid fa-xmark mr-1"></i> Hủy
+                </button>
+                <button id="btnSavePrizeManager" class="flex-1 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/30">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> Lưu Danh Sách Quà
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BLINDBOX POPUP OVERLAY -->
+    <div id="blindboxOverlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-[9999] flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-amber-500/60 rounded-3xl p-6 md:p-10 max-w-2xl w-full shadow-2xl shadow-amber-500/20 animate-[popIn_0.6s_cubic-bezier(0.175,0.885,0.32,1.275)]">
+            <style>
+                @keyframes popIn {
+                    from { opacity: 0; transform: scale(0.5) rotate(-5deg); }
+                    to { opacity: 1; transform: scale(1) rotate(0deg); }
+                }
+                .blindbox-item {
+                    cursor: pointer;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    background: linear-gradient(145deg, rgba(30, 41, 82, 0.9), rgba(15, 23, 42, 0.9));
+                    border: 2px solid rgba(255, 215, 0, 0.3);
+                    border-radius: 20px;
+                    padding: 30px 20px;
+                    text-align: center;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .blindbox-item:hover {
+                    transform: translateY(-8px) scale(1.02);
+                    border-color: #facc15;
+                    box-shadow: 0 15px 40px rgba(250, 204, 21, 0.25);
+                }
+                .blindbox-item:active {
+                    transform: scale(0.95);
+                }
+                .blindbox-item.revealed {
+                    border-color: #4ade80;
+                    box-shadow: 0 0 40px rgba(74, 222, 128, 0.5);
+                }
+                .blindbox-item .box-icon {
+                    font-size: 4rem;
+                    display: block;
+                    margin-bottom: 10px;
+                    transition: transform 0.3s ease;
+                }
+                .blindbox-item:hover .box-icon {
+                    transform: scale(1.1) rotate(-5deg);
+                }
+                .blindbox-item .box-prize {
+                    color: #facc15;
+                    font-weight: 800;
+                    font-size: 1.3rem;
+                    min-height: 40px;
+                }
+                @media (max-width: 640px) {
+                    .blindbox-item .box-icon { font-size: 2.5rem; }
+                    .blindbox-item .box-prize { font-size: 1rem; }
+                }
+            </style>
+            
+            <div class="text-center mb-6">
+                <h2 class="text-3xl md:text-4xl font-black bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-transparent">
+                    <i class="fa-solid fa-gift text-amber-400 mr-3"></i>
+                    CHỌN HỘP QUÀ
+                </h2>
+                <p class="text-slate-400 text-sm mt-2">Chọn 1 trong 3 hộp quà bí mật để nhận phần thưởng!</p>
+            </div>
+            
+            <div id="blindboxGrid" class="grid grid-cols-3 gap-4 mb-6"></div>
+            
+            <div id="blindboxResult" class="text-center text-xl font-bold min-h-[50px] text-emerald-400"></div>
+            
+            <button id="blindboxCloseBtn" class="block mx-auto mt-4 px-8 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-bold rounded-full transition-all hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                <i class="fa-solid fa-check mr-2"></i>
+                ĐÓNG
+            </button>
+        </div>
+    </div>
+
+    <!-- CUSTOM CONFIRMATION MODAL -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[10000] flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center flex flex-col items-center gap-4">
+            <div id="modalIconContainer" class="w-14 h-14 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <div>
+                <h3 id="modalTitle" class="text-lg font-bold text-white">Xác nhận thao tác</h3>
+                <p id="modalMessage" class="text-xs text-slate-400 mt-1">Bạn có chắc chắn muốn thực hiện hành động này không?</p>
+            </div>
+            <div class="flex items-center gap-3 w-full mt-2">
+                <button id="btnModalCancel" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-sm transition-all">Hủy</button>
+                <button id="btnModalConfirm" class="flex-1 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-sm transition-all">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION BANNER -->
+    <div id="toastNotification" class="fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300">
+        <i id="toastIcon" class="fa-solid fa-circle-info text-indigo-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-semibold">Thông báo từ hệ thống</span>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        const WORKER_URL = "https://qsttrungthu.anhminhadof123.workers.dev";
+
+        // Câu đặc biệt (Mộc bản thời Nguyễn) - câu 33 (index 32)
+        const SPECIAL_QUESTION_INDEX = 32;
+        const SPECIAL_TOPIC_LABEL = 'MỘC BẢN THỜI NGUYỄN VỀ TRUNG THU';
+        const NORMAL_TOPIC_LABEL = 'Khung xem câu hỏi & đáp án';
 
         const firebaseConfig = {
             apiKey: "AIzaSyBvKVqzcPXeZ5ryh69-ig1D7N6arVA28O4",
@@ -616,343 +597,1200 @@
         const db = getDatabase(app);
 
         // ============================================================
-        // DEFAULT CONFIG
+        // STATE
         // ============================================================
-        const DEFAULT_PRE_INTRO = {
-            enabled: true,
-            url: 'https://files.catbox.moe/9py9n2.webp', // ảnh mặc định
-            fitMode: 'contain',
-            opacity: 1.0
+        let QUESTIONS = [];
+        let gameState = {
+            currentQuestionIndex: -1,
+            status: 'LOBBY',
+            timerDuration: 15,
+            showResults: false,
+            showTop5: false,
+            timerEndTimestamp: 0,
+            hostAnswer: -1,
+            hostAnswerCorrect: false
         };
+        let displayState = {
+            mode: 'LOBBY',
+            musicPlaying: false,
+            musicVolume: 0.5,
+            questionVolume: 0.78,
+            outroMusicPlaying: false,
+            outroMusicVolume: 0.65,
+            blindboxEnabled: true
+        };
+
+        let prizePool = [];
+
+        let localTimerInterval = null;
+        let confirmAction = null;
+        let isQuestionsLoaded = false;
+        let selectedAnswer = null;
+        let isAnswerLocked = false;
+
+        let currentBoxes = [];
+        let selectedBoxIndex = -1;
+        let isBoxRevealed = false;
+
+        let tempPrizePool = [];
 
         // ============================================================
         // DOM ELEMENTS
         // ============================================================
-        const preIntroToggle = document.getElementById('preIntroToggle');
-        const preIntroStatus = document.getElementById('preIntroStatus');
-        const preIntroStatusText = document.getElementById('preIntroStatusText');
-        const preIntroUrl = document.getElementById('preIntroUrl');
-        const preIntroLoadBtn = document.getElementById('preIntroLoadBtn');
-        const previewBox = document.getElementById('previewBox');
-        const previewEmpty = document.getElementById('previewEmpty');
-        const previewImg = document.getElementById('previewImg');
-        const previewLoading = document.getElementById('previewLoading');
-        const opacitySlider = document.getElementById('opacitySlider');
-        const opacityValue = document.getElementById('opacityValue');
-        const fitBtns = document.querySelectorAll('.fit-btn');
-        const testBtn = document.getElementById('testBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const syncStatus = document.getElementById('syncStatus');
-        const syncStatusText = document.getElementById('syncStatusText');
-        const toast = document.getElementById('toast');
-        const toastText = document.getElementById('toastText');
+        const dbStatusBadge = document.getElementById('dbStatusBadge');
+        const qText = document.getElementById('qText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const questionCounter = document.getElementById('questionCounter');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerInput = document.getElementById('timerInput');
+        const timerBar = document.getElementById('timerBar');
+        const gameStatusText = document.getElementById('gameStatusText');
+
+        const hostTopicLabel = document.getElementById('hostTopicLabel');
+        const hostMocBanWrapper = document.getElementById('hostMocBanWrapper');
+
+        const confirmModal = document.getElementById('confirmModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const btnModalCancel = document.getElementById('btnModalCancel');
+        const btnModalConfirm = document.getElementById('btnModalConfirm');
+        const toastNotification = document.getElementById('toastNotification');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+
+        const blindboxOverlay = document.getElementById('blindboxOverlay');
+        const blindboxGrid = document.getElementById('blindboxGrid');
+        const blindboxResult = document.getElementById('blindboxResult');
+        const blindboxCloseBtn = document.getElementById('blindboxCloseBtn');
+
+        const blindboxToggle = document.getElementById('blindboxToggle');
+        const blindboxToggleLabel = document.getElementById('blindboxToggleLabel');
+
+        const currentModeBadge = document.getElementById('currentModeBadge');
+        const btnModeLobby = document.getElementById('btnModeLobby');
+        const btnModeGame = document.getElementById('btnModeGame');
+        const btnModeOutro = document.getElementById('btnModeOutro');
+        const btnMusicToggle = document.getElementById('btnMusicToggle');
+        const musicIcon = document.getElementById('musicIcon');
+        const musicLabel = document.getElementById('musicLabel');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeLabel = document.getElementById('volumeLabel');
+
+        // Question Volume DOM
+        const questionVolumeSlider = document.getElementById('questionVolumeSlider');
+        const questionVolumeLabel = document.getElementById('questionVolumeLabel');
+
+        // Outro Music Control DOM
+        const outroMusicControl = document.getElementById('outroMusicControl');
+        const outroMusicStatus = document.getElementById('outroMusicStatus');
+        const btnOutroMusicToggle = document.getElementById('btnOutroMusicToggle');
+        const outroMusicIcon = document.getElementById('outroMusicIcon');
+        const outroMusicLabel = document.getElementById('outroMusicLabel');
+        const outroVolumeSlider = document.getElementById('outroVolumeSlider');
+        const outroVolumeLabel = document.getElementById('outroVolumeLabel');
+
+        // Prize Manager DOM
+        const prizeManagerModal = document.getElementById('prizeManagerModal');
+        const prizeListContainer = document.getElementById('prizeListContainer');
+        const btnOpenPrizeManager = document.getElementById('btnOpenPrizeManager');
+        const btnClosePrizeManager = document.getElementById('btnClosePrizeManager');
+        const btnCancelPrizeManager = document.getElementById('btnCancelPrizeManager');
+        const btnSavePrizeManager = document.getElementById('btnSavePrizeManager');
+        const btnAddPrize = document.getElementById('btnAddPrize');
+        const prizeCountBadge = document.getElementById('prizeCountBadge');
+        const summaryTotalTypes = document.getElementById('summaryTotalTypes');
+        const summaryTotalQty = document.getElementById('summaryTotalQty');
+        const summaryTotalRate = document.getElementById('summaryTotalRate');
+        const summaryWarning = document.getElementById('summaryWarning');
 
         // ============================================================
-        // STATE
+        // UTILITY
         // ============================================================
-        let currentState = { ...DEFAULT_PRE_INTRO };
-        let isInitialized = false;
-        let toastTimeout = null;
+        function showToast(msg, type = 'info') {
+            toastMessage.innerText = msg;
+            if (type === 'error') {
+                toastIcon.className = "fa-solid fa-circle-xmark text-red-400 text-lg";
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-red-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
+            } else if (type === 'success') {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-emerald-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
+            } else if (type === 'warning') {
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-amber-400 text-lg";
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-amber-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-info text-indigo-400 text-lg";
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-0 opacity-100 transition-all duration-300";
+            }
+
+            setTimeout(() => {
+                toastNotification.className = "fixed bottom-6 right-6 z-[10001] flex items-center gap-3 px-4 py-3 bg-slate-900 border border-indigo-500/50 text-white rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300";
+            }, 3500);
+        }
+
+        function showConfirmModal(title, message, action) {
+            modalTitle.innerText = title;
+            modalMessage.innerText = message;
+            confirmAction = action;
+            confirmModal.classList.remove('hidden');
+        }
+
+        btnModalCancel.addEventListener('click', () => {
+            confirmModal.classList.add('hidden');
+            confirmAction = null;
+        });
+
+        btnModalConfirm.addEventListener('click', () => {
+            confirmModal.classList.add('hidden');
+            if (confirmAction) {
+                confirmAction();
+                confirmAction = null;
+            }
+        });
 
         // ============================================================
-        // TOAST
+        // PRIZE POOL
         // ============================================================
-        function showToast(message, type = 'success') {
-            if (toastTimeout) clearTimeout(toastTimeout);
-            toastText.textContent = message;
-            toast.className = type;
-            toast.classList.add('show');
+        function generateBoxes() {
+            if (!prizePool || prizePool.length === 0) {
+                return [
+                    { name: "Chưa có quà", icon: "❓", empty: true },
+                    { name: "Chưa có quà", icon: "❓", empty: true },
+                    { name: "Chưa có quà", icon: "❓", empty: true }
+                ];
+            }
+
+            const available = prizePool
+                .filter(p => (p.quantity || 0) > 0)
+                .map(p => ({ ...p }));
+
+            if (available.length === 0) {
+                return [
+                    { name: "Chúc may mắn lần sau", icon: "🍀", empty: true },
+                    { name: "Chúc may mắn lần sau", icon: "🍀", empty: true },
+                    { name: "Chúc may mắn lần sau", icon: "🍀", empty: true }
+                ];
+            }
+
+            const boxes = [];
+            for (let i = 0; i < 3; i++) {
+                if (available.length === 0) {
+                    boxes.push({ name: "Chúc may mắn lần sau", icon: "🍀", empty: true });
+                    continue;
+                }
+
+                const totalRate = available.reduce((s, p) => s + (p.rate || 0), 0);
+                let picked = null;
+
+                if (totalRate > 0) {
+                    let random = Math.random() * totalRate;
+                    for (const prize of available) {
+                        random -= (prize.rate || 0);
+                        if (random <= 0) { picked = prize; break; }
+                    }
+                }
+
+                if (!picked) picked = available[Math.floor(Math.random() * available.length)];
+
+                boxes.push({
+                    name: picked.name,
+                    icon: "🎁",
+                    prizeId: picked.id,
+                    empty: false
+                });
+            }
+
+            return boxes;
+        }
+
+        // PRIZE MANAGER
+        function openPrizeManager() {
+            tempPrizePool = JSON.parse(JSON.stringify(prizePool || []));
+            renderPrizeList();
+            prizeManagerModal.classList.remove('hidden');
+        }
+
+        function closePrizeManager() {
+            prizeManagerModal.classList.add('hidden');
+        }
+
+        function renderPrizeList() {
+            if (!tempPrizePool || tempPrizePool.length === 0) {
+                prizeListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-inbox text-4xl mb-3 block opacity-40"></i>
+                        None — Chưa có phần quà nào.<br>
+                        <span class="text-xs">Nhấn "Thêm Quà Mới" để bắt đầu.</span>
+                    </div>
+                `;
+            } else {
+                prizeListContainer.innerHTML = '';
+                tempPrizePool.forEach((prize, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'prize-row';
+                    row.innerHTML = `
+                        <input type="text" data-idx="${idx}" data-field="name" value="${escapeHtml(prize.name)}" placeholder="Tên quà...">
+                        <input type="number" data-idx="${idx}" data-field="rate" value="${prize.rate}" min="0" max="100" placeholder="%">
+                        <input type="number" data-idx="${idx}" data-field="quantity" value="${prize.quantity}" min="0" placeholder="SL">
+                        <input type="number" data-idx="${idx}" data-field="deductPerWin" value="${prize.deductPerWin || 1}" min="1" placeholder="Trừ">
+                        <button class="prize-delete-btn" data-idx="${idx}" title="Xóa quà">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    `;
+                    prizeListContainer.appendChild(row);
+                });
+            }
+
+            prizeListContainer.querySelectorAll('input').forEach(inp => {
+                inp.addEventListener('input', (e) => {
+                    const idx = parseInt(e.target.dataset.idx);
+                    const field = e.target.dataset.field;
+                    if (isNaN(idx) || !tempPrizePool[idx]) return;
+
+                    if (field === 'name') {
+                        tempPrizePool[idx].name = e.target.value;
+                    } else if (field === 'rate') {
+                        let v = parseFloat(e.target.value);
+                        if (isNaN(v) || v < 0) v = 0;
+                        if (v > 100) v = 100;
+                        tempPrizePool[idx].rate = v;
+                    } else if (field === 'quantity') {
+                        let v = parseInt(e.target.value);
+                        if (isNaN(v) || v < 0) v = 0;
+                        tempPrizePool[idx].quantity = v;
+                    } else if (field === 'deductPerWin') {
+                        let v = parseInt(e.target.value);
+                        if (isNaN(v) || v < 1) v = 1;
+                        tempPrizePool[idx].deductPerWin = v;
+                    }
+                    updatePrizeSummary();
+                });
+            });
+
+            prizeListContainer.querySelectorAll('.prize-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.currentTarget.dataset.idx);
+                    if (isNaN(idx)) return;
+                    tempPrizePool.splice(idx, 1);
+                    renderPrizeList();
+                    showToast("🗑️ Đã xóa quà", "info");
+                });
+            });
+
+            updatePrizeSummary();
+        }
+
+        function updatePrizeSummary() {
+            const totalTypes = tempPrizePool.length;
+            const totalQty = tempPrizePool.reduce((s, p) => s + (parseInt(p.quantity) || 0), 0);
+            const totalRate = tempPrizePool.reduce((s, p) => s + (parseFloat(p.rate) || 0), 0);
+
+            summaryTotalTypes.textContent = totalTypes;
+            summaryTotalQty.textContent = totalQty;
+            summaryTotalRate.textContent = totalRate.toFixed(1).replace(/\.0$/, '') + '%';
+
+            if (totalTypes > 0 && Math.abs(totalRate - 100) > 0.01) {
+                summaryWarning.classList.remove('hidden');
+            } else {
+                summaryWarning.classList.add('hidden');
+            }
+        }
+
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        btnOpenPrizeManager.addEventListener('click', openPrizeManager);
+        btnClosePrizeManager.addEventListener('click', closePrizeManager);
+        btnCancelPrizeManager.addEventListener('click', closePrizeManager);
+
+        btnAddPrize.addEventListener('click', () => {
+            tempPrizePool.push({
+                id: 'p_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                name: '',
+                rate: 0,
+                quantity: 1,
+                deductPerWin: 1
+            });
+            renderPrizeList();
+            const inputs = prizeListContainer.querySelectorAll('input[data-field="name"]');
+            if (inputs.length > 0) inputs[inputs.length - 1].focus();
+        });
+
+        btnSavePrizeManager.addEventListener('click', async () => {
+            const cleaned = tempPrizePool
+                .map(p => ({
+                    id: p.id || ('p_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
+                    name: (p.name || '').trim(),
+                    rate: Math.max(0, parseFloat(p.rate) || 0),
+                    quantity: Math.max(0, parseInt(p.quantity) || 0),
+                    deductPerWin: Math.max(1, parseInt(p.deductPerWin) || 1)
+                }))
+                .filter(p => p.name !== '');
+
+            if (cleaned.length === 0) {
+                showToast("⚠️ Chưa có quà nào hợp lệ để lưu!", "error");
+                return;
+            }
+
+            prizePool = cleaned;
+
+            try {
+                await set(ref(db, 'quizGame/prizePool'), prizePool);
+                await set(ref(db, 'quizGame/prizePoolBackup'), prizePool);
+                prizeCountBadge.textContent = prizePool.length;
+                showToast(`✅ Đã lưu ${prizePool.length} phần quà!`, "success");
+                closePrizeManager();
+            } catch (e) {
+                console.error("Save prize pool error:", e);
+                showToast("❌ Lỗi lưu quà: " + e.message, "error");
+            }
+        });
+
+        onValue(ref(db, 'quizGame/prizePool'), (snap) => {
+            if (snap.exists()) {
+                const val = snap.val();
+                prizePool = Array.isArray(val) ? val : Object.values(val);
+            } else {
+                prizePool = [];
+            }
+            prizeCountBadge.textContent = prizePool.length;
+        });
+
+        // BLINDBOX
+        async function openBlindbox() {
+            selectedBoxIndex = -1;
+            isBoxRevealed = false;
+            blindboxResult.textContent = '';
+            blindboxCloseBtn.disabled = true;
             
-            const icon = toast.querySelector('i');
-            if (type === 'error') icon.className = 'fa-solid fa-circle-exclamation';
-            else if (type === 'success') icon.className = 'fa-solid fa-circle-check';
-            else icon.className = 'fa-solid fa-circle-info';
+            currentBoxes = generateBoxes();
+            
+            blindboxGrid.innerHTML = '';
+            currentBoxes.forEach((prize, index) => {
+                const item = document.createElement('div');
+                item.className = 'blindbox-item';
+                item.dataset.box = index;
+                item.innerHTML = `
+                    <span class="box-icon">${prize.icon || '🎁'}</span>
+                    <div class="text-slate-300 font-bold text-sm">HỘP ${index + 1}</div>
+                    <div class="box-prize">❓</div>
+                `;
+                blindboxGrid.appendChild(item);
+            });
+            
+            blindboxOverlay.classList.remove('hidden');
 
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2800);
-        }
-
-        // ============================================================
-        // SYNC STATUS
-        // ============================================================
-        function setSyncStatus(connected) {
-            if (connected) {
-                syncStatus.className = 'status-badge on';
-                syncStatusText.textContent = 'Đã kết nối Firebase';
-            } else {
-                syncStatus.className = 'status-badge off';
-                syncStatusText.textContent = 'Mất kết nối...';
+            try {
+                await set(ref(db, 'quizGame/blindbox'), {
+                    isOpen: true,
+                    selectedBox: -1,
+                    boxes: currentBoxes,
+                    revealed: false
+                });
+            } catch (e) {
+                console.error("Sync blindbox open error:", e);
             }
         }
 
-        // ============================================================
-        // UPDATE UI FROM STATE
-        // ============================================================
-        function updateUIFromState() {
-            // Toggle
-            preIntroToggle.checked = currentState.enabled;
-
-            // Status
-            if (currentState.enabled) {
-                preIntroStatus.className = 'status-badge on';
-                preIntroStatusText.textContent = 'ĐANG BẬT';
+        async function revealBox(index) {
+            if (isBoxRevealed || selectedBoxIndex !== -1) return;
+            
+            selectedBoxIndex = index;
+            isBoxRevealed = true;
+            
+            const items = blindboxGrid.querySelectorAll('.blindbox-item');
+            items.forEach((item, i) => {
+                const prize = currentBoxes[i];
+                const prizeEl = item.querySelector('.box-prize');
+                prizeEl.textContent = prize.name;
+                item.classList.add('revealed');
+            });
+            
+            const selectedPrize = currentBoxes[index];
+            if (selectedPrize.empty) {
+                blindboxResult.textContent = '🍀 ' + selectedPrize.name + '!';
+                blindboxResult.className = 'text-center text-xl font-bold min-h-[50px] text-amber-400';
             } else {
-                preIntroStatus.className = 'status-badge off';
-                preIntroStatusText.textContent = 'ĐANG TẮT';
+                blindboxResult.textContent = '🎉 Chúc mừng! Bạn nhận được: ' + selectedPrize.icon + ' ' + selectedPrize.name;
+                blindboxResult.className = 'text-center text-xl font-bold min-h-[50px] text-emerald-400';
+                triggerBlindboxConfetti();
+            }
+            
+            blindboxCloseBtn.disabled = false;
+
+            if (!selectedPrize.empty && selectedPrize.prizeId) {
+                const prizeIndex = prizePool.findIndex(p => p.id === selectedPrize.prizeId);
+                if (prizeIndex !== -1) {
+                    const prize = prizePool[prizeIndex];
+                    const deduct = prize.deductPerWin || 1;
+                    const oldQty = prize.quantity || 0;
+                    const newQty = Math.max(0, oldQty - deduct);
+                    prizePool[prizeIndex].quantity = newQty;
+
+                    if (oldQty > 0 && newQty <= 0) {
+                        showToast(`⚠️ Phần quà "${prize.name}" đã hết!`, "warning");
+                    }
+
+                    try {
+                        await set(ref(db, 'quizGame/prizePool'), prizePool);
+                    } catch (e) {
+                        console.error("Ghi prizePool thất bại:", e);
+                    }
+                }
             }
 
-            // URL
-            if (preIntroUrl.value !== currentState.url && !preIntroUrl.matches(':focus')) {
-                preIntroUrl.value = currentState.url || '';
+            try {
+                await update(ref(db, 'quizGame/blindbox'), {
+                    selectedBox: index,
+                    revealed: true,
+                    boxes: currentBoxes
+                });
+            } catch (e) {
+                console.error("Sync blindbox reveal error:", e);
+            }
+        }
+
+        function triggerBlindboxConfetti() {
+            if (typeof confetti === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1';
+                script.onload = () => {
+                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.5 } });
+                    setTimeout(() => {
+                        confetti({ particleCount: 60, spread: 50, origin: { y: 0.5 } });
+                    }, 200);
+                };
+                document.head.appendChild(script);
+            } else {
+                confetti({ particleCount: 80, spread: 70, origin: { y: 0.5 } });
+                setTimeout(() => {
+                    confetti({ particleCount: 60, spread: 50, origin: { y: 0.5 } });
+                }, 200);
+            }
+        }
+
+        async function closeBlindbox() {
+            blindboxOverlay.classList.add('hidden');
+            selectedBoxIndex = -1;
+            isBoxRevealed = false;
+
+            try {
+                await set(ref(db, 'quizGame/blindbox'), {
+                    isOpen: false,
+                    selectedBox: -1,
+                    boxes: [],
+                    revealed: false
+                });
+            } catch (e) {
+                console.error("Sync blindbox close error:", e);
+            }
+        }
+
+        blindboxGrid.addEventListener('click', (e) => {
+            const item = e.target.closest('.blindbox-item');
+            if (!item) return;
+            const index = parseInt(item.dataset.box);
+            if (isNaN(index)) return;
+            revealBox(index);
+        });
+
+        blindboxCloseBtn.addEventListener('click', closeBlindbox);
+
+        blindboxOverlay.addEventListener('click', (e) => {
+            if (e.target === blindboxOverlay && !blindboxCloseBtn.disabled) {
+                closeBlindbox();
+            }
+        });
+
+        // DISPLAY
+        async function updateDisplayState(patch) {
+            try {
+                const newState = { ...displayState, ...patch };
+                await set(ref(db, 'quizGame/display'), newState);
+                displayState = newState;
+                renderDisplayUI();
+            } catch (e) {
+                console.error("Display update error:", e);
+                showToast("Lỗi cập nhật màn hình: " + e.message, "error");
+            }
+        }
+
+        function renderDisplayUI() {
+            currentModeBadge.textContent = `Mode: ${displayState.mode}`;
+            
+            if (displayState.mode === 'GAME') {
+                currentModeBadge.className = 'text-xs font-bold px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/40';
+                btnModeLobby.className = 'px-4 py-3 bg-purple-600/40 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+                btnModeGame.className = 'px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm ring-2 ring-indigo-400';
+                btnModeOutro.className = 'px-4 py-3 bg-pink-600/40 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+            } else if (displayState.mode === 'OUTRO') {
+                currentModeBadge.className = 'text-xs font-bold px-3 py-1 rounded-lg bg-pink-500/20 text-pink-400 border border-pink-500/40';
+                btnModeLobby.className = 'px-4 py-3 bg-purple-600/40 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+                btnModeGame.className = 'px-4 py-3 bg-indigo-600/40 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+                btnModeOutro.className = 'px-4 py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm ring-2 ring-pink-400';
+            } else {
+                currentModeBadge.className = 'text-xs font-bold px-3 py-1 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/40';
+                btnModeLobby.className = 'px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm ring-2 ring-purple-400';
+                btnModeGame.className = 'px-4 py-3 bg-indigo-600/40 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+                btnModeOutro.className = 'px-4 py-3 bg-pink-600/40 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
             }
 
-            // Opacity
-            const opacityPct = Math.round((currentState.opacity ?? 1) * 100);
-            opacitySlider.value = opacityPct;
-            opacityValue.textContent = opacityPct + '%';
+            if (displayState.musicPlaying) {
+                musicIcon.className = 'fa-solid fa-volume-high';
+                musicLabel.textContent = 'Tắt nhạc';
+                btnMusicToggle.className = 'px-4 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+            } else {
+                musicIcon.className = 'fa-solid fa-volume-xmark';
+                musicLabel.textContent = 'Bật nhạc';
+                btnMusicToggle.className = 'px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm';
+            }
 
-            // Fit mode buttons
-            fitBtns.forEach(btn => {
-                if (btn.dataset.fit === currentState.fitMode) {
-                    btn.style.background = 'linear-gradient(135deg, rgba(250,204,21,0.25), rgba(245,158,11,0.15))';
-                    btn.style.borderColor = 'rgba(250, 204, 21, 0.6)';
-                    btn.style.color = '#fde047';
+            volumeSlider.value = Math.round(displayState.musicVolume * 100);
+            volumeLabel.textContent = Math.round(displayState.musicVolume * 100) + '%';
+
+            // Question Volume slider
+            questionVolumeSlider.value = Math.round((displayState.questionVolume ?? 0.78) * 100);
+            questionVolumeLabel.textContent = Math.round((displayState.questionVolume ?? 0.78) * 100) + '%';
+
+            if (displayState.mode === 'OUTRO') {
+                outroMusicControl.classList.remove('hidden');
+            } else {
+                outroMusicControl.classList.add('hidden');
+            }
+
+            if (displayState.outroMusicPlaying) {
+                outroMusicIcon.className = 'fa-solid fa-pause';
+                outroMusicLabel.textContent = 'Tắt nhạc Outro';
+                outroMusicStatus.textContent = '(đang phát)';
+                outroMusicStatus.className = 'text-xs text-emerald-400 italic font-bold';
+                btnOutroMusicToggle.className = 'px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-sm transition-all flex items-center gap-2';
+            } else {
+                outroMusicIcon.className = 'fa-solid fa-play';
+                outroMusicLabel.textContent = 'Phát nhạc Outro';
+                outroMusicStatus.textContent = '(đang tắt)';
+                outroMusicStatus.className = 'text-xs text-slate-400 italic';
+                btnOutroMusicToggle.className = 'px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-lg text-sm transition-all flex items-center gap-2';
+            }
+
+            outroVolumeSlider.value = Math.round((displayState.outroMusicVolume || 0.65) * 100);
+            outroVolumeLabel.textContent = Math.round((displayState.outroMusicVolume || 0.65) * 100) + '%';
+
+            updateBlindboxToggleUI();
+        }
+
+        // BLINDBOX TOGGLE
+        function updateBlindboxToggleUI() {
+            const enabled = displayState.blindboxEnabled !== false;
+            blindboxToggle.checked = enabled;
+            if (enabled) {
+                blindboxToggleLabel.textContent = 'ON';
+                blindboxToggleLabel.className = 'text-xs font-bold text-emerald-400';
+            } else {
+                blindboxToggleLabel.textContent = 'OFF';
+                blindboxToggleLabel.className = 'text-xs font-bold text-red-400';
+            }
+        }
+
+        blindboxToggle.addEventListener('change', () => {
+            const enabled = blindboxToggle.checked;
+            updateDisplayState({ blindboxEnabled: enabled });
+            showToast(
+                enabled 
+                    ? "🎁 Đã BẬT blindbox" 
+                    : "🔇 Đã TẮT blindbox", 
+                enabled ? "success" : "warning"
+            );
+        });
+
+        btnModeLobby.addEventListener('click', () => {
+            updateDisplayState({ mode: 'LOBBY' });
+            showToast("🌙 TV chuyển sang màn hình chờ", "success");
+        });
+
+        btnModeGame.addEventListener('click', () => {
+            updateDisplayState({ mode: 'GAME' });
+            showToast("🎮 TV vào minigame", "success");
+        });
+
+        btnModeOutro.addEventListener('click', () => {
+            updateDisplayState({ mode: 'OUTRO' });
+            showToast("🌕 TV chuyển sang màn hình Outro", "success");
+        });
+
+        btnMusicToggle.addEventListener('click', () => {
+            updateDisplayState({ musicPlaying: !displayState.musicPlaying });
+            showToast(displayState.musicPlaying ? "🎵 Đã bật nhạc" : "🔇 Đã tắt nhạc", "info");
+        });
+
+        btnOutroMusicToggle.addEventListener('click', () => {
+            updateDisplayState({ outroMusicPlaying: !displayState.outroMusicPlaying });
+            showToast(
+                displayState.outroMusicPlaying 
+                    ? "🎵 Đã bật nhạc Outro" 
+                    : "🔇 Đã tắt nhạc Outro", 
+                "info"
+            );
+        });
+
+        outroVolumeSlider.addEventListener('input', (e) => {
+            outroVolumeLabel.textContent = e.target.value + '%';
+        });
+        outroVolumeSlider.addEventListener('change', (e) => {
+            updateDisplayState({ outroMusicVolume: parseInt(e.target.value) / 100 });
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            volumeLabel.textContent = e.target.value + '%';
+        });
+        volumeSlider.addEventListener('change', (e) => {
+            updateDisplayState({ musicVolume: parseInt(e.target.value) / 100 });
+        });
+
+        // QUESTION VOLUME
+        questionVolumeSlider.addEventListener('input', (e) => {
+            questionVolumeLabel.textContent = e.target.value + '%';
+        });
+        questionVolumeSlider.addEventListener('change', (e) => {
+            updateDisplayState({ questionVolume: parseInt(e.target.value) / 100 });
+        });
+
+        onValue(ref(db, 'quizGame/display'), (snap) => {
+            if (snap.exists()) {
+                const val = snap.val();
+                displayState = {
+                    mode: val.mode || 'LOBBY',
+                    musicPlaying: val.musicPlaying || false,
+                    musicVolume: val.musicVolume ?? 0.5,
+                    questionVolume: val.questionVolume ?? 0.78,
+                    outroMusicPlaying: val.outroMusicPlaying || false,
+                    outroMusicVolume: val.outroMusicVolume ?? 0.65,
+                    blindboxEnabled: val.blindboxEnabled !== false
+                };
+            } else {
+                set(ref(db, 'quizGame/display'), displayState);
+            }
+            renderDisplayUI();
+        });
+
+        renderDisplayUI();
+
+        // LOAD QUESTIONS
+        async function loadQuestionsFromWorker() {
+            try {
+                dbStatusBadge.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải từ Worker...';
+                dbStatusBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold';
+
+                const response = await fetch(`${WORKER_URL}/quiz`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    mode: 'cors'
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (Array.isArray(data) && data.length > 0) {
+                    QUESTIONS = data;
+                    isQuestionsLoaded = true;
+                    
+                    questionCounter.innerText = `0/${QUESTIONS.length}`;
+                    qText.innerText = `Đã tải ${QUESTIONS.length} câu hỏi. Nhấn "Next" để bắt đầu!`;
+                    qText.className = "text-lg font-medium text-emerald-400 min-h-[60px] flex items-center";
+                    
+                    optionsContainer.innerHTML = `
+                        <div class="col-span-1 sm:col-span-2 p-8 rounded-xl border border-dashed border-emerald-500/30 text-center text-slate-400 font-medium bg-slate-900/40">
+                            <i class="fa-solid fa-check-circle text-3xl mb-2 text-emerald-500 block"></i>
+                            ✅ Đã tải ${data.length} câu hỏi từ Worker
+                            <br><span class="text-xs text-slate-500 mt-1 block">Sẵn sàng để bắt đầu game!</span>
+                        </div>
+                    `;
+
+                    dbStatusBadge.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> ${data.length} câu hỏi đã sẵn sàng`;
+                    dbStatusBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold';
+                    
+                    showToast(`✅ Đã tải ${data.length} câu hỏi từ Worker!`, "success");
                 } else {
-                    btn.style.background = '';
-                    btn.style.borderColor = '';
-                    btn.style.color = '';
+                    throw new Error('Worker trả về dữ liệu rỗng');
+                }
+
+            } catch (err) {
+                console.error("❌ Lỗi tải câu hỏi:", err);
+                dbStatusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Lỗi tải`;
+                dbStatusBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-semibold';
+                
+                qText.innerText = "❌ Không thể tải câu hỏi từ Worker.";
+                qText.className = "text-lg font-medium text-red-400 min-h-[60px] flex items-center";
+                
+                optionsContainer.innerHTML = `
+                    <div class="col-span-1 sm:col-span-2 p-8 rounded-xl border border-red-500/30 text-center text-red-400 font-medium bg-red-950/20">
+                        <i class="fa-solid fa-circle-exclamation text-3xl mb-2 text-red-500 block"></i>
+                        ❌ Lỗi: ${err.message}
+                        <button id="btnRetryLoad" class="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-sm transition-all block mx-auto">
+                            <i class="fa-solid fa-rotate mr-2"></i> Thử lại
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('btnRetryLoad')?.addEventListener('click', () => {
+                    loadQuestionsFromWorker();
+                });
+                
+                showToast("❌ Lỗi tải câu hỏi!", "error");
+            }
+        }
+
+        // HANDLE ANSWER
+        function handleAnswerClick(optionIndex) {
+            if (isAnswerLocked || gameState.status !== 'QUESTION') {
+                showToast("Không thể chọn đáp án lúc này!", "error");
+                return;
+            }
+
+            const idx = gameState.currentQuestionIndex;
+            if (idx < 0 || idx >= QUESTIONS.length) return;
+
+            const q = QUESTIONS[idx];
+            const isCorrect = optionIndex === q.answer;
+            selectedAnswer = optionIndex;
+            isAnswerLocked = true;
+
+            const optionElements = optionsContainer.querySelectorAll('.option-btn');
+            optionElements.forEach((el, i) => {
+                el.classList.remove('correct', 'wrong', 'selected-correct', 'selected-wrong');
+                const oldTick = el.querySelector('.tick-icon');
+                if (oldTick) oldTick.remove();
+
+                if (i === optionIndex) {
+                    const tick = document.createElement('span');
+                    tick.className = 'tick-icon';
+
+                    if (isCorrect) {
+                        el.classList.add('selected-correct');
+                        tick.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    } else {
+                        el.classList.add('selected-wrong');
+                        tick.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                        optionElements[q.answer].classList.add('correct');
+                    }
+                    el.appendChild(tick);
+                } else if (i === q.answer && !isCorrect) {
+                    el.classList.add('correct');
                 }
             });
 
-            // Preview
-            updatePreview(currentState.url);
-        }
-
-        // ============================================================
-        // PREVIEW IMAGE
-        // ============================================================
-        function updatePreview(url) {
-            if (!url || url.trim() === '') {
-                previewEmpty.style.display = 'block';
-                previewImg.style.display = 'none';
-                previewBox.classList.remove('has-image');
-                return;
-            }
-
-            previewLoading.style.display = 'flex';
-            previewEmpty.style.display = 'none';
-            previewImg.style.display = 'none';
-
-            const testImg = new Image();
-            testImg.crossOrigin = 'anonymous';
-            testImg.onload = () => {
-                previewImg.src = url;
-                previewImg.style.display = 'block';
-                previewEmpty.style.display = 'none';
-                previewLoading.style.display = 'none';
-                previewBox.classList.add('has-image');
-            };
-            testImg.onerror = () => {
-                previewLoading.style.display = 'none';
-                previewEmpty.style.display = 'block';
-                previewImg.style.display = 'none';
-                previewBox.classList.remove('has-image');
-                previewEmpty.innerHTML = `
-                    <i class="fa-solid fa-triangle-exclamation text-4xl mb-2 text-red-400 opacity-70"></i>
-                    <p class="text-sm text-red-400">Không tải được ảnh</p>
-                `;
-            };
-            testImg.src = url;
-        }
-
-        // ============================================================
-        // SAVE TO FIREBASE
-        // ============================================================
-        async function saveToFirebase(partial = null) {
-            try {
-                const dataToSave = partial || {
-                    enabled: currentState.enabled,
-                    url: currentState.url,
-                    fitMode: currentState.fitMode,
-                    opacity: currentState.opacity
-                };
-
-                // Merge với state hiện tại
-                currentState = { ...currentState, ...dataToSave };
-
-                await set(ref(db, 'quizGame/display/preIntro'), currentState);
-                console.log('✅ Đã lưu preIntro:', currentState);
-                return true;
-            } catch (err) {
-                console.error('❌ Lỗi lưu Firebase:', err);
-                showToast('Lỗi lưu dữ liệu!', 'error');
-                return false;
-            }
-        }
-
-        // ============================================================
-        // TOGGLE HANDLER
-        // ============================================================
-        preIntroToggle.addEventListener('change', async () => {
-            const newState = preIntroToggle.checked;
-            currentState.enabled = newState;
-
-            if (newState) {
-                preIntroStatus.className = 'status-badge on';
-                preIntroStatusText.textContent = 'ĐANG BẬT';
-                showToast('Đã BẬT PRE-INTRO', 'success');
+            if (isCorrect) {
+                const blindboxEnabled = displayState.blindboxEnabled !== false;
+                if (blindboxEnabled) {
+                    showToast("✅ Chính xác! Mở hộp quà nào!", "success");
+                    setTimeout(() => {
+                        openBlindbox();
+                    }, 800);
+                } else {
+                    showToast("✅ Chính xác! (Blindbox đang tắt)", "info");
+                }
             } else {
-                preIntroStatus.className = 'status-badge off';
-                preIntroStatusText.textContent = 'ĐANG TẮT';
-                showToast('Đã TẮT PRE-INTRO', 'info');
+                showToast("❌ Sai rồi! Đáp án đúng đã được highlight.", "error");
             }
 
-            await saveToFirebase({ enabled: newState });
-        });
-
-        // ============================================================
-        // URL LOAD HANDLER
-        // ============================================================
-        preIntroLoadBtn.addEventListener('click', async () => {
-            const url = preIntroUrl.value.trim();
-            if (!url) {
-                showToast('Vui lòng nhập URL ảnh!', 'error');
-                return;
-            }
-
-            preIntroLoadBtn.disabled = true;
-            preIntroLoadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
-            previewLoading.style.display = 'flex';
-
-            // Kiểm tra ảnh có load được không
-            const testImg = new Image();
-            testImg.crossOrigin = 'anonymous';
-
-            testImg.onload = async () => {
-                currentState.url = url;
-                await saveToFirebase({ url });
-                showToast('Đã tải & lưu ảnh!', 'success');
-                updatePreview(url);
-                preIntroLoadBtn.disabled = false;
-                preIntroLoadBtn.innerHTML = '<i class="fa-solid fa-download"></i> Tải & Lưu';
-            };
-
-            testImg.onerror = () => {
-                showToast('Không tải được ảnh từ URL này!', 'error');
-                previewLoading.style.display = 'none';
-                preIntroLoadBtn.disabled = false;
-                preIntroLoadBtn.innerHTML = '<i class="fa-solid fa-download"></i> Tải & Lưu';
-            };
-
-            testImg.src = url;
-        });
-
-        // Enter để load nhanh
-        preIntroUrl.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') preIntroLoadBtn.click();
-        });
-
-        // ============================================================
-        // FIT MODE HANDLER
-        // ============================================================
-        fitBtns.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const fit = btn.dataset.fit;
-                if (currentState.fitMode === fit) return;
-
-                currentState.fitMode = fit;
-                updateUIFromState();
-                await saveToFirebase({ fitMode: fit });
-                showToast(`Đã đổi chế độ: ${fit === 'cover' ? 'Phủ kín' : 'Vừa khung'}`, 'success');
+            updateRoomStateInRTDB({
+                showResults: true,
+                hostAnswer: optionIndex,
+                hostAnswerCorrect: isCorrect
             });
-        });
+        }
 
-        // ============================================================
-        // OPACITY HANDLER
-        // ============================================================
-        let opacityTimeout = null;
-        opacitySlider.addEventListener('input', () => {
-            const pct = parseInt(opacitySlider.value);
-            opacityValue.textContent = pct + '%';
-            currentState.opacity = pct / 100;
+        // RENDER UI
+        function renderUI() {
+            const idx = gameState.currentQuestionIndex;
 
-            if (opacityTimeout) clearTimeout(opacityTimeout);
-            opacityTimeout = setTimeout(async () => {
-                await saveToFirebase({ opacity: currentState.opacity });
-            }, 400);
-        });
+            if (!isQuestionsLoaded || QUESTIONS.length === 0) {
+                questionCounter.innerText = '0/0';
+                qText.innerText = "Đang tải câu hỏi từ Worker...";
+                qText.className = "text-lg font-medium text-slate-400 min-h-[60px] flex items-center italic";
+                optionsContainer.innerHTML = `
+                    <div class="col-span-1 sm:col-span-2 p-8 rounded-xl border border-dashed border-slate-700 text-center text-slate-500 font-medium bg-slate-900/40">
+                        <i class="fa-solid fa-spinner fa-spin text-3xl mb-2 text-indigo-500 block"></i>
+                        Đang tải dữ liệu từ Worker...
+                    </div>
+                `;
+                gameStatusText.innerText = 'Đang tải';
+                gameStatusText.className = 'text-xs font-bold px-2.5 py-1 bg-slate-800 text-slate-400 rounded-lg border border-slate-700';
 
-        // ============================================================
-        // TEST BUTTON
-        // ============================================================
-        testBtn.addEventListener('click', () => {
-            const url = currentState.url || preIntroUrl.value.trim();
-            if (!url) {
-                showToast('Chưa có ảnh để xem trước!', 'error');
+                if (hostMocBanWrapper) hostMocBanWrapper.style.display = 'none';
+                if (hostTopicLabel) hostTopicLabel.innerText = NORMAL_TOPIC_LABEL;
                 return;
             }
-            updatePreview(url);
-            showToast('Đã cập nhật xem trước', 'info');
-        });
 
-        // ============================================================
-        // RESET BUTTON
-        // ============================================================
-        resetBtn.addEventListener('click', async () => {
-            if (!confirm('Reset về mặc định? Ảnh sẽ trở về ảnh gốc và BẬT.')) return;
+            if (gameState.status === 'LOBBY' || idx < 0) {
+                questionCounter.innerText = `0/${QUESTIONS.length}`;
+                qText.innerText = `🎯 Sẵn sàng! ${QUESTIONS.length} câu hỏi đã tải. Nhấn "Next" để bắt đầu.`;
+                qText.className = "text-lg font-medium text-emerald-400 min-h-[60px] flex items-center";
+                optionsContainer.innerHTML = `
+                    <div class="col-span-1 sm:col-span-2 p-8 rounded-xl border border-dashed border-slate-700 text-center text-slate-500 font-medium bg-slate-900/40">
+                        <i class="fa-solid fa-play text-3xl mb-2 text-indigo-500 block"></i>
+                        Phòng đấu đang chờ Host bấm bắt đầu...
+                        <br><span class="text-xs text-slate-600 mt-1 block">${QUESTIONS.length} câu hỏi đã sẵn sàng</span>
+                    </div>
+                `;
+                gameStatusText.innerText = 'Chưa bắt đầu';
+                gameStatusText.className = 'text-xs font-bold px-2.5 py-1 bg-slate-800 text-slate-400 rounded-lg border border-slate-700';
+                timerDisplay.innerText = `${gameState.timerDuration || 15}s`;
+                timerBar.style.width = '100%';
+                isAnswerLocked = false;
+                selectedAnswer = null;
 
-            currentState = { ...DEFAULT_PRE_INTRO };
-            await saveToFirebase();
-            updateUIFromState();
-            showToast('Đã reset về mặc định', 'success');
-        });
-
-        // ============================================================
-        // FIREBASE LISTENER
-        // ============================================================
-        const preIntroRef = ref(db, 'quizGame/display/preIntro');
-
-        onValue(preIntroRef, async (snap) => {
-            setSyncStatus(true);
-
-            if (!snap.exists()) {
-                // Chưa có dữ liệu → tạo mặc định
-                console.log('📝 Chưa có preIntro, tạo mặc định...');
-                await set(preIntroRef, DEFAULT_PRE_INTRO);
-                currentState = { ...DEFAULT_PRE_INTRO };
-            } else {
-                const val = snap.val();
-                currentState = {
-                    enabled: val.enabled ?? DEFAULT_PRE_INTRO.enabled,
-                    url: val.url ?? DEFAULT_PRE_INTRO.url,
-                    fitMode: val.fitMode ?? DEFAULT_PRE_INTRO.fitMode,
-                    opacity: val.opacity ?? DEFAULT_PRE_INTRO.opacity
-                };
+                if (hostMocBanWrapper) hostMocBanWrapper.style.display = 'none';
+                if (hostTopicLabel) hostTopicLabel.innerText = NORMAL_TOPIC_LABEL;
+                return;
             }
 
-            updateUIFromState();
-            isInitialized = true;
+            const q = QUESTIONS[idx];
+            if (!q) {
+                qText.innerText = "⚠️ Lỗi: Không tìm thấy câu hỏi!";
+                return;
+            }
+
+            questionCounter.innerText = `${idx + 1}/${QUESTIONS.length}`;
+            qText.innerText = q.question;
+            qText.className = "text-xl md:text-2xl font-bold text-white min-h-[60px] flex items-center";
+
+            // ẢNH MỘC BẢN - CÂU 33
+            if (idx === SPECIAL_QUESTION_INDEX) {
+                if (hostMocBanWrapper) hostMocBanWrapper.style.display = 'flex';
+                if (hostTopicLabel) hostTopicLabel.innerText = SPECIAL_TOPIC_LABEL;
+            } else {
+                if (hostMocBanWrapper) hostMocBanWrapper.style.display = 'none';
+                if (hostTopicLabel) hostTopicLabel.innerText = NORMAL_TOPIC_LABEL;
+            }
+
+            optionsContainer.innerHTML = '';
+            const letters = ['A', 'B', 'C', 'D'];
+            const hostAnswer = gameState.hostAnswer;
+            
+            q.options.forEach((opt, oIdx) => {
+                const optEl = document.createElement('div');
+                optEl.className = `option-btn p-4 rounded-xl border bg-slate-800/60 border-slate-700/80 text-slate-300 flex items-center justify-between text-sm font-semibold transition-all`;
+                optEl.dataset.index = oIdx;
+                
+                const isCorrect = oIdx === q.answer;
+                const showCorrect = gameState.showResults && isCorrect;
+                const isSelected = selectedAnswer === oIdx || (hostAnswer === oIdx && isAnswerLocked);
+
+                if (showCorrect && !isSelected) {
+                    optEl.classList.add('correct');
+                }
+
+                let tickHTML = '';
+                if (isSelected && isAnswerLocked) {
+                    if (isCorrect) {
+                        optEl.classList.add('selected-correct');
+                        tickHTML = '<span class="tick-icon" style="background:#4ade80;color:#052e16;box-shadow:0 0 25px rgba(74,222,128,0.9);"><i class="fa-solid fa-check"></i></span>';
+                    } else {
+                        optEl.classList.add('selected-wrong');
+                        tickHTML = '<span class="tick-icon" style="background:#f87171;color:#450a0a;box-shadow:0 0 25px rgba(248,113,113,0.9);"><i class="fa-solid fa-xmark"></i></span>';
+                    }
+                }
+                
+                optEl.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold bg-slate-700 text-slate-300">
+                            ${letters[oIdx]}
+                        </span>
+                        <span class="text-base">${opt}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${showCorrect && !isSelected ? '<span class="text-xs font-bold text-emerald-400 bg-emerald-950/90 px-2.5 py-1 rounded border border-emerald-500/50"><i class="fa-solid fa-check mr-1"></i>Đáp án Đúng</span>' : ''}
+                        ${tickHTML}
+                    </div>
+                `;
+                
+                optEl.addEventListener('click', () => {
+                    handleAnswerClick(oIdx);
+                });
+                
+                optionsContainer.appendChild(optEl);
+            });
+
+            if (gameState.showResults) {
+                gameStatusText.innerText = 'Đã có đáp án';
+                gameStatusText.className = 'text-xs font-bold px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/30';
+            } else {
+                gameStatusText.innerText = 'Đang làm bài';
+                gameStatusText.className = 'text-xs font-bold px-2.5 py-1 bg-blue-500/20 text-blue-400 rounded-lg border border-blue-500/30';
+            }
+        }
+
+        // TIMER
+        function startLocalTimerAnimation() {
+            clearInterval(localTimerInterval);
+            if (!gameState.timerEndTimestamp || gameState.status !== 'QUESTION') {
+                timerBar.style.width = '100%';
+                return;
+            }
+
+            localTimerInterval = setInterval(() => {
+                const now = Date.now();
+                const remainingMs = gameState.timerEndTimestamp - now;
+                const totalMs = (gameState.timerDuration || 15) * 1000;
+
+                if (remainingMs <= 0) {
+                    clearInterval(localTimerInterval);
+                    timerBar.style.width = '0%';
+                    timerDisplay.innerText = '0s';
+                } else {
+                    const pct = Math.max(0, (remainingMs / totalMs) * 100);
+                    timerBar.style.width = `${pct}%`;
+                    timerDisplay.innerText = `${Math.ceil(remainingMs / 1000)}s`;
+                }
+            }, 100);
+        }
+
+        // SYNC TO WORKER
+        async function syncToWorker(stateData) {
+            try {
+                await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(stateData)
+                });
+            } catch (err) {
+                console.warn("Worker broadcast note:", err.message);
+            }
+        }
+
+        // UPDATE ROOM STATE
+        async function updateRoomStateInRTDB(newState) {
+            try {
+                const roomRef = ref(db, 'quizGame/roomState');
+                const updated = { ...gameState, ...newState };
+                await update(roomRef, updated);
+                syncToWorker(updated);
+            } catch (err) {
+                console.error("Firebase update error:", err);
+                showToast("Lỗi kết nối Firebase: " + err.message, "error");
+            }
+        }
+
+        // NEXT / PREV
+        async function goToNextQuestion() {
+            if (!isQuestionsLoaded || QUESTIONS.length === 0) {
+                showToast("Chưa tải câu hỏi từ Worker!", "error");
+                return;
+            }
+
+            let nextIdx = gameState.currentQuestionIndex;
+
+            if (gameState.status === 'LOBBY' || nextIdx < 0) {
+                nextIdx = 0;
+            } else if (nextIdx < QUESTIONS.length - 1) {
+                nextIdx += 1;
+            } else {
+                showToast(`✅ Đã ở câu cuối cùng!`, "info");
+                return;
+            }
+
+            const duration = parseInt(timerInput.value) || 15;
+            const endTimestamp = Date.now() + (duration * 1000);
+
+            isAnswerLocked = false;
+            selectedAnswer = null;
+
+            try {
+                const playersRef = ref(db, 'quizGame/players');
+                const snapshot = await get(playersRef);
+                if (snapshot.exists()) {
+                    const playersObj = snapshot.val();
+                    Object.keys(playersObj).forEach(pId => {
+                        update(ref(db, `quizGame/players/${pId}`), {
+                            currentAnswer: null,
+                            hasAnswered: false,
+                            answerTimestamp: null
+                        });
+                    });
+                }
+            } catch (e) {
+                console.warn("Could not reset player answers:", e);
+            }
+
+            await updateRoomStateInRTDB({
+                currentQuestionIndex: nextIdx,
+                status: 'QUESTION',
+                timerDuration: duration,
+                timerEndTimestamp: endTimestamp,
+                showResults: false,
+                showTop5: false,
+                hostAnswer: -1,
+                hostAnswerCorrect: false
+            });
+
+            showToast(`📌 Câu ${nextIdx + 1}/${QUESTIONS.length}`, "success");
+        }
+
+        async function goToPrevQuestion() {
+            if (!isQuestionsLoaded || QUESTIONS.length === 0) {
+                showToast("Chưa tải câu hỏi từ Worker!", "error");
+                return;
+            }
+
+            let prevIdx = gameState.currentQuestionIndex;
+
+            if (prevIdx <= 0) {
+                showToast(`⬅️ Đã ở câu đầu tiên!`, "info");
+                return;
+            }
+
+            prevIdx -= 1;
+
+            const duration = parseInt(timerInput.value) || 15;
+            const endTimestamp = Date.now() + (duration * 1000);
+
+            await updateRoomStateInRTDB({
+                currentQuestionIndex: prevIdx,
+                status: 'QUESTION',
+                timerDuration: duration,
+                timerEndTimestamp: endTimestamp
+            });
+
+            showToast(`⬅️ Quay lại câu ${prevIdx + 1}/${QUESTIONS.length}`, "info");
+        }
+
+        document.getElementById('btnNextQuestion').addEventListener('click', goToNextQuestion);
+        document.getElementById('btnPrevQuestion').addEventListener('click', goToPrevQuestion);
+
+        document.getElementById('btnClearAnswers').addEventListener('click', async () => {
+            isAnswerLocked = false;
+            selectedAnswer = null;
+            await updateRoomStateInRTDB({
+                showResults: false,
+                hostAnswer: -1,
+                hostAnswerCorrect: false
+            });
+            renderUI();
+            showToast("🧹 Đã xóa highlight đáp án!", "info");
+        });
+
+        document.getElementById('btnSetTime').addEventListener('click', async () => {
+            const duration = parseInt(timerInput.value) || 15;
+            await updateRoomStateInRTDB({ timerDuration: duration });
+            showToast(`⏱️ Đã đổi thời gian thành ${duration} giây!`, "success");
+        });
+
+        // KEYBOARD
+        document.addEventListener('keydown', (e) => {
+            const tag = e.target.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+
+            if (!prizeManagerModal.classList.contains('hidden')) return;
+            if (!confirmModal.classList.contains('hidden')) return;
+            if (!blindboxOverlay.classList.contains('hidden')) return;
+
+            if (displayState.mode !== 'GAME' || gameState.status !== 'QUESTION') return;
+
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                goToNextQuestion();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                goToPrevQuestion();
+            }
+        });
+
+        // RESET
+        document.getElementById('btnResetAll').addEventListener('click', () => {
+            showConfirmModal(
+                "Reset Toàn Bộ Phòng",
+                "Bạn có chắc chắn muốn đưa phòng về trạng thái ban đầu không? Phần quà sẽ được reset về số lượt ban đầu.",
+                async () => {
+                    try {
+                        clearInterval(localTimerInterval);
+                        isAnswerLocked = false;
+                        selectedAnswer = null;
+
+                        try {
+                            const backupSnap = await get(ref(db, 'quizGame/prizePoolBackup'));
+                            if (backupSnap.exists()) {
+                                const backup = backupSnap.val();
+                                const backupArr = Array.isArray(backup) ? backup : Object.values(backup);
+                                const resetPool = backupArr.map(p => ({ ...p }));
+                                await set(ref(db, 'quizGame/prizePool'), resetPool);
+                            }
+                        } catch (e) {
+                            console.warn('Lỗi reset prize pool:', e);
+                        }
+
+                        await update(ref(db, 'quizGame'), {
+                            roomState: {
+                                currentQuestionIndex: -1,
+                                status: 'LOBBY',
+                                timerDuration: 15,
+                                showResults: false,
+                                showTop5: false,
+                                timerEndTimestamp: 0,
+                                hostAnswer: -1,
+                                hostAnswerCorrect: false
+                            },
+                            players: {},
+                            blindbox: {
+                                isOpen: false,
+                                selectedBox: -1,
+                                boxes: [],
+                                revealed: false
+                            },
+                            display: {
+                                mode: 'LOBBY',
+                                musicPlaying: false,
+                                musicVolume: 0.5,
+                                questionVolume: displayState.questionVolume ?? 0.78,
+                                outroMusicPlaying: false,
+                                outroMusicVolume: 0.65,
+                                blindboxEnabled: displayState.blindboxEnabled !== false
+                            }
+                        });
+                        showToast("🔄 Đã reset phòng + phần quà!", "success");
+                    } catch (e) {
+                        showToast("Lỗi reset: " + e.message, "error");
+                    }
+                }
+            );
+        });
+
+        // LISTEN ROOM STATE
+        const roomStateRef = ref(db, 'quizGame/roomState');
+        onValue(roomStateRef, (snapshot) => {
+            if (snapshot.exists()) {
+                gameState = snapshot.val();
+            } else {
+                updateRoomStateInRTDB({
+                    currentQuestionIndex: -1,
+                    status: 'LOBBY',
+                    timerDuration: 15,
+                    showResults: false,
+                    showTop5: false,
+                    timerEndTimestamp: 0,
+                    hostAnswer: -1,
+                    hostAnswerCorrect: false
+                });
+            }
+            renderUI();
+            startLocalTimerAnimation();
         }, (error) => {
-            console.error('❌ Firebase error:', error);
-            setSyncStatus(false);
-            showToast('Lỗi kết nối Firebase!', 'error');
+            console.error(error);
+            dbStatusBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Lỗi kết nối Firebase';
+            dbStatusBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-semibold';
         });
 
-        // ============================================================
-        // BEFORE UNLOAD - Cảnh báo nếu có thay đổi chưa lưu
-        // ============================================================
-        window.addEventListener('beforeunload', (e) => {
-            // Không cần cảnh báo vì đã auto-save
-        });
-
-        // ============================================================
         // INIT
-        // ============================================================
-        console.log('🚀 Host Control đã sẵn sàng');
-        console.log('📌 Mặc định: PRE-INTRO = BẬT');
-        console.log('💾 Mọi thay đổi tự động lưu vào Firebase');
-
+        loadQuestionsFromWorker();
     </script>
 </body>
 </html>
