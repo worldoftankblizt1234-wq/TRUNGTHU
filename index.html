@@ -230,19 +230,20 @@
         }
 
         /* ==================================================== */
-        /*   FLOATING TIMER - GÓC TRÁI                          */
+        /*   FLOATING TIMER - TRÊN MÀN HÌNH, 75% NGANG          */
         /* ==================================================== */
         #floatingTimer {
             position: fixed;
             top: 12px;
-            left: 12px;
+            left: 75%;
+            transform: translateX(-50%);
             z-index: 99999;
             display: none;
             align-items: center;
             gap: 8px;
             background: rgba(15, 23, 42, 0.95);
             border: 2px solid rgba(250, 204, 21, 0.7);
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 999px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(250, 204, 21, 0.4);
             backdrop-filter: blur(12px);
@@ -256,15 +257,15 @@
         }
 
         @keyframes timerSlideIn {
-            from { opacity: 0; transform: translateY(-30px) scale(0.8); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from { opacity: 0; transform: translateX(-50%) translateY(-30px) scale(0.8); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
         }
 
         #floatingTimer i { color: #facc15; font-size: 1.3rem; animation: pulse 1.5s ease-in-out infinite; }
         #floatingTimerDisplay { font-family: monospace; font-size: 1.6rem; font-weight: 900; color: #fde047; letter-spacing: 1px; text-shadow: 0 0 12px rgba(250, 204, 21, 0.8); min-width: 50px; text-align: center; }
 
         @media (max-width: 640px) {
-            #floatingTimer { top: 8px; left: 8px; padding: 5px 12px; gap: 6px; }
+            #floatingTimer { top: 8px; left: 75%; transform: translateX(-50%); padding: 5px 14px; gap: 6px; }
             #floatingTimer i { font-size: 1rem; }
             #floatingTimerDisplay { font-size: 1.15rem; min-width: 40px; }
         }
@@ -836,7 +837,7 @@
     <!-- THANH TIẾN ĐỘ SCROLL -->
     <div id="scrollProgress"></div>
 
-    <!-- FLOATING TIMER - GÓC TRÁI -->
+    <!-- FLOATING TIMER - TRÊN MÀN HÌNH, 75% NGANG -->
     <div id="floatingTimer">
         <i class="fa-solid fa-stopwatch"></i>
         <span id="floatingTimerDisplay">15s</span>
@@ -968,8 +969,6 @@
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span> Realtime Sync Active
                 </span>
             </div>
-
-            <!-- ⚠️ ĐÃ XÓA KHUNG TIMER TRONG HEADER -->
 
             <div class="flex items-center gap-2">
                 <button id="btnFullscreen" class="bg-slate-800/90 hover:bg-slate-700 text-amber-300 p-2 md:p-3 rounded-full border border-amber-500/40 transition-all duration-200 shadow-xl active:scale-95" title="Toàn màn hình">
@@ -1192,7 +1191,6 @@
         const questionStatusTag = document.getElementById('questionStatusTag');
         const topicLabel = document.getElementById('topicLabel');
         const mocBanImageWrapper = document.getElementById('mocBanImageWrapper');
-        // ⚠️ ĐÃ XÓA: const timerDisplay = ... (không còn dùng)
         const timerBar = document.getElementById('timerBar');
         const btnFullscreen = document.getElementById('btnFullscreen');
 
@@ -1912,10 +1910,8 @@
 
             const mode = displayState.mode;
 
-            // Xử lý PRE-INTRO trước
             renderPreIntro();
 
-            // Nếu đang ở PRE_INTRO → ẩn hết các layer khác
             if (mode === 'PRE_INTRO') {
                 lobbyLayer.classList.remove('visible');
                 tvDisplayView.classList.remove('visible');
@@ -2383,7 +2379,7 @@
 
         console.log('📺 TV Screen đã sẵn sàng');
         console.log('🖼️ PRE-INTRO: Ảnh cố định 6b4li7.png - Bật khi mode = PRE_INTRO');
-        console.log('⏱️ TIMER: Floating góc trái, khung header đã xóa');
+        console.log('⏱️ TIMER: Floating ở top, 75% ngang (gần góc phải trên)');
     </script>
 </body>
 </html>
