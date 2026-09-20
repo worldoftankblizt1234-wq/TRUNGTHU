@@ -58,32 +58,12 @@
         /* ==================================================== */
         /*   SCROLL BAR XÁM TRONG SUỐT                          */
         /* ==================================================== */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.65); background-clip: padding-box; }
 
-        ::-webkit-scrollbar-track {
-            background: rgba(30, 41, 59, 0.3);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.4);
-            border-radius: 10px;
-            border: 2px solid transparent;
-            background-clip: padding-box;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(148, 163, 184, 0.65);
-            background-clip: padding-box;
-        }
-
-        html {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(148, 163, 184, 0.4) rgba(30, 41, 59, 0.3);
-        }
+        html { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.4) rgba(30, 41, 59, 0.3); }
 
         @media (max-width: 640px) {
             ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -113,9 +93,7 @@
             100% { background-position: 200% 50%; }
         }
 
-        @media (max-width: 640px) {
-            #scrollProgress { height: 3px; }
-        }
+        @media (max-width: 640px) { #scrollProgress { height: 3px; } }
 
         /* ==================================================== */
         /*   WATERMARK                                          */
@@ -225,23 +203,11 @@
             filter: grayscale(60%);
         }
 
-        @keyframes pulse-green {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
+        @keyframes pulse-green { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        @keyframes pulse-red { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
 
-        @keyframes pulse-red {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-
-        .title-glow {
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.9), 0 3px 8px rgba(0,0,0,0.9);
-        }
-
-        .timer-progress {
-            transition: width 0.15s linear;
-        }
+        .title-glow { text-shadow: 0 0 20px rgba(255, 215, 0, 0.9), 0 3px 8px rgba(0,0,0,0.9); }
+        .timer-progress { transition: width 0.15s linear; }
 
         /* ==================================================== */
         /*   HEADER STICKY                                      */
@@ -294,36 +260,17 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        #floatingTimer i {
-            color: #facc15;
-            font-size: 1.3rem;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        #floatingTimerDisplay {
-            font-family: monospace;
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: #fde047;
-            letter-spacing: 1px;
-            text-shadow: 0 0 12px rgba(250, 204, 21, 0.8);
-            min-width: 50px;
-            text-align: center;
-        }
+        #floatingTimer i { color: #facc15; font-size: 1.3rem; animation: pulse 1.5s ease-in-out infinite; }
+        #floatingTimerDisplay { font-family: monospace; font-size: 1.6rem; font-weight: 900; color: #fde047; letter-spacing: 1px; text-shadow: 0 0 12px rgba(250, 204, 21, 0.8); min-width: 50px; text-align: center; }
 
         @media (max-width: 640px) {
-            #floatingTimer {
-                top: 8px;
-                right: 8px;
-                padding: 5px 12px;
-                gap: 6px;
-            }
+            #floatingTimer { top: 8px; right: 8px; padding: 5px 12px; gap: 6px; }
             #floatingTimer i { font-size: 1rem; }
             #floatingTimerDisplay { font-size: 1.15rem; min-width: 40px; }
         }
 
         /* ==================================================== */
-        /*   PRE-INTRO IMAGE LAYER - HOST ĐIỀU KHIỂN            */
+        /*   PRE-INTRO LAYER - ẢNH CỐ ĐỊNH                      */
         /* ==================================================== */
         #preIntroLayer {
             position: fixed;
@@ -332,9 +279,7 @@
             display: none;
             justify-content: center;
             align-items: center;
-            background: rgba(0, 0, 0, 0.92);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: #000;
             opacity: 0;
             transition: opacity 0.8s ease-in-out;
             pointer-events: none;
@@ -347,45 +292,21 @@
         }
 
         @keyframes preIntroFadeIn {
-            from { opacity: 0; transform: scale(0.97); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         #preIntroImage {
-            max-width: 95vw;
-            max-height: 92vh;
-            width: auto;
-            height: auto;
-            border-radius: 16px;
-            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.9), 0 0 60px rgba(250, 204, 21, 0.3);
-            border: 3px solid rgba(250, 204, 21, 0.5);
-            object-fit: contain;
-            transition: opacity 0.5s ease, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            animation: preIntroZoom 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            display: block;
+            animation: preIntroZoom 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         @keyframes preIntroZoom {
-            from { transform: scale(0.7) rotate(-2deg); opacity: 0; }
-            to { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-
-        #preIntroLayer.fit-cover #preIntroImage {
-            max-width: 100vw;
-            max-height: 100vh;
-            width: 100vw;
-            height: 100vh;
-            border-radius: 0;
-            border: none;
-            object-fit: cover;
-        }
-
-        @media (max-width: 640px) {
-            #preIntroImage {
-                max-width: 98vw;
-                max-height: 90vh;
-                border-radius: 10px;
-                border-width: 2px;
-            }
+            from { transform: scale(1.08); opacity: 0.5; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         /* ==================================================== */
@@ -399,9 +320,7 @@
             margin-bottom: 14px;
         }
 
-        #mocBanImageWrapper.active {
-            display: flex;
-        }
+        #mocBanImageWrapper.active { display: flex; }
 
         #mocBanImageWrapper img {
             width: 65%;
@@ -414,11 +333,7 @@
         }
 
         @media (max-width: 640px) {
-            #mocBanImageWrapper img {
-                width: 80%;
-                max-width: 300px;
-                border-radius: 10px;
-            }
+            #mocBanImageWrapper img { width: 80%; max-width: 300px; border-radius: 10px; }
         }
 
         /* ==================================================== */
@@ -438,14 +353,9 @@
             pointer-events: auto;
         }
 
-        #depletedPopup.active {
-            display: flex;
-        }
+        #depletedPopup.active { display: flex; }
 
-        @keyframes popupFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        @keyframes popupFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .depleted-popup-box {
             background: linear-gradient(145deg, #1a1a3e, #0d1329);
@@ -478,10 +388,7 @@
             pointer-events: none;
         }
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .depleted-icon {
             font-size: 6rem;
@@ -525,10 +432,7 @@
             animation: namePulse 1.5s ease-in-out infinite;
         }
 
-        @keyframes namePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
+        @keyframes namePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
         .depleted-subtitle {
             font-size: 1.5rem;
@@ -567,10 +471,7 @@
             transition: opacity 1s ease-in-out;
         }
 
-        #lobbyLayer.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        #lobbyLayer.visible { opacity: 1; pointer-events: auto; }
 
         #tvDisplayView {
             position: relative;
@@ -584,10 +485,7 @@
             transition: opacity 1s ease-in-out;
         }
 
-        #tvDisplayView.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        #tvDisplayView.visible { opacity: 1; pointer-events: auto; }
 
         #outroLayer {
             position: fixed;
@@ -598,10 +496,7 @@
             transition: opacity 1s ease-in-out;
         }
 
-        #outroLayer.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        #outroLayer.visible { opacity: 1; pointer-events: auto; }
 
         #loadingScreen {
             position: fixed;
@@ -617,10 +512,7 @@
             padding: 20px;
         }
 
-        #loadingScreen.fade-out {
-            opacity: 0;
-            pointer-events: none;
-        }
+        #loadingScreen.fade-out { opacity: 0; pointer-events: none; }
 
         .cloud {
             position: absolute;
@@ -655,10 +547,7 @@
             margin-bottom: 20px;
         }
 
-        @keyframes moonPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-        }
+        @keyframes moonPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 
         .loading-title {
             font-family: 'Playfair Display', serif;
@@ -754,15 +643,8 @@
             text-align: center;
         }
 
-        .network-info span {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .network-info i {
-            color: #facc15;
-        }
+        .network-info span { display: flex; align-items: center; gap: 8px; }
+        .network-info i { color: #facc15; }
 
         .floating-lantern {
             animation: float 6s ease-in-out infinite;
@@ -793,10 +675,7 @@
 
         .blindbox-overlay.active { display: flex; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .blindbox-container {
             background: linear-gradient(145deg, #1a1a3e, #0d1329);
@@ -852,30 +731,9 @@
             overflow: hidden;
         }
 
-        .blindbox-item .box-icon {
-            font-size: 4rem;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        .blindbox-item .box-label {
-            color: #e2e8f0;
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
-
-        .blindbox-item .box-prize {
-            color: #facc15;
-            font-weight: 800;
-            font-size: 1.3rem;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            word-break: break-word;
-        }
+        .blindbox-item .box-icon { font-size: 4rem; display: block; margin-bottom: 10px; }
+        .blindbox-item .box-label { color: #e2e8f0; font-weight: 700; font-size: 1.1rem; margin-bottom: 5px; }
+        .blindbox-item .box-prize { color: #facc15; font-weight: 800; font-size: 1.3rem; min-height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; word-break: break-word; }
 
         .blindbox-item.host-selected {
             border-color: #facc15 !important;
@@ -897,11 +755,7 @@
         }
 
         .blindbox-item.revealed .box-prize { color: #4ade80 !important; }
-
-        .blindbox-item.waiting {
-            opacity: 0.6;
-            filter: grayscale(30%);
-        }
+        .blindbox-item.waiting { opacity: 0.6; filter: grayscale(30%); }
 
         .blindbox-close-btn {
             display: block;
@@ -918,15 +772,8 @@
             box-shadow: 0 8px 25px rgba(250, 204, 21, 0.4);
         }
 
-        .blindbox-close-btn:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 0 12px 35px rgba(250, 204, 21, 0.6);
-        }
-
-        .blindbox-close-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .blindbox-close-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 12px 35px rgba(250, 204, 21, 0.6); }
+        .blindbox-close-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .blindbox-result-message {
             text-align: center;
@@ -998,9 +845,9 @@
     <!-- WATERMARK DÒNG GIỮA -->
     <div id="watermarkMid">Thiết kế Minh</div>
 
-    <!-- PRE-INTRO IMAGE LAYER - HOST ĐIỀU KHIỂN -->
+    <!-- 🖼️ PRE-INTRO LAYER - ẢNH CỐ ĐỊNH -->
     <div id="preIntroLayer">
-        <img id="preIntroImage" src="" alt="Pre-Intro">
+        <img id="preIntroImage" src="https://files.catbox.moe/6b4li7.png" alt="Pre-Intro">
     </div>
 
     <!-- POPUP "QUÀ ĐÃ HẾT" -->
@@ -1295,17 +1142,6 @@
             outroMusicVolume: 0.65
         };
 
-        // PRE-INTRO STATE
-        let preIntroState = {
-            enabled: false,
-            url: '',
-            fitMode: 'contain',
-            opacity: 1.0
-        };
-        let lastPreIntroSignature = '';
-        let preIntroImageLoaded = false;
-        let currentPreIntroUrl = '';
-
         let prizePool = [];
         let previousPrizePool = null;
         let depletedPopupTimeout = null;
@@ -1368,7 +1204,6 @@
         const floatingTimerDisplay = document.getElementById('floatingTimerDisplay');
 
         const preIntroLayer = document.getElementById('preIntroLayer');
-        const preIntroImage = document.getElementById('preIntroImage');
 
         const depletedPopup = document.getElementById('depletedPopup');
         const depletedPrizeName = document.getElementById('depletedPrizeName');
@@ -1431,7 +1266,7 @@
         };
 
         // ============================================================
-        // SCROLL PROGRESS BAR
+        // SCROLL PROGRESS
         // ============================================================
         function updateScrollProgress() {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -2042,7 +1877,7 @@
         });
 
         // ============================================================
-        // FIREBASE: DISPLAY STATE (MODE + MUSIC)
+        // FIREBASE: DISPLAY LISTENER
         // ============================================================
         onValue(ref(db, 'quizGame/display'), (snap) => {
             if (!snap.exists()) {
@@ -2062,118 +1897,14 @@
         });
 
         // ============================================================
-        // FIREBASE: PRE-INTRO LISTENER
-        // ============================================================
-        const preIntroRef = ref(db, 'quizGame/display/preIntro');
-
-        onValue(preIntroRef, (snap) => {
-            if (!snap.exists()) {
-                console.log('📷 TV: preIntro chưa có dữ liệu');
-                preIntroState = {
-                    enabled: false,
-                    url: '',
-                    fitMode: 'contain',
-                    opacity: 1.0
-                };
-                renderPreIntro();
-                return;
-            }
-
-            const val = snap.val();
-            preIntroState = {
-                enabled: val.enabled ?? false,
-                url: val.url ?? '',
-                fitMode: val.fitMode ?? 'contain',
-                opacity: val.opacity ?? 1.0
-            };
-
-            console.log('📷 TV: preIntro update', preIntroState);
-            renderPreIntro();
-        }, (error) => {
-            console.error('❌ TV: Firebase preIntro error:', error);
-        });
-
-        // ============================================================
-        // RENDER PRE-INTRO
+        // PRE-INTRO - CHỈ BẬT/TẮT THEO MODE
         // ============================================================
         function renderPreIntro() {
-            const signature = JSON.stringify(preIntroState);
-            if (signature === lastPreIntroSignature) return;
-            lastPreIntroSignature = signature;
-
-            const { enabled, url, fitMode, opacity } = preIntroState;
-
-            // Nếu không bật hoặc không có URL → ẩn
-            if (!enabled || !url || url.trim() === '') {
-                hidePreIntro();
-                return;
-            }
-
-            // Nếu URL đổi → cần load ảnh mới
-            if (url !== currentPreIntroUrl) {
-                loadPreIntroImage(url, fitMode, opacity);
+            if (displayState.mode === 'PRE_INTRO') {
+                preIntroLayer.classList.add('visible');
             } else {
-                // URL giống → chỉ update fit + opacity + show
-                applyPreIntroStyles(fitMode, opacity);
-                showPreIntro();
+                preIntroLayer.classList.remove('visible');
             }
-        }
-
-        function loadPreIntroImage(url, fitMode, opacity) {
-            console.log('🖼️ TV: Đang tải preIntro image:', url);
-
-            // Ẩn layer cũ trước
-            hidePreIntro();
-
-            // Preload ảnh mới
-            const testImg = new Image();
-            testImg.crossOrigin = 'anonymous';
-
-            testImg.onload = () => {
-                preIntroImage.src = url;
-                currentPreIntroUrl = url;
-                preIntroImageLoaded = true;
-                applyPreIntroStyles(fitMode, opacity);
-
-                // Đợi 1 chút cho ảnh render rồi mới show
-                requestAnimationFrame(() => {
-                    setTimeout(() => {
-                        showPreIntro();
-                    }, 100);
-                });
-
-                console.log('✅ TV: PreIntro image loaded');
-            };
-
-            testImg.onerror = () => {
-                console.warn('⚠️ TV: Không tải được preIntro image:', url);
-                hidePreIntro();
-            };
-
-            testImg.src = url;
-        }
-
-        function applyPreIntroStyles(fitMode, opacity) {
-            if (fitMode === 'cover') {
-                preIntroLayer.classList.add('fit-cover');
-            } else {
-                preIntroLayer.classList.remove('fit-cover');
-            }
-            preIntroImage.style.opacity = opacity ?? 1;
-        }
-
-        function showPreIntro() {
-            preIntroLayer.classList.add('visible');
-        }
-
-        function hidePreIntro() {
-            preIntroLayer.classList.remove('visible');
-            // Reset URL cache sau khi ẩn hoàn toàn để lần sau load lại
-            setTimeout(() => {
-                if (!preIntroLayer.classList.contains('visible')) {
-                    // Giữ nguyên currentPreIntroUrl nếu vẫn cùng URL
-                }
-            }, 800);
         }
 
         // ============================================================
@@ -2184,7 +1915,15 @@
 
             const mode = displayState.mode;
 
-            if (mode === 'GAME') {
+            // Xử lý PRE-INTRO trước
+            renderPreIntro();
+
+            // Nếu đang ở PRE_INTRO → ẩn hết các layer khác
+            if (mode === 'PRE_INTRO') {
+                lobbyLayer.classList.remove('visible');
+                tvDisplayView.classList.remove('visible');
+                outroLayer.classList.remove('visible');
+            } else if (mode === 'GAME') {
                 lobbyLayer.classList.remove('visible');
                 outroLayer.classList.remove('visible');
                 tvDisplayView.classList.add('visible');
@@ -2649,7 +2388,7 @@
         updateScrollProgress();
 
         console.log('📺 TV Screen đã sẵn sàng');
-        console.log('📷 PRE-INTRO layer đã tích hợp - Lắng nghe quizGame/display/preIntro');
+        console.log('🖼️ PRE-INTRO: Ảnh cố định 6b4li7.png - Bật khi mode = PRE_INTRO');
     </script>
 </body>
 </html>
