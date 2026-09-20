@@ -2076,15 +2076,30 @@
             }
         }
 
+        // ============================================================
+        // ⏱️ TIMER - TỰ ĐỘNG DỪNG KHI HOST TRẢ LỜI XONG
+        // ============================================================
         function startLocalTimer() {
             clearInterval(localTimerInterval);
 
-            if (!gameState.timerEndTimestamp || gameState.status !== 'QUESTION') {
-                timerBar.style.width = '100%';
+            // ĐIỀU KIỆN DỪNG: nếu showResults = true → dừng timer ngay
+            if (!gameState.timerEndTimestamp || 
+                gameState.status !== 'QUESTION' || 
+                gameState.showResults === true) {
+                
+                // Ẩn floating timer
                 if (floatingTimer) floatingTimer.classList.remove('show');
+                
+                // Nếu chưa có kết quả (LOBBY) → reset bar về 100%
+                // Nếu đã có kết quả (đã trả lời) → giữ nguyên bar, không reset
+                if (gameState.status !== 'QUESTION' || !gameState.showResults) {
+                    timerBar.style.width = '100%';
+                }
+                
                 return;
             }
 
+            // Hiện floating timer khi đang có câu hỏi
             if (floatingTimer) floatingTimer.classList.add('show');
 
             localTimerInterval = setInterval(() => {
@@ -2342,7 +2357,8 @@
 
             const shouldPlayQuestionAudio = 
                 gameState.status === 'QUESTION' && 
-                displayState.mode === 'GAME';
+                displayState.mode === 'GAME' &&
+                gameState.showResults !== true; // ← Chỉ phát nhạc khi CHƯA có kết quả
 
             if (shouldPlayQuestionAudio) {
                 questionAudioShouldPlay = true;
@@ -2380,6 +2396,7 @@
         console.log('📺 TV Screen đã sẵn sàng');
         console.log('🖼️ PRE-INTRO: Ảnh cố định 6b4li7.png - Bật khi mode = PRE_INTRO');
         console.log('⏱️ TIMER: Floating ở top, 75% ngang (gần góc phải trên)');
+        console.log('🛑 TIMER AUTO-STOP: Timer dừng ngay khi Host trả lời (showResults = true)');
     </script>
 </body>
 </html>
