@@ -753,7 +753,7 @@
         });
 
         // ============================================================
-        // PRIZE POOL
+        // 🎁 GENERATE BOXES - LOGIC MỚI (KHÔNG TRÙNG CẢ 3)
         // ============================================================
         function generateBoxes() {
             if (!prizePool || prizePool.length === 0) {
@@ -777,24 +777,50 @@
             }
 
             const boxes = [];
+            const prizeUsageCount = {}; // Đếm số lần mỗi quà được dùng
+
             for (let i = 0; i < 3; i++) {
-                if (available.length === 0) {
+                // Lọc candidate: còn số lượng VÀ chưa dùng đủ 2 lần
+                const candidates = available.filter(p => {
+                    const usageCount = prizeUsageCount[p.id] || 0;
+                    return usageCount < 2;
+                });
+
+                // Nếu không còn candidate → thêm "chúc may mắn"
+                if (candidates.length === 0) {
                     boxes.push({ name: "Chúc may mắn lần sau", icon: "🍀", empty: true });
                     continue;
                 }
 
-                const totalRate = available.reduce((s, p) => s + (p.rate || 0), 0);
+                // Ưu tiên 1: quà chưa dùng (usageCount = 0)
+                let pool = candidates.filter(p => (prizeUsageCount[p.id] || 0) === 0);
+
+                // Ưu tiên 2: nếu hết quà chưa dùng → dùng quà đã dùng 1 lần
+                if (pool.length === 0) {
+                    pool = candidates.filter(p => (prizeUsageCount[p.id] || 0) === 1);
+                }
+
+                // Fallback: dùng tất cả candidates
+                if (pool.length === 0) {
+                    pool = candidates;
+                }
+
+                // Random theo tỷ lệ rate
                 let picked = null;
+                const totalRate = pool.reduce((s, p) => s + (p.rate || 0), 0);
 
                 if (totalRate > 0) {
                     let random = Math.random() * totalRate;
-                    for (const prize of available) {
+                    for (const prize of pool) {
                         random -= (prize.rate || 0);
                         if (random <= 0) { picked = prize; break; }
                     }
                 }
 
-                if (!picked) picked = available[Math.floor(Math.random() * available.length)];
+                if (!picked) picked = pool[Math.floor(Math.random() * pool.length)];
+
+                // Đánh dấu đã dùng
+                prizeUsageCount[picked.id] = (prizeUsageCount[picked.id] || 0) + 1;
 
                 boxes.push({
                     name: picked.name,
