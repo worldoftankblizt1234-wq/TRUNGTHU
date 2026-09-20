@@ -352,67 +352,6 @@
                 </button>
             </div>
 
-            <!-- 🖼️ PANEL CẤU HÌNH PRE-INTRO - CHỈ HIỆN KHI Ở MODE PRE_INTRO -->
-            <div id="preIntroConfig" class="mt-4 hidden">
-                <div class="bg-purple-500/10 border border-purple-500/40 rounded-xl p-4 flex flex-col gap-3">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i class="fa-solid fa-image text-purple-400 text-xl"></i>
-                        <span class="text-sm font-bold text-purple-300">Cấu hình ảnh Pre-Intro</span>
-                    </div>
-
-                    <!-- URL ảnh -->
-                    <div class="flex gap-2 flex-col sm:flex-row">
-                        <input 
-                            type="text" 
-                            id="preIntroUrlInput" 
-                            placeholder="https://example.com/image.jpg"
-                            class="flex-1 bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
-                        >
-                        <button id="btnLoadPreIntro" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap">
-                            <i class="fa-solid fa-download"></i>
-                            Tải & Lưu
-                        </button>
-                    </div>
-
-                    <!-- Fit mode + opacity -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs text-purple-300 font-bold uppercase tracking-wider block mb-2">
-                                <i class="fa-solid fa-crop mr-1"></i> Chế độ hiển thị
-                            </label>
-                            <div class="flex gap-2">
-                                <button data-fit="contain" class="preintro-fit-btn flex-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1 border border-slate-700">
-                                    <i class="fa-solid fa-expand"></i> Vừa khung
-                                </button>
-                                <button data-fit="cover" class="preintro-fit-btn flex-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1 border border-slate-700">
-                                    <i class="fa-solid fa-arrows-alt"></i> Phủ kín
-                                </button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="text-xs text-purple-300 font-bold uppercase tracking-wider block mb-2">
-                                <i class="fa-solid fa-circle-half-stroke mr-1"></i> Độ mờ
-                                <span id="preintroOpacityLabel" class="text-purple-400 ml-1">100%</span>
-                            </label>
-                            <input type="range" id="preintroOpacitySlider" min="10" max="100" value="100"
-                                   class="w-full accent-purple-400 cursor-pointer">
-                        </div>
-                    </div>
-
-                    <!-- Preview nhỏ -->
-                    <div id="preintroPreviewBox" class="mt-1 hidden">
-                        <div class="text-xs text-purple-300 font-bold uppercase tracking-wider mb-2">
-                            <i class="fa-solid fa-eye mr-1"></i> Xem trước
-                        </div>
-                        <div class="bg-slate-950/60 border border-slate-700 rounded-lg p-2 flex justify-center items-center" style="min-height: 100px;">
-                            <img id="preintroPreviewImg" src="" alt="Preview" 
-                                 style="max-width: 100%; max-height: 140px; border-radius: 6px; object-fit: contain;">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- 🎵 NÚT NHẠC OUTRO - CHỈ HIỆN KHI Ở MODE OUTRO -->
             <div id="outroMusicControl" class="mt-4 hidden">
                 <div class="bg-pink-500/10 border border-pink-500/40 rounded-xl p-4 flex flex-col gap-3">
@@ -685,12 +624,6 @@
             blindboxEnabled: true
         };
 
-        let preIntroState = {
-            url: 'https://files.catbox.moe/9py9n2.webp',
-            fitMode: 'contain',
-            opacity: 1.0
-        };
-
         let prizePool = [];
 
         let localTimerInterval = null;
@@ -747,16 +680,6 @@
         const musicLabel = document.getElementById('musicLabel');
         const volumeSlider = document.getElementById('volumeSlider');
         const volumeLabel = document.getElementById('volumeLabel');
-
-        // Pre-Intro config DOM
-        const preIntroConfig = document.getElementById('preIntroConfig');
-        const preIntroUrlInput = document.getElementById('preIntroUrlInput');
-        const btnLoadPreIntro = document.getElementById('btnLoadPreIntro');
-        const preintroOpacitySlider = document.getElementById('preintroOpacitySlider');
-        const preintroOpacityLabel = document.getElementById('preintroOpacityLabel');
-        const preintroPreviewBox = document.getElementById('preintroPreviewBox');
-        const preintroPreviewImg = document.getElementById('preintroPreviewImg');
-        const preintroFitBtns = document.querySelectorAll('.preintro-fit-btn');
 
         // Question Volume DOM
         const questionVolumeSlider = document.getElementById('questionVolumeSlider');
@@ -1258,39 +1181,6 @@
             questionVolumeSlider.value = Math.round((displayState.questionVolume ?? 0.78) * 100);
             questionVolumeLabel.textContent = Math.round((displayState.questionVolume ?? 0.78) * 100) + '%';
 
-            // PRE-INTRO PANEL
-            if (mode === 'PRE_INTRO') {
-                preIntroConfig.classList.remove('hidden');
-            } else {
-                preIntroConfig.classList.add('hidden');
-            }
-
-            // Fit buttons
-            preintroFitBtns.forEach(btn => {
-                if (btn.dataset.fit === preIntroState.fitMode) {
-                    btn.classList.remove('bg-slate-800', 'hover:bg-slate-700', 'text-slate-300', 'border-slate-700');
-                    btn.classList.add('bg-purple-600', 'hover:bg-purple-500', 'text-white', 'border-purple-400');
-                } else {
-                    btn.classList.add('bg-slate-800', 'hover:bg-slate-700', 'text-slate-300', 'border-slate-700');
-                    btn.classList.remove('bg-purple-600', 'hover:bg-purple-500', 'text-white', 'border-purple-400');
-                }
-            });
-
-            // Preview
-            if (preIntroState.url) {
-                preintroPreviewBox.classList.remove('hidden');
-                preintroPreviewImg.src = preIntroState.url;
-                if (!preIntroUrlInput.matches(':focus')) {
-                    preIntroUrlInput.value = preIntroState.url;
-                }
-            } else {
-                preintroPreviewBox.classList.add('hidden');
-            }
-
-            const opacityPct = Math.round((preIntroState.opacity ?? 1) * 100);
-            preintroOpacitySlider.value = opacityPct;
-            preintroOpacityLabel.textContent = opacityPct + '%';
-
             // Outro music panel
             if (mode === 'OUTRO') {
                 outroMusicControl.classList.remove('hidden');
@@ -1361,83 +1251,6 @@
             showToast("🖼️ TV chuyển sang màn hình Pre-Intro", "success");
         });
 
-        // PRE-INTRO LOAD URL
-        btnLoadPreIntro.addEventListener('click', async () => {
-            const url = preIntroUrlInput.value.trim();
-            if (!url) {
-                showToast("Vui lòng nhập URL ảnh!", "error");
-                return;
-            }
-
-            btnLoadPreIntro.disabled = true;
-            btnLoadPreIntro.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
-
-            const testImg = new Image();
-            testImg.crossOrigin = 'anonymous';
-
-            testImg.onload = async () => {
-                preIntroState.url = url;
-                preintroPreviewBox.classList.remove('hidden');
-                preintroPreviewImg.src = url;
-
-                try {
-                    await set(ref(db, 'quizGame/display/preIntro'), preIntroState);
-                    showToast("✅ Đã tải & lưu ảnh Pre-Intro!", "success");
-                } catch (e) {
-                    showToast("Lỗi lưu ảnh: " + e.message, "error");
-                }
-
-                btnLoadPreIntro.disabled = false;
-                btnLoadPreIntro.innerHTML = '<i class="fa-solid fa-download"></i> Tải & Lưu';
-            };
-
-            testImg.onerror = () => {
-                showToast("Không tải được ảnh từ URL này!", "error");
-                btnLoadPreIntro.disabled = false;
-                btnLoadPreIntro.innerHTML = '<i class="fa-solid fa-download"></i> Tải & Lưu';
-            };
-
-            testImg.src = url;
-        });
-
-        preIntroUrlInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') btnLoadPreIntro.click();
-        });
-
-        // PRE-INTRO FIT
-        preintroFitBtns.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const fit = btn.dataset.fit;
-                if (preIntroState.fitMode === fit) return;
-
-                preIntroState.fitMode = fit;
-                try {
-                    await set(ref(db, 'quizGame/display/preIntro'), preIntroState);
-                    renderDisplayUI();
-                    showToast(`Đã đổi: ${fit === 'cover' ? 'Phủ kín' : 'Vừa khung'}`, "success");
-                } catch (e) {
-                    showToast("Lỗi lưu: " + e.message, "error");
-                }
-            });
-        });
-
-        // PRE-INTRO OPACITY
-        let preIntroOpacityTimeout = null;
-        preintroOpacitySlider.addEventListener('input', (e) => {
-            const pct = parseInt(e.target.value);
-            preintroOpacityLabel.textContent = pct + '%';
-
-            if (preIntroOpacityTimeout) clearTimeout(preIntroOpacityTimeout);
-            preIntroOpacityTimeout = setTimeout(async () => {
-                preIntroState.opacity = pct / 100;
-                try {
-                    await set(ref(db, 'quizGame/display/preIntro'), preIntroState);
-                } catch (e) {
-                    console.error("Save opacity error:", e);
-                }
-            }, 400);
-        });
-
         btnMusicToggle.addEventListener('click', () => {
             updateDisplayState({ musicPlaying: !displayState.musicPlaying });
             showToast(displayState.musicPlaying ? "🎵 Đã bật nhạc" : "🔇 Đã tắt nhạc", "info");
@@ -1474,7 +1287,6 @@
             updateDisplayState({ questionVolume: parseInt(e.target.value) / 100 });
         });
 
-        // FIREBASE: display listener
         onValue(ref(db, 'quizGame/display'), (snap) => {
             if (snap.exists()) {
                 const val = snap.val();
@@ -1487,30 +1299,10 @@
                     outroMusicVolume: val.outroMusicVolume ?? 0.65,
                     blindboxEnabled: val.blindboxEnabled !== false
                 };
-                if (val.preIntro) {
-                    preIntroState = {
-                        url: val.preIntro.url || preIntroState.url,
-                        fitMode: val.preIntro.fitMode || 'contain',
-                        opacity: val.preIntro.opacity ?? 1.0
-                    };
-                }
             } else {
                 set(ref(db, 'quizGame/display'), displayState);
             }
             renderDisplayUI();
-        });
-
-        // FIREBASE: preIntro listener
-        onValue(ref(db, 'quizGame/display/preIntro'), (snap) => {
-            if (snap.exists()) {
-                const val = snap.val();
-                preIntroState = {
-                    url: val.url || preIntroState.url,
-                    fitMode: val.fitMode || 'contain',
-                    opacity: val.opacity ?? 1.0
-                };
-                renderDisplayUI();
-            }
         });
 
         renderDisplayUI();
@@ -1987,8 +1779,7 @@
                                 questionVolume: displayState.questionVolume ?? 0.78,
                                 outroMusicPlaying: false,
                                 outroMusicVolume: 0.65,
-                                blindboxEnabled: displayState.blindboxEnabled !== false,
-                                preIntro: preIntroState
+                                blindboxEnabled: displayState.blindboxEnabled !== false
                             }
                         });
                         showToast("🔄 Đã reset phòng + phần quà!", "success");
@@ -2026,21 +1817,6 @@
 
         // INIT
         loadQuestionsFromWorker();
-
-        // Load preIntro ban đầu
-        get(ref(db, 'quizGame/display/preIntro')).then((snap) => {
-            if (snap.exists()) {
-                const val = snap.val();
-                preIntroState = {
-                    url: val.url || preIntroState.url,
-                    fitMode: val.fitMode || 'contain',
-                    opacity: val.opacity ?? 1.0
-                };
-            } else {
-                set(ref(db, 'quizGame/display/preIntro'), preIntroState);
-            }
-            renderDisplayUI();
-        });
     </script>
 </body>
 </html>
