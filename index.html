@@ -230,12 +230,12 @@
         }
 
         /* ==================================================== */
-        /*   FLOATING TIMER                                     */
+        /*   FLOATING TIMER - GÓC TRÁI                          */
         /* ==================================================== */
         #floatingTimer {
             position: fixed;
             top: 12px;
-            right: 12px;
+            left: 12px;
             z-index: 99999;
             display: none;
             align-items: center;
@@ -264,7 +264,7 @@
         #floatingTimerDisplay { font-family: monospace; font-size: 1.6rem; font-weight: 900; color: #fde047; letter-spacing: 1px; text-shadow: 0 0 12px rgba(250, 204, 21, 0.8); min-width: 50px; text-align: center; }
 
         @media (max-width: 640px) {
-            #floatingTimer { top: 8px; right: 8px; padding: 5px 12px; gap: 6px; }
+            #floatingTimer { top: 8px; left: 8px; padding: 5px 12px; gap: 6px; }
             #floatingTimer i { font-size: 1rem; }
             #floatingTimerDisplay { font-size: 1.15rem; min-width: 40px; }
         }
@@ -836,7 +836,7 @@
     <!-- THANH TIẾN ĐỘ SCROLL -->
     <div id="scrollProgress"></div>
 
-    <!-- FLOATING TIMER -->
+    <!-- FLOATING TIMER - GÓC TRÁI -->
     <div id="floatingTimer">
         <i class="fa-solid fa-stopwatch"></i>
         <span id="floatingTimerDisplay">15s</span>
@@ -969,10 +969,7 @@
                 </span>
             </div>
 
-            <div class="flex items-center gap-2 md:gap-3 bg-slate-900/95 border-2 border-amber-400/60 px-3 md:px-8 py-1.5 md:py-2 rounded-full shadow-2xl">
-                <i class="fa-solid fa-stopwatch text-amber-400 text-xl md:text-3xl animate-pulse"></i>
-                <span id="timerDisplay" class="font-mono text-xl md:text-4xl font-black text-amber-300 tracking-wider">15s</span>
-            </div>
+            <!-- ⚠️ ĐÃ XÓA KHUNG TIMER TRONG HEADER -->
 
             <div class="flex items-center gap-2">
                 <button id="btnFullscreen" class="bg-slate-800/90 hover:bg-slate-700 text-amber-300 p-2 md:p-3 rounded-full border border-amber-500/40 transition-all duration-200 shadow-xl active:scale-95" title="Toàn màn hình">
@@ -1195,7 +1192,7 @@
         const questionStatusTag = document.getElementById('questionStatusTag');
         const topicLabel = document.getElementById('topicLabel');
         const mocBanImageWrapper = document.getElementById('mocBanImageWrapper');
-        const timerDisplay = document.getElementById('timerDisplay');
+        // ⚠️ ĐÃ XÓA: const timerDisplay = ... (không còn dùng)
         const timerBar = document.getElementById('timerBar');
         const btnFullscreen = document.getElementById('btnFullscreen');
 
@@ -2001,7 +1998,6 @@
                 questionText.innerText = "Đang chờ Host bắt đầu câu hỏi...";
                 questionStatusTag.innerText = "Đang chờ";
                 questionStatusTag.className = "text-[10px] md:text-sm font-bold text-slate-400 bg-slate-800/80 px-2 md:px-3.5 py-1 md:py-1.5 rounded-lg border border-slate-700";
-                timerDisplay.innerText = `${gameState.timerDuration || 15}s`;
                 timerBar.style.width = '100%';
                 
                 mocBanImageWrapper.classList.remove('active');
@@ -2103,13 +2099,11 @@
                 if (remainingMs <= 0) {
                     clearInterval(localTimerInterval);
                     timerBar.style.width = '0%';
-                    timerDisplay.innerText = '0s';
                     if (floatingTimerDisplay) floatingTimerDisplay.innerText = '0s';
                 } else {
                     const pct = Math.max(0, (remainingMs / totalMs) * 100);
                     timerBar.style.width = `${pct}%`;
                     const timeText = `${Math.ceil(remainingMs / 1000)}s`;
-                    timerDisplay.innerText = timeText;
                     if (floatingTimerDisplay) floatingTimerDisplay.innerText = timeText;
                 }
             }, 100);
@@ -2389,6 +2383,7 @@
 
         console.log('📺 TV Screen đã sẵn sàng');
         console.log('🖼️ PRE-INTRO: Ảnh cố định 6b4li7.png - Bật khi mode = PRE_INTRO');
+        console.log('⏱️ TIMER: Floating góc trái, khung header đã xóa');
     </script>
 </body>
 </html>
