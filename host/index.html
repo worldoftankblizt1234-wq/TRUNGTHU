@@ -1582,11 +1582,24 @@
             }
         }
 
-        // TIMER
+        // ============================================================
+        // ⏱️ TIMER HOST - DỪNG KHI HOST TRẢ LỜI XONG
+        // ============================================================
         function startLocalTimerAnimation() {
             clearInterval(localTimerInterval);
-            if (!gameState.timerEndTimestamp || gameState.status !== 'QUESTION') {
-                timerBar.style.width = '100%';
+
+            // ⚠️ ĐIỀU KIỆN MỚI: dừng timer khi showResults = true
+            if (!gameState.timerEndTimestamp || 
+                gameState.status !== 'QUESTION' || 
+                gameState.showResults === true) {
+                
+                // Nếu chưa có kết quả (LOBBY) → reset bar về 100%
+                // Nếu đã có kết quả (đã trả lời) → giữ nguyên bar, không reset
+                if (gameState.status !== 'QUESTION' || !gameState.showResults) {
+                    timerBar.style.width = '100%';
+                    timerDisplay.innerText = `${gameState.timerDuration || 15}s`;
+                }
+                
                 return;
             }
 
