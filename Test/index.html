@@ -2,294 +2,214 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Test Plus Code + Bản đồ</title>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Test — Mapbox mặc định + Locate + Lane Guidance</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/open-location-code@1.0.3/openlocationcode.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.js"></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+  
+  #map { width: 100%; height: 55vh; }
+  
+  .panel {
+    padding: 14px 16px;
+    background: #1e293b;
+    border-bottom: 2px solid #334155;
+  }
+  
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+  
+  input {
+    flex: 1; min-width: 160px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #475569;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 14px;
+  }
+  
+  button {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  
+  button:hover { background: #2563eb; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  .btn-route {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    width: 100%;
+  }
+  
+  .info {
+    padding: 14px 16px;
+    background: #0f172a;
+    font-size: 13px;
+    line-height: 1.5;
+    border-top: 2px solid #334155;
+    max-height: 45vh;
+    overflow-y: auto;
+  }
+  
+  .summary {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    color: white;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .summary-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+  }
+  
+  .lane-step {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #1e293b;
+    border-radius: 10px;
+    border-left: 3px solid #3b82f6;
+  }
+  
+  .lane-step .instr {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  
+  .lane-step .dist {
+    font-size: 11px;
+    color: #94a3b8;
+    font-family: monospace;
+    margin-bottom: 8px;
+  }
+  
+  .lanes {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  
+  .lane {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #334155;
+    font-size: 16px;
+    min-width: 46px;
+  }
+  
+  .lane.active {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.4);
+  }
+  
+  .lane.inactive {
+    opacity: 0.35;
+  }
+  
+  .lane .arrow { font-size: 18px; line-height: 1; }
+  .lane .label {
+    font-size: 8px;
+    font-weight: 800;
+    opacity: 0.85;
+    text-transform: uppercase;
+  }
+  
+  .no-lane {
+    font-size: 11px;
+    color: #64748b;
+    font-style: italic;
+  }
+  
+  .error { color: #f87171; padding: 10px; }
 
-body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  background: linear-gradient(135deg, #fdf2f8 0%, #ede9fe 100%);
-  min-height: 100vh;
-  padding: 20px;
-  color: #1a1a2e;
-}
-
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 24px;
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 2rem;
-}
-
-.card {
-  background: white;
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 20px 60px rgba(236, 72, 153, 0.15);
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #334155;
-  font-size: 0.95rem;
-}
-
-input {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #fce7f3;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-family: inherit;
-  background: #fdfafd;
-  transition: all 0.2s;
-}
-input:focus {
-  outline: none;
-  border-color: #ec4899;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
-}
-
-.hint {
-  font-size: 0.8rem;
-  color: #64748b;
-  margin-top: 6px;
-  line-height: 1.5;
-}
-.hint code {
-  background: rgba(236, 72, 153, 0.1);
-  color: #ec4899;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-}
-
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.btn {
-  width: 100%;
-  padding: 14px 20px;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
-}
-.btn-primary {
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
-  color: white;
-  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.35);
-}
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(236, 72, 153, 0.5);
-}
-.btn-secondary {
-  background: #f1f5f9;
-  color: #334155;
-  border: 2px solid #fce7f3;
-}
-.btn-secondary:hover {
-  background: #e2e8f0;
-}
-
-.result {
-  margin-top: 16px;
-  padding: 16px;
-  border-radius: 12px;
-  font-weight: 600;
-  display: none;
-}
-.result.show { display: block; }
-.result.success {
-  background: rgba(16, 185, 129, 0.1);
-  border-left: 4px solid #10b981;
-  color: #059669;
-}
-.result.error {
-  background: rgba(244, 63, 94, 0.1);
-  border-left: 4px solid #f43f5e;
-  color: #e11d48;
-}
-.result.loading {
-  background: rgba(59, 130, 246, 0.1);
-  border-left: 4px solid #3b82f6;
-  color: #2563eb;
-}
-
-.result-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 10px;
-  font-family: monospace;
-  font-size: 0.85rem;
-}
-.result-grid div {
-  padding: 8px 10px;
-  background: white;
-  border-radius: 8px;
-}
-.result-grid b {
-  color: #334155;
-  display: block;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-#map {
-  width: 100%;
-  height: 400px;
-  border-radius: 16px;
-  overflow: hidden;
-  margin-top: 12px;
-  border: 2px solid #fce7f3;
-  z-index: 1;
-}
-
-.leaflet-control-layers {
-  border-radius: 10px !important;
-  border: 2px solid #fce7f3 !important;
-  font-family: inherit !important;
-}
-.leaflet-control-layers-toggle {
-  width: 40px !important;
-  height: 40px !important;
-  background-size: 22px 22px !important;
-}
-.leaflet-control-layers-expanded {
-  padding: 10px 14px !important;
-  background: white !important;
-}
-.leaflet-control-layers label {
-  font-size: 0.85rem !important;
-  font-weight: 700 !important;
-  margin: 4px 0 !important;
-}
-
-.example {
-  background: #f1f5f9;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-family: monospace;
-  margin-top: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #334155;
-}
-.example:hover {
-  background: #e2e8f0;
-  transform: translateX(4px);
-}
-
-@media (max-width: 600px) {
-  .row { grid-template-columns: 1fr; }
-  h1 { font-size: 1.5rem; }
-}
+  /* ⭐ Locate button style */
+  .leaflet-control-locate a {
+    color: #3b82f6 !important;
+    font-size: 18px !important;
+  }
+  .leaflet-control-locate.active a {
+    color: #10b981 !important;
+  }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>🧪 Test Plus Code → Tọa độ</h1>
-
-  <div class="card">
-    <label>Nhập Plus Code (hoặc click example)</label>
-    <input 
-      type="text" 
-      id="inpPlusCode" 
-      placeholder="VD: XVHV+MPJ Long Bình, Đồng Nai"
-      value="XVHV+MPJ Long Bình, Đồng Nai"
-    />
-    <div class="hint">
-      <b>Định dạng hỗ trợ:</b><br/>
-      • Full: <code>7P58XVHV+MPJ</code> (11 ký tự)<br/>
-      • Short: <code>XVHV+MPJ</code> (8 ký tự, cần ref location)<br/>
-      • Có địa danh: <code>XVHV+MPJ Long Bình, Đồng Nai</code> (tự extract)
-    </div>
-
-    <div class="row" style="margin-top: 12px;">
-      <div>
-        <label style="font-size: 0.8rem;">Ref Lat (nếu short code)</label>
-        <input type="number" id="inpRefLat" value="10.95" step="0.0001" />
-      </div>
-      <div>
-        <label style="font-size: 0.8rem;">Ref Lng</label>
-        <input type="number" id="inpRefLng" value="106.82" step="0.0001" />
-      </div>
-    </div>
-    <div class="hint" style="margin-top: 6px;">
-      💡 Reference location cho short Plus Code. Mặc định là tâm Đồng Nai (10.95, 106.82). Có thể sửa.
-    </div>
-
-    <div style="margin-top: 14px;">
-      <div style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 6px;">📌 Examples:</div>
-      <div class="example" onclick="setExample('XVHV+MPJ Long Bình, Đồng Nai')">XVHV+MPJ Long Bình, Đồng Nai</div>
-      <div class="example" onclick="setExample('7P58XVHV+MPJ')">7P58XVHV+MPJ (full code)</div>
-      <div class="example" onclick="setExample('849VCWC8+R4'))" style="display:none"></div>
-      <div class="example" onclick="setExample('849VCWC8+R4')">849VCWC8+R4 (Singapore)</div>
-      <div class="example" onclick="setExample('7P58XVHV+MPJ Long Bình, Đồng Nai')">7P58XVHV+MPJ Long Bình, Đồng Nai (full + tên)</div>
-    </div>
-
-    <button class="btn btn-primary" id="btnDecode">
-      <i class="fas fa-map-pin"></i>
-      Decode Plus Code
-    </button>
-
-    <div class="result" id="resultBox"></div>
+<div class="panel">
+  <div class="row">
+    <input id="to" placeholder="Điểm đến (lat,lng)" value="10.8231,106.6297" />
+    <button id="btnGo">Đi tới</button>
   </div>
+  <div class="row">
+    <button class="btn-route" id="btnRoute">
+      <i>📍</i> Chỉ đường từ vị trí của tôi + Lane
+    </button>
+  </div>
+</div>
 
-  <div class="card">
-    <label><i class="fas fa-map"></i> Bản đồ kết quả</label>
-    <div id="map"></div>
-    <div class="hint" style="margin-top: 8px;">
-      Click vào nút bên trên để decode → bản đồ sẽ tự cập nhật vị trí.
-    </div>
+<div id="map"></div>
+
+<div class="info" id="info">
+  <div style="color:#94a3b8">
+    <b>💡 Hướng dẫn:</b><br/>
+    1. Bấm nút <b>📍 Chỉ đường từ vị trí của tôi + Lane</b> để lấy vị trí GPS<br/>
+    2. Hoặc bấm <b>nút định vị tròn</b> trên bản đồ (góc phải) để nhảy về vị trí mình<br/>
+    3. Zoom sâu để xem làn đường trên Mapbox<br/>
+    4. 3 layer mặc định: <b>Mapbox</b> → <b>Thunderforest</b> → <b>Vệ tinh</b>
   </div>
 </div>
 
 <script>
-/* =========================================================
-   TILE LAYERS
-   ========================================================= */
+const MAPBOX_TOKEN = 'pk.eyJ1IjoibWluaGFkb2YxIiwiYSI6ImNtdjdiZXlldTBxMnMyeHB3dXg2b2tlM2UifQ.ObuY1SJde-IPn044csY_jA';
+
+let map;
+let routeLayer = null;
+let userMarker = null;
+
+/* ⭐ 3 layer — THỨ TỰ: Mapbox (mặc định) → Thunderforest → Vệ tinh */
 const TILE_LAYERS = {
-  map: {
-    name: '🗺️ Bản đồ',
+  mapbox: {
+    name: '🚗 Mapbox',
+    url: `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`,
+    options: {
+      attribution: '© Mapbox © OpenStreetMap',
+      tileSize: 512,
+      zoomOffset: -1,
+      maxZoom: 22,
+      maxNativeZoom: 22,
+      detectRetina: true
+    }
+  },
+  thunderforest: {
+    name: '🗺️ Thunderforest',
     url: 'https://{s}.tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=9ac7b28593764dd996f9300417076ffd',
     options: {
-      attribution: 'Maps © <a href="https://www.thunderforest.com/">Thunderforest</a>, Data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution: '© Thunderforest © OpenStreetMap',
       subdomains: 'abc',
       maxZoom: 22
     }
@@ -298,322 +218,314 @@ const TILE_LAYERS = {
     name: '🛰️ Vệ tinh',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     options: {
-      attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',
-      maxZoom: 19
-    }
-  },
-  osm: {
-    name: '🗺️ OSM',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    options: {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19
+      attribution: 'Tiles © Esri',
+      maxZoom: 22,
+      maxNativeZoom: 19
     }
   }
 };
-
-/* =========================================================
-   STATE
-   ========================================================= */
-let map = null;
-let currentMarker = null;
-let currentCircle = null;
 
 /* =========================================================
    INIT MAP
    ========================================================= */
 function initMap() {
   map = L.map('map', {
-    center: [10.95, 106.82],
-    zoom: 12,
+    center: [10.7769, 106.7009],
+    zoom: 15,
+    maxZoom: 22,
     scrollWheelZoom: true
   });
 
-  const mapLayer = L.tileLayer(TILE_LAYERS.map.url, TILE_LAYERS.map.options);
+  // Tạo 3 layer
+  const mapboxLayer = L.tileLayer(TILE_LAYERS.mapbox.url, TILE_LAYERS.mapbox.options);
+  const tfLayer = L.tileLayer(TILE_LAYERS.thunderforest.url, TILE_LAYERS.thunderforest.options);
   const satLayer = L.tileLayer(TILE_LAYERS.satellite.url, TILE_LAYERS.satellite.options);
-  const osmLayer = L.tileLayer(TILE_LAYERS.osm.url, TILE_LAYERS.osm.options);
 
-  mapLayer.addTo(map);
+  // ⭐ Layer mặc định: Mapbox
+  mapboxLayer.addTo(map);
 
+  // ⭐ Layer control — thứ tự: Mapbox → Thunderforest → Vệ tinh
   L.control.layers({
-    [TILE_LAYERS.map.name]: mapLayer,
-    [TILE_LAYERS.satellite.name]: satLayer,
-    [TILE_LAYERS.osm.name]: osmLayer
+    [TILE_LAYERS.mapbox.name]: mapboxLayer,
+    [TILE_LAYERS.thunderforest.name]: tfLayer,
+    [TILE_LAYERS.satellite.name]: satLayer
   }, null, {
     position: 'topright',
     collapsed: true
   }).addTo(map);
 
-  setTimeout(() => map.invalidateSize(), 200);
-}
-
-/* =========================================================
-   EXTRACT PLUS CODE TỪ CHUỖI
-   ========================================================= */
-function extractPlusCode(input) {
-  if (!input) return null;
-
-  // Chuẩn hóa: trim, uppercase
-  let text = input.trim().toUpperCase();
-
-  // Pattern 1: Full Plus Code (10-11 ký tự, có dấu +)
-  // VD: 7P58XVHV+MPJ hoặc 8FVC9G8F+6W
-  const fullPattern = /\b[23456789CFGHJMPQRVWX]{4,8}\+[23456789CFGHJMPQRVWX]{2,3}\b/;
-  const fullMatch = text.match(fullPattern);
-
-  // Pattern 2: Short Plus Code (6-7 ký tự, có dấu +)
-  // VD: XVHV+MPJ hoặc XVHV+MP
-  const shortPattern = /\b[23456789CFGHJMPQRVWX]{2,4}\+[23456789CFGHJMPQRVWX]{2,3}\b/;
-  const shortMatch = text.match(shortPattern);
-
-  // Ưu tiên full code trước (chính xác hơn)
-  if (fullMatch && fullMatch[0].length >= 9) {
-    return { code: fullMatch[0], type: 'full' };
-  }
-
-  if (shortMatch) {
-    return { code: shortMatch[0], type: 'short' };
-  }
-
-  if (fullMatch) {
-    return { code: fullMatch[0], type: 'full' };
-  }
-
-  return null;
-}
-
-/* =========================================================
-   VALIDATE PLUS CODE
-   ========================================================= */
-function isValidPlusCode(code) {
-  try {
-    if (typeof OpenLocationCode === 'undefined') {
-      console.error('Thư viện OpenLocationCode chưa load');
-      return false;
-    }
-    return OpenLocationCode.isValid(code);
-  } catch (err) {
-    console.error('Validate error:', err);
-    return false;
-  }
-}
-
-function isFullPlusCode(code) {
-  try {
-    return OpenLocationCode.isFull(code);
-  } catch (err) {
-    return false;
-  }
-}
-
-/* =========================================================
-   DECODE PLUS CODE
-   ========================================================= */
-function decodePlusCode(code, refLat, refLng) {
-  try {
-    let fullCode = code;
-    let wasShortened = false;
-
-    // Nếu là short code → recover full code
-    if (!isFullPlusCode(code)) {
-      fullCode = OpenLocationCode.recoverNearest(code, refLat, refLng);
-      wasShortened = true;
-      console.log(`🔧 Recover: ${code} + ref(${refLat}, ${refLng}) → ${fullCode}`);
-    }
-
-    const area = OpenLocationCode.decode(fullCode);
-
-    return {
-      success: true,
-      fullCode: fullCode,
-      wasShortened: wasShortened,
-      lat: area.latitudeCenter,
-      lng: area.longitudeCenter,
-      latLo: area.latitudeLo,
-      latHi: area.latitudeHi,
-      lngLo: area.longitudeLo,
-      lngHi: area.longitudeHi,
-      codeLength: area.codeLength
-    };
-  } catch (err) {
-    console.error('Decode error:', err);
-    return {
-      success: false,
-      error: err.message
-    };
-  }
-}
-
-/* =========================================================
-   UPDATE MAP
-   ========================================================= */
-function updateMap(lat, lng, bounds) {
-  if (!map) return;
-
-  // Xóa marker/circle cũ
-  if (currentMarker) {
-    try { map.removeLayer(currentMarker); } catch (e) {}
-  }
-  if (currentCircle) {
-    try { map.removeLayer(currentCircle); } catch (e) {}
-  }
-
-  // Thêm marker
-  currentMarker = L.marker([lat, lng]).addTo(map);
-  currentMarker.bindPopup(
-    `<b>📍 Tọa độ tâm</b><br/>` +
-    `Lat: ${lat.toFixed(6)}<br/>` +
-    `Lng: ${lng.toFixed(6)}`
-  ).openPopup();
-
-  // Vẽ rectangle bao quanh vùng Plus Code (nếu có bounds)
-  if (bounds) {
-    const { latLo, latHi, lngLo, lngHi } = bounds;
-    const rectangleBounds = [
-      [latLo, lngLo],
-      [latHi, lngHi]
-    ];
-
-    currentCircle = L.rectangle(rectangleBounds, {
-      color: '#3b82f6',
-      weight: 2,
-      fillColor: '#3b82f6',
+  // ⭐ Locate Control — nút xanh
+  L.control.locate({
+    position: 'topright',
+    strings: { title: 'Vị trí của tôi' },
+    locateOptions: {
+      enableHighAccuracy: true,
+      maxZoom: 18,
+      watch: false,
+      timeout: 10000
+    },
+    icon: '📍',
+    iconLoading: '⏳',
+    showPopup: false,
+    setView: 'untilPanOrZoom',
+    flyTo: true,
+    drawCircle: true,
+    drawMarker: true,
+    circleStyle: {
+      color: '#10b981',
+      fillColor: '#10b981',
       fillOpacity: 0.15,
-      dashArray: '5,5'
-    }).addTo(map);
-
-    currentCircle.bindPopup(
-      `<b>📐 Vùng Plus Code</b><br/>` +
-      `Kích thước: ${((latHi - latLo) * 111000).toFixed(0)}m × ${((lngHi - lngLo) * 111000 * Math.cos(lat * Math.PI / 180)).toFixed(0)}m`
-    );
-
-    // Fit map vào vùng
-    map.fitBounds(rectangleBounds, { padding: [60, 60] });
-  } else {
-    map.setView([lat, lng], 17);
-  }
+      weight: 2
+    },
+    markerStyle: {
+      color: '#10b981',
+      fillColor: '#10b981',
+      fillOpacity: 0.9
+    }
+  }).addTo(map);
 }
 
 /* =========================================================
-   SHOW RESULT
+   HELPERS
    ========================================================= */
-function showResult(type, html) {
-  const box = document.getElementById('resultBox');
-  box.className = `result show ${type}`;
-  box.innerHTML = html;
+function parseLatLng(str) {
+  const parts = str.split(',').map(s => parseFloat(s.trim()));
+  if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+  return { lat: parts[0], lng: parts[1] };
 }
 
-/* =========================================================
-   MAIN HANDLER
-   ========================================================= */
-function handleDecode() {
-  const input = document.getElementById('inpPlusCode').value;
-  const refLat = parseFloat(document.getElementById('inpRefLat').value);
-  const refLng = parseFloat(document.getElementById('inpRefLng').value);
+function formatDistance(m) {
+  if (m < 1000) return Math.round(m) + ' m';
+  return (m / 1000).toFixed(2) + ' km';
+}
 
-  if (!input.trim()) {
-    showResult('error', '❌ Vui lòng nhập Plus Code');
-    return;
-  }
+function formatDuration(s) {
+  const mins = Math.round(s / 60);
+  if (mins < 60) return mins + ' phút';
+  const h = Math.floor(mins / 60);
+  return h + 'h ' + (mins % 60) + 'm';
+}
 
-  // Bước 1: Extract Plus Code
-  const extracted = extractPlusCode(input);
-  if (!extracted) {
-    showResult('error', `❌ Không tìm thấy Plus Code trong chuỗi: <br/><code>${input}</code>`);
-    return;
-  }
-
-  console.log('📌 Extracted:', extracted);
-
-  // Bước 2: Validate
-  if (!isValidPlusCode(extracted.code)) {
-    showResult('error', `❌ Plus Code không hợp lệ: <code>${extracted.code}</code>`);
-    return;
-  }
-
-  // Bước 3: Kiểm tra ref location
-  if (extracted.type === 'short' && (isNaN(refLat) || isNaN(refLng))) {
-    showResult('error', `❌ Short code cần Ref Lat/Lng hợp lệ`);
-    return;
-  }
-
-  // Bước 4: Decode
-  showResult('loading', '⏳ Đang decode...');
-
-  setTimeout(() => {
-    const result = decodePlusCode(
-      extracted.code,
-      isNaN(refLat) ? 10.95 : refLat,
-      isNaN(refLng) ? 106.82 : refLng
-    );
-
-    if (!result.success) {
-      showResult('error', `❌ Lỗi decode: ${result.error}`);
+function getUserLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Trình duyệt không hỗ trợ định vị'));
       return;
     }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy
+      }),
+      (err) => {
+        let msg = 'Không lấy được vị trí';
+        if (err.code === 1) msg = 'Bạn đã từ chối quyền truy cập vị trí';
+        else if (err.code === 2) msg = 'Không xác định được vị trí';
+        else if (err.code === 3) msg = 'Hết thời gian lấy vị trí';
+        reject(new Error(msg));
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  });
+}
 
-    // Bước 5: Hiển thị kết quả
-    const sizeLat = ((result.latHi - result.latLo) * 111000).toFixed(0);
-    const sizeLng = ((result.lngHi - result.lngLo) * 111000 * Math.cos(result.lat * Math.PI / 180)).toFixed(0);
+/* ⭐ Lane Icon Generator */
+function laneIcon(modifiers) {
+  if (!modifiers || !modifiers.length) return '↑';
+  const hasLeft = modifiers.some(m => m.includes('left'));
+  const hasStraight = modifiers.some(m => m.includes('straight'));
+  const hasRight = modifiers.some(m => m.includes('right'));
+  const hasUturn = modifiers.some(m => m.includes('uturn'));
 
-    showResult('success', `
-      ✅ Decode thành công!
-      <div class="result-grid">
-        <div><b>Original</b>${extracted.code}</div>
-        <div><b>Type</b>${extracted.type === 'full' ? 'Full (chính xác)' : 'Short (recovered)'}</div>
-        <div><b>Full Code</b>${result.fullCode}</div>
-        <div><b>Độ dài</b>${result.codeLength} ký tự</div>
-        <div><b>Lat Center</b>${result.lat.toFixed(7)}</div>
-        <div><b>Lng Center</b>${result.lng.toFixed(7)}</div>
-        <div><b>Lat Range</b>${result.latLo.toFixed(6)} → ${result.latHi.toFixed(6)}</div>
-        <div><b>Lng Range</b>${result.lngLo.toFixed(6)} → ${result.lngHi.toFixed(6)}</div>
-        <div><b>Kích thước</b>≈ ${sizeLat}m × ${sizeLng}m</div>
-        <div><b>Google Maps</b><a href="https://www.google.com/maps?q=${result.lat},${result.lng}" target="_blank" style="color:#ec4899;font-weight:800;">Mở ↗</a></div>
-      </div>
-    `);
-
-    // Bước 6: Update map
-    updateMap(result.lat, result.lng, {
-      latLo: result.latLo,
-      latHi: result.latHi,
-      lngLo: result.lngLo,
-      lngHi: result.lngHi
-    });
-
-  }, 100);
+  if (hasUturn && modifiers.length === 1) return '⤵';
+  if (hasLeft && hasStraight && hasRight) return '↰↑↱';
+  if (hasLeft && hasStraight) return '↰↑';
+  if (hasStraight && hasRight) return '↑↱';
+  if (hasLeft && hasRight) return '↰↱';
+  if (hasLeft) return '↰';
+  if (hasRight) return '↱';
+  if (hasStraight) return '↑';
+  return '↑';
 }
 
 /* =========================================================
-   SET EXAMPLE
+   MAPBOX DIRECTIONS + LANE
    ========================================================= */
-function setExample(text) {
-  document.getElementById('inpPlusCode').value = text;
-  handleDecode();
+async function getRoute(from, to) {
+  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/` +
+    `${from.lng},${from.lat};${to.lng},${to.lat}` +
+    `?access_token=${MAPBOX_TOKEN}` +
+    `&steps=true` +
+    `&banner_instructions=true` +
+    `&geometries=geojson` +
+    `&overview=full` +
+    `&language=vi`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Mapbox ${res.status}`);
+  const data = await res.json();
+  
+  if (data.code !== 'Ok' || !data.routes || !data.routes.length) {
+    throw new Error(data.message || 'Không tìm được đường');
+  }
+  
+  return data.routes[0];
 }
 
 /* =========================================================
-   INIT
+   VẼ ROUTE + RENDER LANE PANEL
    ========================================================= */
-window.addEventListener('load', () => {
-  // Đợi thư viện load xong
-  setTimeout(() => {
-    if (typeof OpenLocationCode === 'undefined') {
-      showResult('error', '❌ Thư viện OpenLocationCode chưa load! Kiểm tra kết nối mạng.');
-      return;
+function drawRoute(route, from, to) {
+  // Xoá cũ
+  if (routeLayer) map.removeLayer(routeLayer);
+  if (userMarker) map.removeLayer(userMarker);
+  map.eachLayer(layer => {
+    if (layer instanceof L.Marker && layer !== userMarker) map.removeLayer(layer);
+  });
+
+  // Vẽ đường
+  const coords = route.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+  routeLayer = L.polyline(coords, {
+    color: '#3b82f6',
+    weight: 6,
+    opacity: 0.85,
+    lineCap: 'round',
+    lineJoin: 'round'
+  }).addTo(map);
+
+  // Marker user
+  const userIcon = L.divIcon({
+    className: 'user-marker-wrapper',
+    html: '<div style="background:#10b981;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 4px rgba(16,185,129,0.3);"></div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+  });
+  userMarker = L.marker([from.lat, from.lng], { icon: userIcon })
+    .addTo(map)
+    .bindPopup('<b>📍 Bạn ở đây</b>');
+
+  // Marker đích
+  L.marker([to.lat, to.lng]).addTo(map).bindPopup('<b>🏁 Điểm đến</b>');
+
+  // Fit bounds
+  map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
+}
+
+function renderLanePanel(route) {
+  const info = document.getElementById('info');
+  
+  let html = `<div class="summary">
+    <div class="summary-item">🛣️ ${formatDistance(route.distance)}</div>
+    <div class="summary-item">⏱️ ${formatDuration(route.duration)}</div>
+    <div class="summary-item" style="opacity:0.75;font-size:11px;">Mapbox</div>
+  </div>`;
+  
+  const steps = route.legs[0].steps;
+  let laneCount = 0;
+  
+  steps.forEach((step, idx) => {
+    const instr = step.maneuver?.instruction || '(không có hướng dẫn)';
+    const dist = step.distance;
+    const banner = step.bannerInstructions?.[0];
+    const lanes = banner?.sub?.components?.[0]?.lanes 
+               || banner?.primary?.components?.[0]?.lanes 
+               || [];
+    
+    if (lanes && lanes.length) laneCount++;
+    
+    html += `<div class="lane-step">`;
+    html += `<div class="instr">${idx + 1}. ${instr}</div>`;
+    html += `<div class="dist">📏 ${formatDistance(dist)}</div>`;
+    
+    if (lanes && lanes.length) {
+      html += `<div class="lanes">`;
+      lanes.forEach(lane => {
+        const active = lane.active ? 'active' : 'inactive';
+        const icon = laneIcon(lane.indications || []);
+        const label = (lane.indications || [])
+          .map(i => i.replace('straight', 'thẳng').replace('left', 'trái').replace('right', 'phải').replace('uturn', 'quay đầu'))
+          .join('/') || '—';
+        html += `
+          <div class="lane ${active}">
+            <span class="arrow">${icon}</span>
+            <span class="label">${label}</span>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div class="no-lane">(Không có data làn ở bước này)</div>`;
     }
-    console.log('✅ OpenLocationCode loaded:', OpenLocationCode);
-    initMap();
-    handleDecode(); // Auto decode example
-  }, 300);
+    
+    html += `</div>`;
+  });
+  
+  if (laneCount === 0) {
+    html += `<div class="no-lane" style="padding:10px;">
+      ℹ️ Khu vực này chưa có dữ liệu làn đường. Thử toạ độ ở TP.HCM trung tâm.
+    </div>`;
+  }
+  
+  info.innerHTML = html;
+}
+
+/* =========================================================
+   EVENTS
+   ========================================================= */
+document.getElementById('btnGo').addEventListener('click', () => {
+  const to = parseLatLng(document.getElementById('to').value);
+  if (!to) {
+    alert('Toạ độ không hợp lệ! Nhập dạng: lat,lng');
+    return;
+  }
+  map.setView([to.lat, to.lng], 17);
 });
 
-// Enter để decode
-document.getElementById('inpPlusCode').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') handleDecode();
+document.getElementById('btnRoute').addEventListener('click', async () => {
+  const btn = document.getElementById('btnRoute');
+  const info = document.getElementById('info');
+  const to = parseLatLng(document.getElementById('to').value);
+  
+  if (!to) {
+    info.innerHTML = '<div class="error">❌ Toạ độ điểm đến không hợp lệ</div>';
+    return;
+  }
+  
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Đang tìm đường...';
+  info.innerHTML = '<div style="color:#94a3b8">📍 Đang lấy vị trí GPS...</div>';
+  
+  try {
+    const from = await getUserLocation();
+    console.log('📍 Vị trí user:', from);
+    
+    info.innerHTML = '<div style="color:#94a3b8">🚗 Đang gọi Mapbox Directions API...</div>';
+    const route = await getRoute(from, to);
+    
+    drawRoute(route, from, to);
+    renderLanePanel(route);
+    
+    console.log('✅ Route OK:', formatDistance(route.distance), formatDuration(route.duration));
+    
+  } catch (err) {
+    console.error(err);
+    info.innerHTML = `<div class="error">❌ Lỗi: ${err.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
 });
 
-document.getElementById('btnDecode').addEventListener('click', handleDecode);
+/* =========================================================
+   START
+   ========================================================= */
+initMap();
+
+console.log('🧪 Test ready!');
+console.log('3 layer: Mapbox (default) → Thunderforest → Vệ tinh');
+console.log('Nút định vị góc phải + nút "Chỉ đường từ vị trí của tôi"');
 </script>
-
 </body>
 </html>
