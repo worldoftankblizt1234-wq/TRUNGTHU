@@ -9,20 +9,20 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
-  #map { height: 45vh; width: 100%; }
+  #map { height: 40vh; width: 100%; }
   .panel { padding: 14px; }
   .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
   .btn-route { background: #3b82f6; color: white; }
   .btn-voice { background: #ec4899; color: white; }
   .btn-voice.active { background: #10b981; }
   .btn-clear { background: #475569; color: white; }
-  .log { background: #1e293b; border-radius: 10px; padding: 12px; font-size: 0.75rem; font-family: monospace; max-height: 160px; overflow-y: auto; white-space: pre-wrap; margin-bottom: 10px; }
+  .log { background: #1e293b; border-radius: 10px; padding: 12px; font-size: 0.75rem; font-family: monospace; max-height: 140px; overflow-y: auto; white-space: pre-wrap; margin-bottom: 10px; }
   .log .speak { color: #34d399; }
   .log .skip { color: #f87171; }
   .log .info { color: #60a5fa; }
   .log .lane { color: #fbbf24; }
 
-  #lanePanel { display: none; background: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 10px; max-height: 300px; overflow-y: auto; }
+  #lanePanel { display: none; background: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 10px; max-height: 260px; overflow-y: auto; }
   .lane-step { margin-bottom: 8px; padding: 10px; background: #0f172a; border-radius: 8px; border-left: 3px solid #3b82f6; }
   .lane-step .instr { font-weight: 700; color: #e2e8f0; font-size: 0.8rem; margin-bottom: 3px; }
   .lane-step .dist { color: #64748b; font-family: monospace; font-size: 0.7rem; margin-bottom: 6px; }
@@ -36,6 +36,8 @@
 
   #nextPanel { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(15,15,30,0.92); color: white; padding: 12px 20px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; display: none; max-width: calc(100% - 40px); text-align: center; z-index: 9999; }
   #nextPanel.show { display: block; }
+
+  #liveStatus { background: #1e293b; border-radius: 10px; padding: 10px; font-family: monospace; font-size: 0.8rem; margin-bottom: 10px; color: #60a5fa; }
 </style>
 </head>
 <body>
@@ -47,6 +49,7 @@
   <button class="btn btn-voice" id="btnVoice">🔊 Bật voice dẫn đường</button>
   <button class="btn btn-clear" id="btnClear">🗑️ Xoá đường đi</button>
 
+  <div id="liveStatus">Chưa có route</div>
   <div id="lanePanel"></div>
   <div class="log" id="log">Sẵn sàng. Bấm "Chỉ đường" trước.</div>
 </div>
@@ -56,7 +59,7 @@
 <script>
 /* ===== CẤU HÌNH ===== */
 const WORKER_URL = 'https://map-birthday.anhminhadof123.workers.dev';
-const DEST = { lat: 10.982032, lng: 106.897494 }; // Tọa độ đích bạn vừa gửi
+const DEST = { lat: 10.982032, lng: 106.897494 }; // Tọa độ đích
 
 /* ===== STATE ===== */
 let map, routeLayer, userMarker, destMarker;
@@ -113,6 +116,10 @@ function updateNextPanel(text) {
   else p.classList.remove('show');
 }
 
+function updateLiveStatus(text) {
+  document.getElementById('liveStatus').textContent = text;
+}
+
 function getSpokenMarks(i) {
   if (!voiceSpokenMarks.has(i)) voiceSpokenMarks.set(i, new Set());
   return voiceSpokenMarks.get(i);
@@ -157,13 +164,8 @@ function renderLanePanel(steps) {
                || [];
 
     if (lanes.length) laneCount++;
-
-    // Log chi tiết để debug
-    if (banner) {
-      detailLog.push(`Bước ${idx+1}: có banner, lanes=${lanes.length}`);
-    } else {
-      detailLog.push(`Bước ${idx+1}: KHÔNG có bannerInstructions`);
-    }
+    if (banner) detailLog.push(`Bước ${idx+1}: có banner, lanes=${lanes.length}`);
+    else detailLog.push(`Bước ${idx+1}: KHÔNG có bannerInstructions`);
 
     html += `<div class="lane-step">`;
     html += `<div class="instr">${idx+1}. ${instr}</div>`;
@@ -191,7 +193,6 @@ function renderLanePanel(steps) {
   panel.style.display = 'block';
 
   log(`🛣️ Lane panel: ${laneCount}/${steps.length} bước có dữ liệu làn`, 'lane');
-  // Log 5 bước đầu để debug
   detailLog.slice(0, 5).forEach(l => log(`  ${l}`, 'lane'));
   if (detailLog.length > 5) log(`  ... và ${detailLog.length - 5} bước nữa`, 'lane');
 }
@@ -229,11 +230,14 @@ function drawRoute(route, from, to) {
   map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
 }
 
-/* ===== VOICE — PHIÊN BẢN ĐÃ SỬA ===== */
+/* ===== VOICE — PHIÊN BẢN HOÀN CHỈNH ===== */
 function checkAndSpeak(userLat, userLng, steps) {
   if (!voiceEnabled || !steps?.length) return;
 
-  const lastStep = steps[steps.length - 1];
+  const total = steps.length;
+
+  // 1. Kiểm tra đến đích
+  const lastStep = steps[total - 1];
   if (lastStep?.maneuver?.location) {
     const d = calcDistance(userLat, userLng, lastStep.maneuver.location[1], lastStep.maneuver.location[0]);
     if (d < 30 && !voiceArrivalSpoken) {
@@ -245,51 +249,90 @@ function checkAndSpeak(userLat, userLng, steps) {
   }
 
   const i = voiceCurrentStepIndex;
-  if (i >= steps.length) return;
+  if (i >= total) return;
   const step = steps[i];
   if (!step?.maneuver?.location) { voiceCurrentStepIndex = i + 1; return; }
 
   const stepLat = step.maneuver.location[1];
   const stepLng = step.maneuver.location[0];
-  const dist = calcDistance(userLat, userLng, stepLat, stepLng);
+  const dist = Math.round(calcDistance(userLat, userLng, stepLat, stepLng));
   const instruction = step.maneuver.instruction || 'tiếp tục';
 
-  log(`Bước ${i+1}/${steps.length}: còn ${formatDistance(dist)} — "${instruction}"`, 'info');
+  updateLiveStatus(`Bước ${i+1}/${total} • còn ${dist}m • ${instruction}`);
 
+  // 2. Đã qua bước này → chuyển bước
   if (dist < 20) {
-    log(`✅ Đã qua bước ${i+1}, chuyển bước ${i+2}`, 'info');
+    log(`✅ Qua bước ${i+1}`, 'info');
     voiceCurrentStepIndex = i + 1;
     return;
   }
 
-  if (dist > 1000) return;
-
   const spoken = getSpokenMarks(i);
-  let marks;
-  if (dist >= 500) marks = [500, 300, 200, 100, 50, 30, 10];
-  else if (dist >= 200) marks = [200, 100, 50, 30, 10];
-  else if (dist >= 100) marks = [100, 50, 30, 10];
-  else marks = [50, 30, 10];
 
-  for (const mark of marks) {
-    const key = `m${mark}`;
-    if (dist <= mark && !spoken.has(key)) {
+  // 3. Chỉ áp dụng quy tắc "luôn đọc" khi route >= 5 bước
+  if (total >= 5) {
+    const isFirst = (i === 0);
+    const isSecondLast = (i === total - 2); // X - 1, với X = total - 1 (số thứ tự bước kề cuối)
+    const isLast = (i === total - 1);
+    const isSpecial = isFirst || isSecondLast || isLast;
+
+    if (isSpecial) {
+      if (!spoken.has('special')) {
+        spoken.add('special');
+        speak(instruction);
+        updateNextPanel(`🔔 ${instruction}`);
+        return;
+      }
+      if (dist <= 20 && !spoken.has('action')) {
+        spoken.add('action');
+        speak(instruction);
+        updateNextPanel(`🔔 ${instruction}`);
+      }
+      return;
+    }
+  }
+
+  // 4. Quy tắc đọc theo khoảng cách (>=)
+  let shouldRead = false;
+  let readType = '';
+
+  if (dist >= 100 && dist <= 999) {
+    const lastTwo = dist % 100;
+    if (lastTwo >= 80) { shouldRead = true; readType = 'xyz'; }
+  } else if (dist >= 10 && dist <= 99) {
+    const lastDigit = dist % 10;
+    if (lastDigit >= 8) { shouldRead = true; readType = 'xy'; }
+  } else if (dist >= 5 && dist <= 9) {
+    if (dist >= 4) { shouldRead = true; readType = 'x'; }
+  }
+
+  // 5. Đọc chính xác nếu thỏa, chống lặp
+  if (shouldRead) {
+    const key = `exact_${dist}`;
+    if (!spoken.has(key) && !spoken.has('recentExact')) {
       spoken.add(key);
+      spoken.add('recentExact');
+      setTimeout(() => spoken.delete('recentExact'), 4000);
+
       let speakText, displayText;
-      if (mark <= 10) {
+      if (readType === 'x' || dist <= 10) {
         speakText = instruction;
         displayText = `🔔 ${instruction}`;
-      } else if (mark <= 30) {
-        speakText = `Chuẩn bị. ${instruction}`;
-        displayText = `⚠️ ${mark}m — ${instruction}`;
       } else {
-        speakText = `Sau ${mark} mét, ${instruction.toLowerCase()}`;
-        displayText = `${mark}m — ${instruction}`;
+        speakText = `Sau ${dist} mét, ${instruction.toLowerCase()}`;
+        displayText = `${dist}m — ${instruction}`;
       }
       speak(speakText);
       updateNextPanel(displayText);
       return;
     }
+  }
+
+  // 6. Luôn đọc lần cuối khi xuống dưới 20m
+  if (dist <= 20 && !spoken.has('action')) {
+    spoken.add('action');
+    speak(instruction);
+    updateNextPanel(`🔔 ${instruction}`);
   }
 }
 
@@ -338,6 +381,7 @@ function disableVoice() {
   document.getElementById('btnVoice').classList.remove('active');
   document.getElementById('btnVoice').textContent = '🔊 Bật voice dẫn đường';
   updateNextPanel('');
+  updateLiveStatus('Voice đã tắt');
   log('🔇 Đã tắt voice', 'skip');
 }
 
@@ -353,10 +397,8 @@ document.getElementById('btnRoute').addEventListener('click', async () => {
     drawRoute(route, from, DEST);
     voiceRouteSteps = route.legs[0].steps;
     log(`✅ Route: ${formatDistance(route.distance)}, ${route.legs[0].steps.length} bước`, 'info');
-
-    // Render lane panel
     renderLanePanel(route.legs[0].steps);
-
+    updateLiveStatus(`Route sẵn sàng: ${route.legs[0].steps.length} bước`);
     btn.textContent = '🗺️ Chỉ đường lại';
   } catch (e) {
     log(`❌ Lỗi: ${e.message}`, 'skip');
@@ -377,6 +419,7 @@ document.getElementById('btnClear').addEventListener('click', () => {
   if (destMarker) { map.removeLayer(destMarker); destMarker = null; }
   voiceRouteSteps = null;
   document.getElementById('lanePanel').style.display = 'none';
+  updateLiveStatus('Chưa có route');
   map.setView([DEST.lat, DEST.lng], 15);
   log('🗑️ Đã xoá route', 'skip');
 });
