@@ -3,24 +3,38 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>🧪 Test Voice Navigation</title>
+<title>🧪 Test Voice + Lane Guidance</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
-  #map { height: 55vh; width: 100%; }
+  #map { height: 45vh; width: 100%; }
   .panel { padding: 14px; }
   .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
   .btn-route { background: #3b82f6; color: white; }
   .btn-voice { background: #ec4899; color: white; }
   .btn-voice.active { background: #10b981; }
   .btn-clear { background: #475569; color: white; }
-  .log { background: #1e293b; border-radius: 10px; padding: 12px; font-size: 0.8rem; font-family: monospace; max-height: 180px; overflow-y: auto; white-space: pre-wrap; }
+  .log { background: #1e293b; border-radius: 10px; padding: 12px; font-size: 0.75rem; font-family: monospace; max-height: 160px; overflow-y: auto; white-space: pre-wrap; margin-bottom: 10px; }
   .log .speak { color: #34d399; }
-  .log .skip { color: #64748b; }
+  .log .skip { color: #f87171; }
   .log .info { color: #60a5fa; }
-  #nextPanel { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(15,15,30,0.92); color: white; padding: 12px 20px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; display: none; max-width: calc(100% - 40px); text-align: center; }
+  .log .lane { color: #fbbf24; }
+
+  #lanePanel { display: none; background: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 10px; max-height: 300px; overflow-y: auto; }
+  .lane-step { margin-bottom: 8px; padding: 10px; background: #0f172a; border-radius: 8px; border-left: 3px solid #3b82f6; }
+  .lane-step .instr { font-weight: 700; color: #e2e8f0; font-size: 0.8rem; margin-bottom: 3px; }
+  .lane-step .dist { color: #64748b; font-family: monospace; font-size: 0.7rem; margin-bottom: 6px; }
+  .lane-step .lanes { display: flex; gap: 6px; flex-wrap: wrap; }
+  .lane { padding: 6px 10px; border-radius: 8px; text-align: center; min-width: 46px; }
+  .lane.active { background: #10b981; color: white; }
+  .lane.inactive { background: #334155; color: #94a3b8; opacity: 0.45; }
+  .lane .arrow { font-size: 18px; line-height: 1; }
+  .lane .label { font-size: 8px; font-weight: 800; text-transform: uppercase; margin-top: 2px; }
+  .no-lane { color: #475569; font-style: italic; font-size: 11px; }
+
+  #nextPanel { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(15,15,30,0.92); color: white; padding: 12px 20px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; display: none; max-width: calc(100% - 40px); text-align: center; z-index: 9999; }
   #nextPanel.show { display: block; }
 </style>
 </head>
@@ -32,6 +46,8 @@
   <button class="btn btn-route" id="btnRoute">🗺️ Chỉ đường từ vị trí của tôi</button>
   <button class="btn btn-voice" id="btnVoice">🔊 Bật voice dẫn đường</button>
   <button class="btn btn-clear" id="btnClear">🗑️ Xoá đường đi</button>
+
+  <div id="lanePanel"></div>
   <div class="log" id="log">Sẵn sàng. Bấm "Chỉ đường" trước.</div>
 </div>
 
@@ -40,7 +56,7 @@
 <script>
 /* ===== CẤU HÌNH ===== */
 const WORKER_URL = 'https://map-birthday.anhminhadof123.workers.dev';
-const DEST = { lat: 10.982553, lng: 106.894169 }; // Long Bình, Đồng Nai
+const DEST = { lat: 10.982032, lng: 106.897494 }; // Tọa độ đích bạn vừa gửi
 
 /* ===== STATE ===== */
 let map, routeLayer, userMarker, destMarker;
@@ -102,6 +118,84 @@ function getSpokenMarks(i) {
   return voiceSpokenMarks.get(i);
 }
 
+/* ===== LANE ICON ===== */
+function laneIcon(modifiers) {
+  if (!modifiers?.length) return '↑';
+  const hasLeft = modifiers.some(m => m.includes('left'));
+  const hasStraight = modifiers.some(m => m.includes('straight'));
+  const hasRight = modifiers.some(m => m.includes('right'));
+  const hasUturn = modifiers.some(m => m.includes('uturn'));
+  if (hasUturn && modifiers.length === 1) return '⤵';
+  if (hasLeft && hasStraight && hasRight) return '↰↑↱';
+  if (hasLeft && hasStraight) return '↰↑';
+  if (hasStraight && hasRight) return '↑↱';
+  if (hasLeft && hasRight) return '↰↱';
+  if (hasLeft) return '↰';
+  if (hasRight) return '↱';
+  return '↑';
+}
+
+function laneLabel(modifiers) {
+  if (!modifiers?.length) return '—';
+  return modifiers.map(i =>
+    i.replace('straight', 'thẳng').replace('left', 'trái').replace('right', 'phải').replace('uturn', 'quay đầu')
+  ).join('/');
+}
+
+/* ===== RENDER LANE PANEL ===== */
+function renderLanePanel(steps) {
+  const panel = document.getElementById('lanePanel');
+  let html = '';
+  let laneCount = 0;
+  let detailLog = [];
+
+  steps.forEach((step, idx) => {
+    const instr = step.maneuver?.instruction || '(không có hướng dẫn)';
+    const banner = step.bannerInstructions?.[0];
+    const lanes = banner?.sub?.components?.[0]?.lanes
+               || banner?.primary?.components?.[0]?.lanes
+               || [];
+
+    if (lanes.length) laneCount++;
+
+    // Log chi tiết để debug
+    if (banner) {
+      detailLog.push(`Bước ${idx+1}: có banner, lanes=${lanes.length}`);
+    } else {
+      detailLog.push(`Bước ${idx+1}: KHÔNG có bannerInstructions`);
+    }
+
+    html += `<div class="lane-step">`;
+    html += `<div class="instr">${idx+1}. ${instr}</div>`;
+    html += `<div class="dist">📏 ${formatDistance(step.distance)}</div>`;
+
+    if (lanes.length) {
+      html += `<div class="lanes">`;
+      lanes.forEach(l => {
+        const active = l.active ? 'active' : 'inactive';
+        html += `<div class="lane ${active}">`;
+        html += `<div class="arrow">${laneIcon(l.indications || [])}</div>`;
+        html += `<div class="label">${laneLabel(l.indications || [])}</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div class="no-lane">Không có dữ liệu làn</div>`;
+    }
+    html += `</div>`;
+  });
+
+  panel.innerHTML = laneCount > 0
+    ? html
+    : `<div style="color:#f59e0b;padding:8px;">⚠️ Route này không có dữ liệu làn đường (0/${steps.length} bước)</div>`;
+  panel.style.display = 'block';
+
+  log(`🛣️ Lane panel: ${laneCount}/${steps.length} bước có dữ liệu làn`, 'lane');
+  // Log 5 bước đầu để debug
+  detailLog.slice(0, 5).forEach(l => log(`  ${l}`, 'lane'));
+  if (detailLog.length > 5) log(`  ... và ${detailLog.length - 5} bước nữa`, 'lane');
+}
+
 /* ===== ROUTING ===== */
 async function getRoute(from, to) {
   const url = `${WORKER_URL}/mapbox-route?from=${from.lng},${from.lat}&to=${to.lng},${to.lat}`;
@@ -135,11 +229,10 @@ function drawRoute(route, from, to) {
   map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
 }
 
-/* ===== ⭐ VOICE — PHIÊN BẢN ĐÃ SỬA ===== */
+/* ===== VOICE — PHIÊN BẢN ĐÃ SỬA ===== */
 function checkAndSpeak(userLat, userLng, steps) {
   if (!voiceEnabled || !steps?.length) return;
 
-  // 1. Đến đích chưa
   const lastStep = steps[steps.length - 1];
   if (lastStep?.maneuver?.location) {
     const d = calcDistance(userLat, userLng, lastStep.maneuver.location[1], lastStep.maneuver.location[0]);
@@ -151,7 +244,6 @@ function checkAndSpeak(userLat, userLng, steps) {
     }
   }
 
-  // 2. Chỉ lấy bước sắp tới
   const i = voiceCurrentStepIndex;
   if (i >= steps.length) return;
   const step = steps[i];
@@ -164,17 +256,14 @@ function checkAndSpeak(userLat, userLng, steps) {
 
   log(`Bước ${i+1}/${steps.length}: còn ${formatDistance(dist)} — "${instruction}"`, 'info');
 
-  // 3. Đã qua bước này
   if (dist < 20) {
     log(`✅ Đã qua bước ${i+1}, chuyển bước ${i+2}`, 'info');
     voiceCurrentStepIndex = i + 1;
     return;
   }
 
-  // 4. Quá xa
   if (dist > 1000) return;
 
-  // 5. Ngưỡng động
   const spoken = getSpokenMarks(i);
   let marks;
   if (dist >= 500) marks = [500, 300, 200, 100, 50, 30, 10];
@@ -230,7 +319,6 @@ function enableVoice() {
     checkAndSpeak(lastUserPosition.lat, lastUserPosition.lng, voiceRouteSteps);
   }, 2000);
 
-  // Watch GPS
   if (watchId) navigator.geolocation.clearWatch(watchId);
   watchId = navigator.geolocation.watchPosition(
     p => {
@@ -265,6 +353,10 @@ document.getElementById('btnRoute').addEventListener('click', async () => {
     drawRoute(route, from, DEST);
     voiceRouteSteps = route.legs[0].steps;
     log(`✅ Route: ${formatDistance(route.distance)}, ${route.legs[0].steps.length} bước`, 'info');
+
+    // Render lane panel
+    renderLanePanel(route.legs[0].steps);
+
     btn.textContent = '🗺️ Chỉ đường lại';
   } catch (e) {
     log(`❌ Lỗi: ${e.message}`, 'skip');
@@ -284,6 +376,7 @@ document.getElementById('btnClear').addEventListener('click', () => {
   if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
   if (destMarker) { map.removeLayer(destMarker); destMarker = null; }
   voiceRouteSteps = null;
+  document.getElementById('lanePanel').style.display = 'none';
   map.setView([DEST.lat, DEST.lng], 15);
   log('🗑️ Đã xoá route', 'skip');
 });
@@ -300,7 +393,7 @@ if (window.speechSynthesis) {
   speechSynthesis.onvoiceschanged = () => log('🔈 Đã load voices', 'info');
 }
 
-log('✅ Sẵn sàng test. Đích: Long Bình, Đồng Nai (10.982553, 106.894169)', 'info');
+log('✅ Sẵn sàng test. Đích: 10.982032, 106.897494', 'info');
 </script>
 </body>
 </html>
