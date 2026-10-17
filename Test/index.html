@@ -2,530 +2,305 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Test — Mapbox mặc định + Locate + Lane Guidance</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>🧪 Test Voice Navigation</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
-  
-  #map { width: 100%; height: 55vh; }
-  
-  .panel {
-    padding: 14px 16px;
-    background: #1e293b;
-    border-bottom: 2px solid #334155;
-  }
-  
-  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
-  
-  input {
-    flex: 1; min-width: 160px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid #475569;
-    background: #0f172a;
-    color: #e2e8f0;
-    font-size: 14px;
-  }
-  
-  button {
-    padding: 10px 18px;
-    border-radius: 8px;
-    border: none;
-    background: #3b82f6;
-    color: white;
-    font-weight: 700;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  
-  button:hover { background: #2563eb; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  
-  .btn-route {
-    background: linear-gradient(135deg, #3b82f6, #60a5fa);
-    width: 100%;
-  }
-  
-  .info {
-    padding: 14px 16px;
-    background: #0f172a;
-    font-size: 13px;
-    line-height: 1.5;
-    border-top: 2px solid #334155;
-    max-height: 45vh;
-    overflow-y: auto;
-  }
-  
-  .summary {
-    padding: 12px 16px;
-    background: linear-gradient(135deg, #3b82f6, #60a5fa);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    color: white;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  
-  .summary-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-  }
-  
-  .lane-step {
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    background: #1e293b;
-    border-radius: 10px;
-    border-left: 3px solid #3b82f6;
-  }
-  
-  .lane-step .instr {
-    font-size: 13px;
-    font-weight: 700;
-    color: #e2e8f0;
-    margin-bottom: 4px;
-    line-height: 1.4;
-  }
-  
-  .lane-step .dist {
-    font-size: 11px;
-    color: #94a3b8;
-    font-family: monospace;
-    margin-bottom: 8px;
-  }
-  
-  .lanes {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  
-  .lane {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: #334155;
-    font-size: 16px;
-    min-width: 46px;
-  }
-  
-  .lane.active {
-    background: linear-gradient(135deg, #10b981, #34d399);
-    color: white;
-    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.4);
-  }
-  
-  .lane.inactive {
-    opacity: 0.35;
-  }
-  
-  .lane .arrow { font-size: 18px; line-height: 1; }
-  .lane .label {
-    font-size: 8px;
-    font-weight: 800;
-    opacity: 0.85;
-    text-transform: uppercase;
-  }
-  
-  .no-lane {
-    font-size: 11px;
-    color: #64748b;
-    font-style: italic;
-  }
-  
-  .error { color: #f87171; padding: 10px; }
-
-  /* ⭐ Locate button style */
-  .leaflet-control-locate a {
-    color: #3b82f6 !important;
-    font-size: 18px !important;
-  }
-  .leaflet-control-locate.active a {
-    color: #10b981 !important;
-  }
+  #map { height: 55vh; width: 100%; }
+  .panel { padding: 14px; }
+  .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+  .btn-route { background: #3b82f6; color: white; }
+  .btn-voice { background: #ec4899; color: white; }
+  .btn-voice.active { background: #10b981; }
+  .btn-clear { background: #475569; color: white; }
+  .log { background: #1e293b; border-radius: 10px; padding: 12px; font-size: 0.8rem; font-family: monospace; max-height: 180px; overflow-y: auto; white-space: pre-wrap; }
+  .log .speak { color: #34d399; }
+  .log .skip { color: #64748b; }
+  .log .info { color: #60a5fa; }
+  #nextPanel { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(15,15,30,0.92); color: white; padding: 12px 20px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; display: none; max-width: calc(100% - 40px); text-align: center; }
+  #nextPanel.show { display: block; }
 </style>
 </head>
 <body>
 
-<div class="panel">
-  <div class="row">
-    <input id="to" placeholder="Điểm đến (lat,lng)" value="10.8231,106.6297" />
-    <button id="btnGo">Đi tới</button>
-  </div>
-  <div class="row">
-    <button class="btn-route" id="btnRoute">
-      <i>📍</i> Chỉ đường từ vị trí của tôi + Lane
-    </button>
-  </div>
-</div>
-
 <div id="map"></div>
 
-<div class="info" id="info">
-  <div style="color:#94a3b8">
-    <b>💡 Hướng dẫn:</b><br/>
-    1. Bấm nút <b>📍 Chỉ đường từ vị trí của tôi + Lane</b> để lấy vị trí GPS<br/>
-    2. Hoặc bấm <b>nút định vị tròn</b> trên bản đồ (góc phải) để nhảy về vị trí mình<br/>
-    3. Zoom sâu để xem làn đường trên Mapbox<br/>
-    4. 3 layer mặc định: <b>Mapbox</b> → <b>Thunderforest</b> → <b>Vệ tinh</b>
-  </div>
+<div class="panel">
+  <button class="btn btn-route" id="btnRoute">🗺️ Chỉ đường từ vị trí của tôi</button>
+  <button class="btn btn-voice" id="btnVoice">🔊 Bật voice dẫn đường</button>
+  <button class="btn btn-clear" id="btnClear">🗑️ Xoá đường đi</button>
+  <div class="log" id="log">Sẵn sàng. Bấm "Chỉ đường" trước.</div>
 </div>
 
+<div id="nextPanel"></div>
+
 <script>
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibWluaGFkb2YxIiwiYSI6ImNtdjdiZXlldTBxMnMyeHB3dXg2b2tlM2UifQ.ObuY1SJde-IPn044csY_jA';
+/* ===== CẤU HÌNH ===== */
+const WORKER_URL = 'https://map-birthday.anhminhadof123.workers.dev';
+const DEST = { lat: 10.982553, lng: 106.894169 }; // Long Bình, Đồng Nai
 
-let map;
-let routeLayer = null;
-let userMarker = null;
+/* ===== STATE ===== */
+let map, routeLayer, userMarker, destMarker;
+let voiceEnabled = false;
+let voiceRouteSteps = null;
+let voiceCurrentStepIndex = 0;
+let voiceSpokenMarks = new Map();
+let voiceCheckInterval = null;
+let voiceArrivalSpoken = false;
+let lastUserPosition = null;
+let watchId = null;
 
-/* ⭐ 3 layer — THỨ TỰ: Mapbox (mặc định) → Thunderforest → Vệ tinh */
-const TILE_LAYERS = {
-  mapbox: {
-    name: '🚗 Mapbox',
-    url: `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`,
-    options: {
-      attribution: '© Mapbox © OpenStreetMap',
-      tileSize: 512,
-      zoomOffset: -1,
-      maxZoom: 22,
-      maxNativeZoom: 22,
-      detectRetina: true
-    }
-  },
-  thunderforest: {
-    name: '🗺️ Thunderforest',
-    url: 'https://{s}.tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=9ac7b28593764dd996f9300417076ffd',
-    options: {
-      attribution: '© Thunderforest © OpenStreetMap',
-      subdomains: 'abc',
-      maxZoom: 22
-    }
-  },
-  satellite: {
-    name: '🛰️ Vệ tinh',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    options: {
-      attribution: 'Tiles © Esri',
-      maxZoom: 22,
-      maxNativeZoom: 19
-    }
-  }
-};
-
-/* =========================================================
-   INIT MAP
-   ========================================================= */
-function initMap() {
-  map = L.map('map', {
-    center: [10.7769, 106.7009],
-    zoom: 15,
-    maxZoom: 22,
-    scrollWheelZoom: true
-  });
-
-  // Tạo 3 layer
-  const mapboxLayer = L.tileLayer(TILE_LAYERS.mapbox.url, TILE_LAYERS.mapbox.options);
-  const tfLayer = L.tileLayer(TILE_LAYERS.thunderforest.url, TILE_LAYERS.thunderforest.options);
-  const satLayer = L.tileLayer(TILE_LAYERS.satellite.url, TILE_LAYERS.satellite.options);
-
-  // ⭐ Layer mặc định: Mapbox
-  mapboxLayer.addTo(map);
-
-  // ⭐ Layer control — thứ tự: Mapbox → Thunderforest → Vệ tinh
-  L.control.layers({
-    [TILE_LAYERS.mapbox.name]: mapboxLayer,
-    [TILE_LAYERS.thunderforest.name]: tfLayer,
-    [TILE_LAYERS.satellite.name]: satLayer
-  }, null, {
-    position: 'topright',
-    collapsed: true
-  }).addTo(map);
-
-  // ⭐ Locate Control — nút xanh
-  L.control.locate({
-    position: 'topright',
-    strings: { title: 'Vị trí của tôi' },
-    locateOptions: {
-      enableHighAccuracy: true,
-      maxZoom: 18,
-      watch: false,
-      timeout: 10000
-    },
-    icon: '📍',
-    iconLoading: '⏳',
-    showPopup: false,
-    setView: 'untilPanOrZoom',
-    flyTo: true,
-    drawCircle: true,
-    drawMarker: true,
-    circleStyle: {
-      color: '#10b981',
-      fillColor: '#10b981',
-      fillOpacity: 0.15,
-      weight: 2
-    },
-    markerStyle: {
-      color: '#10b981',
-      fillColor: '#10b981',
-      fillOpacity: 0.9
-    }
-  }).addTo(map);
+/* ===== HELPERS ===== */
+function log(msg, type = 'info') {
+  const el = document.getElementById('log');
+  const line = document.createElement('div');
+  line.className = type;
+  line.textContent = `[${new Date().toLocaleTimeString('vi-VN')}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
 }
 
-/* =========================================================
-   HELPERS
-   ========================================================= */
-function parseLatLng(str) {
-  const parts = str.split(',').map(s => parseFloat(s.trim()));
-  if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
-  return { lat: parts[0], lng: parts[1] };
+function calcDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-function formatDistance(m) {
-  if (m < 1000) return Math.round(m) + ' m';
-  return (m / 1000).toFixed(2) + ' km';
+function formatDistance(m) { return m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(1)} km`; }
+
+function getVietnameseVoice() {
+  if (!window.speechSynthesis) return null;
+  const voices = speechSynthesis.getVoices();
+  return voices.find(v => v.lang === 'vi-VN') || voices.find(v => v.lang.startsWith('vi'));
 }
 
-function formatDuration(s) {
-  const mins = Math.round(s / 60);
-  if (mins < 60) return mins + ' phút';
-  const h = Math.floor(mins / 60);
-  return h + 'h ' + (mins % 60) + 'm';
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'vi-VN';
+  u.rate = 1.0;
+  const vi = getVietnameseVoice();
+  if (vi) u.voice = vi;
+  speechSynthesis.speak(u);
+  log(`🔊 ${text}`, 'speak');
+}
+
+function updateNextPanel(text) {
+  const p = document.getElementById('nextPanel');
+  if (text) { p.textContent = text; p.classList.add('show'); }
+  else p.classList.remove('show');
+}
+
+function getSpokenMarks(i) {
+  if (!voiceSpokenMarks.has(i)) voiceSpokenMarks.set(i, new Set());
+  return voiceSpokenMarks.get(i);
+}
+
+/* ===== ROUTING ===== */
+async function getRoute(from, to) {
+  const url = `${WORKER_URL}/mapbox-route?from=${from.lng},${from.lat}&to=${to.lng},${to.lat}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Worker ${res.status}`);
+  const data = await res.json();
+  if (data.code !== 'Ok' || !data.routes?.length) throw new Error('Không có route');
+  return data.routes[0];
 }
 
 function getUserLocation() {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Trình duyệt không hỗ trợ định vị'));
-      return;
-    }
     navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        accuracy: pos.coords.accuracy
-      }),
-      (err) => {
-        let msg = 'Không lấy được vị trí';
-        if (err.code === 1) msg = 'Bạn đã từ chối quyền truy cập vị trí';
-        else if (err.code === 2) msg = 'Không xác định được vị trí';
-        else if (err.code === 3) msg = 'Hết thời gian lấy vị trí';
-        reject(new Error(msg));
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      p => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
+      e => reject(new Error(e.message)),
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   });
 }
 
-/* ⭐ Lane Icon Generator */
-function laneIcon(modifiers) {
-  if (!modifiers || !modifiers.length) return '↑';
-  const hasLeft = modifiers.some(m => m.includes('left'));
-  const hasStraight = modifiers.some(m => m.includes('straight'));
-  const hasRight = modifiers.some(m => m.includes('right'));
-  const hasUturn = modifiers.some(m => m.includes('uturn'));
-
-  if (hasUturn && modifiers.length === 1) return '⤵';
-  if (hasLeft && hasStraight && hasRight) return '↰↑↱';
-  if (hasLeft && hasStraight) return '↰↑';
-  if (hasStraight && hasRight) return '↑↱';
-  if (hasLeft && hasRight) return '↰↱';
-  if (hasLeft) return '↰';
-  if (hasRight) return '↱';
-  if (hasStraight) return '↑';
-  return '↑';
-}
-
-/* =========================================================
-   MAPBOX DIRECTIONS + LANE
-   ========================================================= */
-async function getRoute(from, to) {
-  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/` +
-    `${from.lng},${from.lat};${to.lng},${to.lat}` +
-    `?access_token=${MAPBOX_TOKEN}` +
-    `&steps=true` +
-    `&banner_instructions=true` +
-    `&geometries=geojson` +
-    `&overview=full` +
-    `&language=vi`;
-
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Mapbox ${res.status}`);
-  const data = await res.json();
-  
-  if (data.code !== 'Ok' || !data.routes || !data.routes.length) {
-    throw new Error(data.message || 'Không tìm được đường');
-  }
-  
-  return data.routes[0];
-}
-
-/* =========================================================
-   VẼ ROUTE + RENDER LANE PANEL
-   ========================================================= */
+/* ===== DRAW ===== */
 function drawRoute(route, from, to) {
-  // Xoá cũ
   if (routeLayer) map.removeLayer(routeLayer);
   if (userMarker) map.removeLayer(userMarker);
-  map.eachLayer(layer => {
-    if (layer instanceof L.Marker && layer !== userMarker) map.removeLayer(layer);
-  });
+  if (destMarker) map.removeLayer(destMarker);
 
-  // Vẽ đường
+  userMarker = L.marker([from.lat, from.lng]).addTo(map).bindPopup('📍 Bạn ở đây');
   const coords = route.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-  routeLayer = L.polyline(coords, {
-    color: '#3b82f6',
-    weight: 6,
-    opacity: 0.85,
-    lineCap: 'round',
-    lineJoin: 'round'
-  }).addTo(map);
-
-  // Marker user
-  const userIcon = L.divIcon({
-    className: 'user-marker-wrapper',
-    html: '<div style="background:#10b981;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 4px rgba(16,185,129,0.3);"></div>',
-    iconSize: [20, 20],
-    iconAnchor: [10, 10]
-  });
-  userMarker = L.marker([from.lat, from.lng], { icon: userIcon })
-    .addTo(map)
-    .bindPopup('<b>📍 Bạn ở đây</b>');
-
-  // Marker đích
-  L.marker([to.lat, to.lng]).addTo(map).bindPopup('<b>🏁 Điểm đến</b>');
-
-  // Fit bounds
+  routeLayer = L.polyline(coords, { color: '#3b82f6', weight: 6, opacity: 0.85 }).addTo(map);
+  destMarker = L.marker([to.lat, to.lng]).addTo(map).bindPopup('🏁 Điểm đến');
   map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
 }
 
-function renderLanePanel(route) {
-  const info = document.getElementById('info');
-  
-  let html = `<div class="summary">
-    <div class="summary-item">🛣️ ${formatDistance(route.distance)}</div>
-    <div class="summary-item">⏱️ ${formatDuration(route.duration)}</div>
-    <div class="summary-item" style="opacity:0.75;font-size:11px;">Mapbox</div>
-  </div>`;
-  
-  const steps = route.legs[0].steps;
-  let laneCount = 0;
-  
-  steps.forEach((step, idx) => {
-    const instr = step.maneuver?.instruction || '(không có hướng dẫn)';
-    const dist = step.distance;
-    const banner = step.bannerInstructions?.[0];
-    const lanes = banner?.sub?.components?.[0]?.lanes 
-               || banner?.primary?.components?.[0]?.lanes 
-               || [];
-    
-    if (lanes && lanes.length) laneCount++;
-    
-    html += `<div class="lane-step">`;
-    html += `<div class="instr">${idx + 1}. ${instr}</div>`;
-    html += `<div class="dist">📏 ${formatDistance(dist)}</div>`;
-    
-    if (lanes && lanes.length) {
-      html += `<div class="lanes">`;
-      lanes.forEach(lane => {
-        const active = lane.active ? 'active' : 'inactive';
-        const icon = laneIcon(lane.indications || []);
-        const label = (lane.indications || [])
-          .map(i => i.replace('straight', 'thẳng').replace('left', 'trái').replace('right', 'phải').replace('uturn', 'quay đầu'))
-          .join('/') || '—';
-        html += `
-          <div class="lane ${active}">
-            <span class="arrow">${icon}</span>
-            <span class="label">${label}</span>
-          </div>
-        `;
-      });
-      html += `</div>`;
-    } else {
-      html += `<div class="no-lane">(Không có data làn ở bước này)</div>`;
+/* ===== ⭐ VOICE — PHIÊN BẢN ĐÃ SỬA ===== */
+function checkAndSpeak(userLat, userLng, steps) {
+  if (!voiceEnabled || !steps?.length) return;
+
+  // 1. Đến đích chưa
+  const lastStep = steps[steps.length - 1];
+  if (lastStep?.maneuver?.location) {
+    const d = calcDistance(userLat, userLng, lastStep.maneuver.location[1], lastStep.maneuver.location[0]);
+    if (d < 30 && !voiceArrivalSpoken) {
+      voiceArrivalSpoken = true;
+      speak('Đã đến nơi. Cảm ơn bạn đã theo dõi.');
+      updateNextPanel('🎉 Đã đến nơi');
+      return;
     }
-    
-    html += `</div>`;
-  });
-  
-  if (laneCount === 0) {
-    html += `<div class="no-lane" style="padding:10px;">
-      ℹ️ Khu vực này chưa có dữ liệu làn đường. Thử toạ độ ở TP.HCM trung tâm.
-    </div>`;
   }
-  
-  info.innerHTML = html;
+
+  // 2. Chỉ lấy bước sắp tới
+  const i = voiceCurrentStepIndex;
+  if (i >= steps.length) return;
+  const step = steps[i];
+  if (!step?.maneuver?.location) { voiceCurrentStepIndex = i + 1; return; }
+
+  const stepLat = step.maneuver.location[1];
+  const stepLng = step.maneuver.location[0];
+  const dist = calcDistance(userLat, userLng, stepLat, stepLng);
+  const instruction = step.maneuver.instruction || 'tiếp tục';
+
+  log(`Bước ${i+1}/${steps.length}: còn ${formatDistance(dist)} — "${instruction}"`, 'info');
+
+  // 3. Đã qua bước này
+  if (dist < 20) {
+    log(`✅ Đã qua bước ${i+1}, chuyển bước ${i+2}`, 'info');
+    voiceCurrentStepIndex = i + 1;
+    return;
+  }
+
+  // 4. Quá xa
+  if (dist > 1000) return;
+
+  // 5. Ngưỡng động
+  const spoken = getSpokenMarks(i);
+  let marks;
+  if (dist >= 500) marks = [500, 300, 200, 100, 50, 30, 10];
+  else if (dist >= 200) marks = [200, 100, 50, 30, 10];
+  else if (dist >= 100) marks = [100, 50, 30, 10];
+  else marks = [50, 30, 10];
+
+  for (const mark of marks) {
+    const key = `m${mark}`;
+    if (dist <= mark && !spoken.has(key)) {
+      spoken.add(key);
+      let speakText, displayText;
+      if (mark <= 10) {
+        speakText = instruction;
+        displayText = `🔔 ${instruction}`;
+      } else if (mark <= 30) {
+        speakText = `Chuẩn bị. ${instruction}`;
+        displayText = `⚠️ ${mark}m — ${instruction}`;
+      } else {
+        speakText = `Sau ${mark} mét, ${instruction.toLowerCase()}`;
+        displayText = `${mark}m — ${instruction}`;
+      }
+      speak(speakText);
+      updateNextPanel(displayText);
+      return;
+    }
+  }
 }
 
-/* =========================================================
-   EVENTS
-   ========================================================= */
-document.getElementById('btnGo').addEventListener('click', () => {
-  const to = parseLatLng(document.getElementById('to').value);
-  if (!to) {
-    alert('Toạ độ không hợp lệ! Nhập dạng: lat,lng');
+/* ===== VOICE CONTROL ===== */
+function enableVoice() {
+  if (!voiceRouteSteps?.length) {
+    alert('Bấm "Chỉ đường" trước đã!');
     return;
   }
-  map.setView([to.lat, to.lng], 17);
-});
+  voiceEnabled = true;
+  voiceCurrentStepIndex = 0;
+  voiceSpokenMarks = new Map();
+  voiceArrivalSpoken = false;
+  document.getElementById('btnVoice').classList.add('active');
+  document.getElementById('btnVoice').textContent = '🔊 Voice đang bật (bấm để tắt)';
 
+  const first = voiceRouteSteps[0];
+  if (first?.maneuver) {
+    const instr = first.maneuver.instruction || 'Đi thẳng';
+    const d = first.distance || 0;
+    speak(d > 100 ? `Bắt đầu dẫn đường. Đi thẳng ${formatDistance(d)}, sau đó ${instr.toLowerCase()}` : `Bắt đầu dẫn đường. ${instr}`);
+  }
+
+  if (voiceCheckInterval) clearInterval(voiceCheckInterval);
+  voiceCheckInterval = setInterval(() => {
+    if (!voiceEnabled || !lastUserPosition) return;
+    checkAndSpeak(lastUserPosition.lat, lastUserPosition.lng, voiceRouteSteps);
+  }, 2000);
+
+  // Watch GPS
+  if (watchId) navigator.geolocation.clearWatch(watchId);
+  watchId = navigator.geolocation.watchPosition(
+    p => {
+      lastUserPosition = { lat: p.coords.latitude, lng: p.coords.longitude };
+      if (userMarker) userMarker.setLatLng([lastUserPosition.lat, lastUserPosition.lng]);
+    },
+    e => log(`⚠️ GPS: ${e.message}`, 'skip'),
+    { enableHighAccuracy: true, maximumAge: 2000, timeout: 15000 }
+  );
+}
+
+function disableVoice() {
+  voiceEnabled = false;
+  if (voiceCheckInterval) { clearInterval(voiceCheckInterval); voiceCheckInterval = null; }
+  if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  document.getElementById('btnVoice').classList.remove('active');
+  document.getElementById('btnVoice').textContent = '🔊 Bật voice dẫn đường';
+  updateNextPanel('');
+  log('🔇 Đã tắt voice', 'skip');
+}
+
+/* ===== EVENTS ===== */
 document.getElementById('btnRoute').addEventListener('click', async () => {
   const btn = document.getElementById('btnRoute');
-  const info = document.getElementById('info');
-  const to = parseLatLng(document.getElementById('to').value);
-  
-  if (!to) {
-    info.innerHTML = '<div class="error">❌ Toạ độ điểm đến không hợp lệ</div>';
-    return;
-  }
-  
-  const originalHtml = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = '⏳ Đang tìm đường...';
-  info.innerHTML = '<div style="color:#94a3b8">📍 Đang lấy vị trí GPS...</div>';
-  
+  btn.textContent = '⏳ Đang tìm đường...';
   try {
     const from = await getUserLocation();
-    console.log('📍 Vị trí user:', from);
-    
-    info.innerHTML = '<div style="color:#94a3b8">🚗 Đang gọi Mapbox Directions API...</div>';
-    const route = await getRoute(from, to);
-    
-    drawRoute(route, from, to);
-    renderLanePanel(route);
-    
-    console.log('✅ Route OK:', formatDistance(route.distance), formatDuration(route.duration));
-    
-  } catch (err) {
-    console.error(err);
-    info.innerHTML = `<div class="error">❌ Lỗi: ${err.message}</div>`;
+    log(`📍 Vị trí của bạn: ${from.lat.toFixed(6)}, ${from.lng.toFixed(6)}`, 'info');
+    const route = await getRoute(from, DEST);
+    drawRoute(route, from, DEST);
+    voiceRouteSteps = route.legs[0].steps;
+    log(`✅ Route: ${formatDistance(route.distance)}, ${route.legs[0].steps.length} bước`, 'info');
+    btn.textContent = '🗺️ Chỉ đường lại';
+  } catch (e) {
+    log(`❌ Lỗi: ${e.message}`, 'skip');
+    btn.textContent = '🗺️ Chỉ đường từ vị trí của tôi';
   } finally {
     btn.disabled = false;
-    btn.innerHTML = originalHtml;
   }
 });
 
-/* =========================================================
-   START
-   ========================================================= */
-initMap();
+document.getElementById('btnVoice').addEventListener('click', () => {
+  if (voiceEnabled) disableVoice(); else enableVoice();
+});
 
-console.log('🧪 Test ready!');
-console.log('3 layer: Mapbox (default) → Thunderforest → Vệ tinh');
-console.log('Nút định vị góc phải + nút "Chỉ đường từ vị trí của tôi"');
+document.getElementById('btnClear').addEventListener('click', () => {
+  disableVoice();
+  if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+  if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
+  if (destMarker) { map.removeLayer(destMarker); destMarker = null; }
+  voiceRouteSteps = null;
+  map.setView([DEST.lat, DEST.lng], 15);
+  log('🗑️ Đã xoá route', 'skip');
+});
+
+/* ===== INIT MAP ===== */
+map = L.map('map').setView([DEST.lat, DEST.lng], 15);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '© Esri', maxZoom: 19
+}).addTo(map);
+L.marker([DEST.lat, DEST.lng]).addTo(map).bindPopup('🏁 Điểm đến test').openPopup();
+
+if (window.speechSynthesis) {
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = () => log('🔈 Đã load voices', 'info');
+}
+
+log('✅ Sẵn sàng test. Đích: Long Bình, Đồng Nai (10.982553, 106.894169)', 'info');
 </script>
 </body>
 </html>
